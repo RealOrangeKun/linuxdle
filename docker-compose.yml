@@ -1,0 +1,49 @@
+services:
+  backend:
+    container_name: linuxdle-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Database=Host=postgres;Database=linuxdle;Username=linuxdle;Password=linuxdle
+      - ConnectionStrings__Redis=redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - linuxdle-network
+
+  postgres:
+    image: postgres:18
+    container_name: linuxdle-postgres
+    environment:
+      - POSTGRES_DB=linuxdle
+      - POSTGRES_USER=linuxdle
+      - POSTGRES_PASSWORD=linuxdle
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - linuxdle-network
+
+  redis:
+    image: redis:8
+    container_name: linuxdle-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - linuxdle-network
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  linuxdle-network:
+    driver: bridge
