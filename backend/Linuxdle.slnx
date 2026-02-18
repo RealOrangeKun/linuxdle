@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Linuxdle.Api/Linuxdle.Api.csproj" />
+    <Project Path="src/Linuxdle.Domain/Linuxdle.Domain.csproj" />
+    <Project Path="src/Linuxdle.Infrastructure/Linuxdle.Infrastructure.csproj" />
+    <Project Path="src/Linuxdle.Services/Linuxdle.Services.csproj" />
+  </Folder>
+</Solution>
