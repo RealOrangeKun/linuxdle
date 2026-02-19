@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Copy solution and project files
 COPY Linuxdle.slnx ./
+COPY Directory.Packages.props ./
 COPY global.json ./
 COPY src/ ./src/
 
