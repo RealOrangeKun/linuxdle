@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="Data/" />
+    <Folder Include="Data/Configurations/" />
     <Folder Include="Extensions/" />
   </ItemGroup>
 

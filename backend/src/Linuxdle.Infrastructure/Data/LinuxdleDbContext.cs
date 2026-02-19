@@ -1,9 +1,18 @@
+using Linuxdle.Domain.DailyCommands;
+using Linuxdle.Domain.DailyPuzzles;
+using Linuxdle.Domain.Games;
+using Linuxdle.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Linuxdle.Infrastructure.Data;
 
-internal sealed class LinuxdleDbContext(DbContextOptions<LinuxdleDbContext> options) : DbContext(options)
+public sealed class LinuxdleDbContext(DbContextOptions<LinuxdleDbContext> options) : DbContext(options)
 {
+    public DbSet<Game> Games { get; set; }
+    public DbSet<DailyPuzzle> DailyPuzzles { get; set; }
+    public DbSet<User> Users { get; set; }
+    public DbSet<DailyCommand> DailyCommands { get; set; }
+    public DbSet<DailyCommandCategory> DailyCommandCategories { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
