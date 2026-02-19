@@ -1,3 +1,5 @@
+using Linuxdle.Domain.Games;
+
 namespace Linuxdle.Domain.DailyPuzzles;
 
 public sealed class DailyPuzzle
@@ -7,6 +9,7 @@ public sealed class DailyPuzzle
     public int GameId { get; private set; }
     public int TargetId { get; private set; }
     public DateOnly ScheduledDate { get; private set; }
+    public Game Game { get; private set; } = null!;
 
     public static DailyPuzzle Create(int gameId, int targetId, DateOnly scheduledDate)
     {
