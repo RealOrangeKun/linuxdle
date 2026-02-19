@@ -11,6 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DailyCommands/" />
+    <Folder Include="Dtos/Enums/" />
     <Folder Include="Extensions/" />
   </ItemGroup>
 
