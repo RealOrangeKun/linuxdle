@@ -8,6 +8,6 @@ internal sealed class LinuxdleDbContext(DbContextOptions<LinuxdleDbContext> opti
     {
         base.OnModelCreating(modelBuilder);
 
-
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(LinuxdleDbContext).Assembly);
     }
 }
