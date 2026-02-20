@@ -1,4 +1,3 @@
-using System.Data;
 using Linuxdle.Domain.DailyCommands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
