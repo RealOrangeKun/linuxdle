@@ -1,4 +1,4 @@
-using Linuxdle.Services.Dtos;
+using Linuxdle.Services.Dtos.Records;
 
 namespace Linuxdle.Services.DailyCommands;
 
