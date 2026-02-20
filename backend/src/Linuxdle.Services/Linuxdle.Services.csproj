@@ -16,4 +16,8 @@
     <Folder Include="Extensions/" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FluentResults" />
+  </ItemGroup>
+
 </Project>
