@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Linuxdle.Domain.DailyCommands;
 
 public sealed class DailyCommand
@@ -13,6 +15,7 @@ public sealed class DailyCommand
     public bool RequiresArgs { get; private set; }
     public bool IsPosix { get; private set; }
 
+    [JsonIgnore]
     public ICollection<DailyCommandCategory> Categories { get; private set; } = [];
 
     public static DailyCommand Create(
