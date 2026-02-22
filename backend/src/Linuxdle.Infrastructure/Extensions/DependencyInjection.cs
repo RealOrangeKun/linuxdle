@@ -11,7 +11,7 @@ public static class DependencyInjection
     {
         public IServiceCollection AddInfrastructure(IConfiguration configuration)
         {
-            string? connectionString = configuration.GetConnectionString("Database");
+            string connectionString = configuration.GetConnectionString("Database") ?? throw new Exception();
 
             services.AddDbContext<LinuxdleDbContext>(options =>
                 options.UseNpgsql(connectionString)
