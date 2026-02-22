@@ -5,8 +5,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "5000:8080"
     environment:
+      - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__Database=Host=postgres;Database=linuxdle;Username=linuxdle;Password=linuxdle
       - ConnectionStrings__Redis=redis:6379
