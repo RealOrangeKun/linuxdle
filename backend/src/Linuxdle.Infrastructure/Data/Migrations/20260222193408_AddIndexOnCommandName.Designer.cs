@@ -3,6 +3,7 @@ using System;
 using Linuxdle.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Linuxdle.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(LinuxdleDbContext))]
-    partial class LinuxdleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260222193408_AddIndexOnCommandName")]
+    partial class AddIndexOnCommandName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

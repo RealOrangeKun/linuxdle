@@ -13,6 +13,10 @@ internal sealed class DailyCommandConfiguration
             .HasKey(dc => dc.Id);
 
         builder
+            .HasIndex(dc => dc.Name)
+            .IsUnique();
+
+        builder
             .HasMany(dc => dc.Categories)
             .WithMany(c => c.Commands);
 
