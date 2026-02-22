@@ -11,11 +11,12 @@ public sealed record MatchResults(
     bool IsCorrect,
     MatchResult Name,
     MatchResult Package,
-    MatchResult Categories,
     MatchResult Year,
     YearDirection YearHint,
     MatchResult Section,
-    MatchResult BuiltIn
+    MatchResult BuiltIn,
+    MatchResult Posix,
+    MatchResult Categories
 );
 
 public sealed record GuessCommandDetails(
