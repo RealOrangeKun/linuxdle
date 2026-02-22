@@ -1,15 +1,17 @@
+using Linuxdle.Api.Filters;
 using Linuxdle.Services.DailyCommands;
 using Linuxdle.Services.Dtos.Records;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Linuxdle.Api.Endpoints.DailyCommands.SubmitGuess;
 
-internal sealed class SubmitDailyCommandGuessEndpoint
+internal sealed partial class SubmitDailyCommandGuessEndpoint
     : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/daily-commands/guesses", HandleAsync);
+        app.MapPost("/daily-commands/guesses", HandleAsync)
+        .AddEndpointFilter<ValidationFilter<SubmitDailyCommandGuessRequest>>();
     }
 
     public static async Task<IResult> HandleAsync(
@@ -17,10 +19,8 @@ internal sealed class SubmitDailyCommandGuessEndpoint
         [FromServices] IDailyCommandService dailyCommandService,
         CancellationToken cancellationToken)
     {
-        GuessResultDto response = await dailyCommandService.HandleUserGuess(request.UserGuess, request.GameId, cancellationToken);
+        GuessResultDto response = await dailyCommandService.HandleUserGuessAsync(request.UserGuess, request.GameId, cancellationToken);
 
         return Results.Ok(response);
     }
-
-    public sealed record SubmitDailyCommandGuessRequest(string UserGuess, int GameId);
 }
