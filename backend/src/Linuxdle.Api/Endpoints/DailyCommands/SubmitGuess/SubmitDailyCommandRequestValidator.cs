@@ -2,19 +2,14 @@ using FluentValidation;
 
 namespace Linuxdle.Api.Endpoints.DailyCommands.SubmitGuess;
 
-internal sealed partial class SubmitDailyCommandGuessEndpoint
+internal sealed class SubmitDailyCommandRequestValidator : AbstractValidator<SubmitDailyCommandGuessRequest>
 {
-    public sealed class SubmitDailyCommandRequestValidator : AbstractValidator<SubmitDailyCommandGuessRequest>
+    public SubmitDailyCommandRequestValidator()
     {
-        public SubmitDailyCommandRequestValidator()
-        {
-            RuleFor(x => x.UserGuess)
-                .NotEmpty()
-                .WithMessage("User guess is required")
-                .MaximumLength(100)
-                .WithMessage("User guess must not exceed 100 characters");
-
-            RuleFor(x => x.GameId).GreaterThan(0);
-        }
+        RuleFor(x => x.UserGuess)
+            .NotEmpty()
+            .WithMessage("User guess is required")
+            .MaximumLength(100)
+            .WithMessage("User guess must not exceed 100 characters");
     }
 }

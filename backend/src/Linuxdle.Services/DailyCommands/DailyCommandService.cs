@@ -10,12 +10,12 @@ internal sealed class DailyCommandService(
     HybridCache hybridCache)
     : IDailyCommandService
 {
-    public async Task<GuessResultDto> HandleUserGuessAsync(string userGuess, int gameId, CancellationToken cancellationToken = default)
+    public async Task<DailyCommandGuessResultDto> HandleUserGuessAsync(string userGuess, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var target = await hybridCache.GetOrCreateAsync(
-            $"daily_target_{today}",
+            $"daily_command_target_{today}",
             async cancel => await dbContext.DailyCommands
                 .Include(c => c.Categories)
                 .Where(c => dbContext.DailyPuzzles
@@ -59,7 +59,7 @@ internal sealed class DailyCommandService(
             cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"Command '{userGuess}' not found");
 
-        return GuessResultCalculator.CalculateResults(target, guess);
+        return DailyCommandGuessResultCalculator.CalculateResults(target, guess);
     }
     public async Task<IEnumerable<string>> GetDailyCommandsAsync(CancellationToken cancellationToken = default)
     {

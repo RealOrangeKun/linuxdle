@@ -3,13 +3,13 @@ using Linuxdle.Services.Dtos.Records;
 
 namespace Linuxdle.Services.DailyCommands;
 
-internal static class GuessResultCalculator
+internal static class DailyCommandGuessResultCalculator
 {
-    public static GuessResultDto CalculateResults(DailyCommandDto target, DailyCommandDto guess)
+    public static DailyCommandGuessResultDto CalculateResults(DailyCommandDto target, DailyCommandDto guess)
     {
         var isCorrect = target.Id == guess.Id;
 
-        var matchResults = new MatchResults(
+        var matchResults = new DailyCommandMatchResults(
             IsCorrect: isCorrect,
             Name: target.Name == guess.Name ? MatchResult.Green : MatchResult.Red,
             Package: target.Package == guess.Package ? MatchResult.Green : MatchResult.Red,
@@ -32,7 +32,7 @@ internal static class GuessResultCalculator
             Categories: guess.CategoryNames
         );
 
-        return new GuessResultDto(matchResults, guessDetails);
+        return new DailyCommandGuessResultDto(matchResults, guessDetails);
     }
 
     private static MatchResult EvaluateCategories(HashSet<int> targetCatIds, HashSet<int> guessCatIds)

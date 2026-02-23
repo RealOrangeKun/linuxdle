@@ -2,12 +2,12 @@ using Linuxdle.Services.Dtos.Enums;
 
 namespace Linuxdle.Services.Dtos.Records;
 
-public sealed record GuessResultDto(
-    MatchResults MatchResults,
+public sealed record DailyCommandGuessResultDto(
+    DailyCommandMatchResults MatchResults,
     GuessCommandDetails GuessCommandDetails
 );
 
-public sealed record MatchResults(
+public sealed record DailyCommandMatchResults(
     bool IsCorrect,
     MatchResult Name,
     MatchResult Package,

@@ -19,7 +19,7 @@ internal sealed partial class SubmitDailyCommandGuessEndpoint
         [FromServices] IDailyCommandService dailyCommandService,
         CancellationToken cancellationToken)
     {
-        GuessResultDto response = await dailyCommandService.HandleUserGuessAsync(request.UserGuess, request.GameId, cancellationToken);
+        DailyCommandGuessResultDto response = await dailyCommandService.HandleUserGuessAsync(request.UserGuess, cancellationToken);
 
         return Results.Ok(response);
     }
