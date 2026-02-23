@@ -1,4 +1,5 @@
 using Linuxdle.Services.DailyCommands;
+using Linuxdle.Services.DailyDistros;
 using Linuxdle.Services.DailyPuzzles;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +14,8 @@ public static class DependencyInjection
             services.AddScoped<IDailyCommandService, DailyCommandService>();
 
             services.AddScoped<IDailyPuzzleService, DailyPuzzleService>();
+
+            services.AddScoped<IDailyDistroService, DailyDistroService>();
 
             return services;
         }

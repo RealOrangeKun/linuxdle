@@ -1,4 +1,5 @@
 using Linuxdle.Domain.DailyCommands;
+using Linuxdle.Domain.DailyDistros;
 using Linuxdle.Domain.DailyPuzzles;
 using Linuxdle.Domain.Games;
 using Linuxdle.Domain.Users;
@@ -13,6 +14,8 @@ public sealed class LinuxdleDbContext(DbContextOptions<LinuxdleDbContext> option
     public DbSet<User> Users { get; set; }
     public DbSet<DailyCommand> DailyCommands { get; set; }
     public DbSet<DailyCommandCategory> DailyCommandCategories { get; set; }
+    public DbSet<DailyDistro> DailyDistros { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -12,12 +12,14 @@
 
   <ItemGroup>
     <Folder Include="DailyCommands/" />
+    <Folder Include="DailyDistros/" />
     <Folder Include="Dtos/Enums/" />
     <Folder Include="Extensions/" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentResults" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" />
   </ItemGroup>
 
 </Project>

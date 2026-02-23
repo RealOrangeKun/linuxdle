@@ -1,19 +1,22 @@
 using Linuxdle.Domain.DailyPuzzles;
 using Linuxdle.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Linuxdle.Services.DailyPuzzles;
 
 internal sealed class DailyPuzzleService(
     LinuxdleDbContext dbContext,
-    IOptions<DailyPuzzleOptions> options)
+    HybridCache hybridCache,
+    IOptions<DailyPuzzleOptions> puzzleOptions)
     : IDailyPuzzleService
 {
     public async Task PrepareDailyPuzzle(CancellationToken cancellationToken = default)
     {
         var startDate = DateOnly.FromDateTime(DateTime.UtcNow);
-        var endDate = startDate.AddDays(options.Value.DaysToSchedule);
+        var endDate = startDate.AddDays(puzzleOptions.Value.DaysToSchedule);
 
         var games = await dbContext.Games
             .AsNoTracking()
@@ -31,6 +34,12 @@ internal sealed class DailyPuzzleService(
             var currentPointer = lastScheduledDate > startDate ? lastScheduledDate.AddDays(1) : startDate;
 
             List<int> targetIds = await GetTargetIdsForGame(game.Id, cancellationToken);
+
+            if (targetIds.Count == 0)
+            {
+                continue;
+            }
+
             var random = new Random();
 
             while (currentPointer <= endDate)
@@ -62,7 +71,22 @@ internal sealed class DailyPuzzleService(
     {
         return gameId switch
         {
-            1 => await dbContext.DailyCommands.Select(dc => dc.Id).ToListAsync(ct),
+            1 =>
+                await hybridCache.GetOrCreateAsync($"{gameId}_target_ids",
+                    async cancel => await dbContext.DailyCommands
+                        .AsNoTracking()
+                        .Select(dc => dc.Id)
+                        .ToListAsync(cancel),
+                    cancellationToken: ct,
+                    options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(14) }),
+            2 =>
+                await hybridCache.GetOrCreateAsync($"{gameId}_target_ids",
+                    async cancel => await dbContext.DailyDistros
+                        .AsNoTracking()
+                        .Select(dd => dd.Id)
+                        .ToListAsync(cancel),
+                    cancellationToken: ct,
+                    options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(14) }),
             _ => throw new ArgumentException($"Game mode {gameId} not implemented")
         };
     }

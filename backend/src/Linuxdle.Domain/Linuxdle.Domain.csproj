@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="DailyCommands/" />
+    <Folder Include="DailyDistros/" />
   </ItemGroup>
 
 </Project>
