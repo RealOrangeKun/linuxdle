@@ -6,7 +6,8 @@ internal sealed class GetDailyDistrosEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/daily-distros", HandleAsync);
+        app.MapGet("/daily-distros", HandleAsync)
+        .WithTags(Tags.DailyDistros);
     }
 
     private async Task<IResult> HandleAsync()

@@ -11,7 +11,8 @@ internal sealed partial class SubmitDailyCommandGuessEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/daily-commands/guesses", HandleAsync)
-        .AddEndpointFilter<ValidationFilter<SubmitDailyCommandGuessRequest>>();
+        .AddEndpointFilter<ValidationFilter<SubmitDailyCommandGuessRequest>>()
+        .WithTags(Tags.DailyCommands);
     }
 
     public static async Task<IResult> HandleAsync(

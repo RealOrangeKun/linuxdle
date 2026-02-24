@@ -8,7 +8,8 @@ internal sealed class GetDailyCommandsEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/daily-commands", HandleAsync)
-        .CacheOutput(policy => policy.Expire(TimeSpan.FromHours(24)));
+        .CacheOutput(policy => policy.Expire(TimeSpan.FromHours(24)))
+        .WithTags(Tags.DailyCommands);
     }
 
     private async Task<IResult> HandleAsync(
