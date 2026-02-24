@@ -8,7 +8,6 @@ internal static class DistroImageProcessor
     public static async Task<byte[]> ProcessDistroImageAsync(
         string filePath,
         int numberOfTries,
-        int seed,
         DistroImageOptions options,
         CancellationToken cancellationToken = default)
     {
@@ -19,27 +18,24 @@ internal static class DistroImageProcessor
 
         using var image = await Image.LoadAsync(filePath, cancellationToken);
 
-        double zoomOutIncrement = options.MaxRetries > 1
-            ? (1.0 - options.InitialZoomPercentage) / (options.MaxRetries - 1)
+        double qualityIncrement = options.MaxRetries > 1
+            ? (1.0 - options.InitialQualityPercentage) / (options.MaxRetries - 1)
             : 0;
 
-        double zoomPercentage = Math.Min(1.0, options.InitialZoomPercentage + Math.Max(0, numberOfTries - 1) * zoomOutIncrement);
+        double linearProgress = Math.Max(0, numberOfTries - 1) / (double)(options.MaxRetries - 1);
+        double exponentialProgress = Math.Pow(linearProgress, 1.8);
 
-        int minDimension = Math.Min(image.Width, image.Height);
-        int cropSize = (int)(minDimension * zoomPercentage);
+        double qualityPercentage = Math.Min(1.0, options.InitialQualityPercentage + exponentialProgress * (1.0 - options.InitialQualityPercentage));
 
-        cropSize = Math.Min(cropSize, Math.Min(image.Width, image.Height));
+        int pixelatedSize = (int)(options.OutputSize * qualityPercentage);
+        pixelatedSize = Math.Max(1, pixelatedSize);
 
-        var random = new Random(seed);
-        int maxX = image.Width - cropSize;
-        int maxY = image.Height - cropSize;
-        int zoomX = maxX > 0 ? random.Next(0, maxX) : 0;
-        int zoomY = maxY > 0 ? random.Next(0, maxY) : 0;
+        float blurAmount = (float)(15.0 * (1.0 - qualityPercentage));
 
         image.Mutate(x => x
-            .Crop(new Rectangle(zoomX, zoomY, cropSize, cropSize))
-            .Resize(options.OutputSize, options.OutputSize)
-            .Grayscale());
+            .GaussianBlur(Math.Max(blurAmount, 0.1f))
+            .Resize(pixelatedSize, pixelatedSize, KnownResamplers.NearestNeighbor)
+            .Resize(options.OutputSize, options.OutputSize, KnownResamplers.NearestNeighbor));
 
         using var ms = new MemoryStream();
         await image.SaveAsPngAsync(ms, cancellationToken);
