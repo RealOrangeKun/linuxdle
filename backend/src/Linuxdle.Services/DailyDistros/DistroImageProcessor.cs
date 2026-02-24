@@ -38,7 +38,8 @@ internal static class DistroImageProcessor
 
         image.Mutate(x => x
             .Crop(new Rectangle(zoomX, zoomY, cropSize, cropSize))
-            .Resize(options.OutputSize, options.OutputSize));
+            .Resize(options.OutputSize, options.OutputSize)
+            .BlackWhite());
 
         using var ms = new MemoryStream();
         await image.SaveAsPngAsync(ms, cancellationToken);
