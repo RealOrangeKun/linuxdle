@@ -5,6 +5,7 @@ using Linuxdle.Api.Configurations;
 using Linuxdle.Api.Extensions;
 using Linuxdle.Api.Health;
 using Linuxdle.Infrastructure.Extensions;
+using Linuxdle.Services.DailyDistros;
 using Linuxdle.Services.DailyPuzzles;
 using Linuxdle.Services.Extensions;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -27,6 +28,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.Configure<DailyPuzzleOptions>(
     builder.Configuration.GetSection(nameof(DailyPuzzleOptions)));
+
+builder.Services.Configure<DistroImageOptions>(
+    builder.Configuration.GetSection(nameof(DistroImageOptions)));
 
 builder.Services.ConfigureOptions<ConfigureDailyPuzzleJob>();
 
