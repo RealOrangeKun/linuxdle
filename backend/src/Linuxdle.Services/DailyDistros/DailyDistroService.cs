@@ -33,13 +33,11 @@ internal sealed class DailyDistroService(
 
         var filePath = Path.Combine(_contentRoot, target.LogoPath);
 
-        int seed = today.GetHashCode();
-
         int cappedTries = Math.Min(numberOfTries, _imageOptions.MaxRetries);
 
         return await hybridCache.GetOrCreateAsync(
             $"daily_distro_image_{today}_tries_{cappedTries}",
-            async cancel => await DistroImageProcessor.ProcessDistroImageAsync(filePath, cappedTries, seed, _imageOptions, cancel),
+            async cancel => await DistroImageProcessor.ProcessDistroImageAsync(filePath, cappedTries, _imageOptions, cancel),
             cancellationToken: cancellationToken,
             options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(1) });
     }
