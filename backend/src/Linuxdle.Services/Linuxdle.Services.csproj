@@ -22,4 +22,8 @@
     <PackageReference Include="SixLabors.ImageSharp.Drawing" />
   </ItemGroup>
 
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
 </Project>
