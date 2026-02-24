@@ -19,7 +19,11 @@ internal static class DistroImageProcessor
 
         using var image = await Image.LoadAsync(filePath, cancellationToken);
 
-        double zoomPercentage = Math.Min(1.0, options.InitialZoomPercentage + (numberOfTries - 1) * options.ZoomOutIncrement);
+        double zoomOutIncrement = options.MaxRetries > 1
+            ? (1.0 - options.InitialZoomPercentage) / (options.MaxRetries - 1)
+            : 0;
+
+        double zoomPercentage = Math.Min(1.0, options.InitialZoomPercentage + Math.Max(0, numberOfTries - 1) * zoomOutIncrement);
 
         int minDimension = Math.Min(image.Width, image.Height);
         int cropSize = (int)(minDimension * zoomPercentage);
