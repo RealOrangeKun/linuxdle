@@ -33,12 +33,13 @@ internal sealed class DailyDistroService(
 
         var filePath = Path.Combine(_contentRoot, target.LogoPath);
 
-        // Use the date as a seed to ensure consistent crop position for the entire day
         int seed = today.GetHashCode();
 
+        int cappedTries = Math.Min(numberOfTries, _imageOptions.MaxRetries);
+
         return await hybridCache.GetOrCreateAsync(
-            $"daily_distro_image_{today}_tries_{numberOfTries}",
-            async cancel => await DistroImageProcessor.ProcessDistroImageAsync(filePath, numberOfTries, seed, _imageOptions, cancel),
+            $"daily_distro_image_{today}_tries_{cappedTries}",
+            async cancel => await DistroImageProcessor.ProcessDistroImageAsync(filePath, cappedTries, seed, _imageOptions, cancel),
             cancellationToken: cancellationToken,
             options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(1) });
     }
