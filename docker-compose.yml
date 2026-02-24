@@ -11,6 +11,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__Database=Host=postgres;Database=linuxdle;Username=linuxdle;Password=linuxdle
       - ConnectionStrings__Redis=redis:6379
+    volumes:
+      - ./backend/src/Linuxdle.Api/wwwroot:/app/wwwroot
     depends_on:
       - postgres
       - redis
@@ -36,8 +38,6 @@ services:
     container_name: linuxdle-redis
     ports:
       - "6379:6379"
-    volumes:
-      - redis-data:/data
     networks:
       - linuxdle-network
 
@@ -58,7 +58,6 @@ services:
 
 volumes:
   postgres-data:
-  redis-data:
   pgadmin-data:
 
 networks:
