@@ -30,6 +30,8 @@
     <Folder Include="Configurations/" />
     <Folder Include="Endpoints/DailyCommands/SubmitGuess/" />
     <Folder Include="Endpoints/DailyDistros/" />
+    <Folder Include="Endpoints/DailyDistros/GetDailyDistroIcon/" />
+    <Folder Include="Endpoints/DailyDistros/GetDailyDistros/" />
     <Folder Include="Endpoints/DailyDistros/SubmitGuess/" />
     <Folder Include="Extensions/" />
     <Folder Include="Filters/" />
