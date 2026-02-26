@@ -1,0 +1,32 @@
+using Linuxdle.Api.Configurations;
+using Linuxdle.Services.DailyDistros;
+using Linuxdle.Services.DailyPuzzles;
+using Linuxdle.Services.Users;
+
+namespace Linuxdle.Api.Extensions;
+
+internal static class OptionsExtensions
+{
+    extension(IServiceCollection services)
+    {
+        public IServiceCollection AddOptionsConfiguration(IConfiguration configuration)
+        {
+            services.Configure<DailyPuzzleOptions>(
+                configuration.GetSection(nameof(DailyPuzzleOptions)));
+
+            services.Configure<DistroImageOptions>(
+                configuration.GetSection(nameof(DistroImageOptions)));
+
+            services.Configure<AccessTokenOptions>(
+                configuration.GetSection(nameof(AccessTokenOptions)));
+
+            services.Configure<RefreshTokenOptions>(
+                configuration.GetSection(nameof(RefreshTokenOptions)));
+
+            services.Configure<RegisterUserRateLimitOptions>(
+                configuration.GetSection(nameof(RegisterUserRateLimitOptions)));
+
+            return services;
+        }
+    }
+}
