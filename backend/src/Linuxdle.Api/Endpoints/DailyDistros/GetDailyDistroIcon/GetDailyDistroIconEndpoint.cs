@@ -17,7 +17,10 @@ internal sealed class GetDailyDistroIconEndpoint : IEndpoint
         CancellationToken cancellationToken
     )
     {
-        var imageBytes = await dailyDistroService.GenerateDailyDistroLogoAsync(request.NumberOfTries, cancellationToken);
+        var imageBytes = await dailyDistroService.GenerateDailyDistroLogoAsync(
+            request.NumberOfTries,
+            request.HardMode,
+            cancellationToken);
 
         return Results.File(imageBytes, "image/png");
     }

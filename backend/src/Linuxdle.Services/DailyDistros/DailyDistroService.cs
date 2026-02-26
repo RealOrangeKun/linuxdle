@@ -17,7 +17,7 @@ internal sealed class DailyDistroService(
     private readonly string _contentRoot = webHostEnvironment.WebRootPath;
     private readonly DistroImageOptions _imageOptions = imageOptions.Value;
 
-    public async Task<byte[]> GenerateDailyDistroLogoAsync(int numberOfTries, CancellationToken cancellationToken = default)
+    public async Task<byte[]> GenerateDailyDistroLogoAsync(int numberOfTries, bool hardMode, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -36,8 +36,8 @@ internal sealed class DailyDistroService(
         int cappedTries = Math.Min(numberOfTries, _imageOptions.MaxRetries);
 
         return await hybridCache.GetOrCreateAsync(
-            $"daily_distro_image_{today}_tries_{cappedTries}",
-            async cancel => await DistroImageProcessor.ProcessDistroImageAsync(filePath, cappedTries, _imageOptions, cancel),
+            $"daily_distro_image_{today}_tries_{cappedTries}_hardmode_{hardMode}",
+            async cancel => await DistroImageProcessor.ProcessDistroImageAsync(filePath, cappedTries, _imageOptions, hardMode, cancel),
             cancellationToken: cancellationToken,
             options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(1) });
     }

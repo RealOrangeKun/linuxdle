@@ -1,4 +1,5 @@
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 
 namespace Linuxdle.Services.DailyDistros;
@@ -9,6 +10,7 @@ internal static class DistroImageProcessor
         string filePath,
         int numberOfTries,
         DistroImageOptions options,
+        bool hardMode,
         CancellationToken cancellationToken = default)
     {
         if (!File.Exists(filePath))
@@ -32,13 +34,22 @@ internal static class DistroImageProcessor
 
         float blurAmount = (float)(15.0 * (1.0 - qualityPercentage));
 
-        image.Mutate(x => x
-            .GaussianBlur(Math.Max(blurAmount, 0.1f))
-            .Resize(pixelatedSize, pixelatedSize, KnownResamplers.NearestNeighbor)
-            .Resize(options.OutputSize, options.OutputSize, KnownResamplers.NearestNeighbor));
+        image.Mutate(x =>
+        {
+            if (hardMode)
+            {
+                x.Grayscale()
+                 .Flip(FlipMode.Horizontal);
+            }
+
+            x.GaussianBlur(Math.Max(blurAmount, 0.1f))
+                .Resize(pixelatedSize, pixelatedSize, KnownResamplers.NearestNeighbor)
+                .Resize(options.OutputSize, options.OutputSize, KnownResamplers.NearestNeighbor);
+        });
 
         using var ms = new MemoryStream();
-        await image.SaveAsPngAsync(ms, cancellationToken);
+        var encoder = hardMode ? new PngEncoder { ColorType = PngColorType.Grayscale } : new PngEncoder();
+        await image.SaveAsPngAsync(ms, encoder, cancellationToken);
 
         return ms.ToArray();
     }
