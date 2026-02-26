@@ -15,10 +15,12 @@
     <Folder Include="DailyDistros/" />
     <Folder Include="Dtos/Enums/" />
     <Folder Include="Extensions/" />
+    <Folder Include="Users/" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentResults" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" />
   </ItemGroup>
 
