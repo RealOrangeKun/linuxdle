@@ -27,7 +27,7 @@ public sealed class User
 
     public void Refresh(int daysToExpiration)
     {
-        if (DateTime.UtcNow < ExpiresAt)
+        if (IsRefreshExpired)
         {
             return;
         }
@@ -36,4 +36,6 @@ public sealed class User
         LastRefreshAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddDays(daysToExpiration);
     }
+
+    public bool IsRefreshExpired => ExpiresAt < DateTime.UtcNow;
 }
