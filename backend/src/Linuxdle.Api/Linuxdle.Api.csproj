@@ -33,6 +33,7 @@
     <Folder Include="Endpoints/DailyDistros/GetDailyDistroIcon/" />
     <Folder Include="Endpoints/DailyDistros/GetDailyDistros/" />
     <Folder Include="Endpoints/DailyDistros/SubmitGuess/" />
+    <Folder Include="Endpoints/Users/RefreshUser/" />
     <Folder Include="Endpoints/Users/RegisterUser/" />
     <Folder Include="Extensions/" />
     <Folder Include="Filters/" />
