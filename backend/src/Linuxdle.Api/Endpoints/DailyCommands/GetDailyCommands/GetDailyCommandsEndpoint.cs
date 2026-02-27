@@ -9,7 +9,8 @@ internal sealed class GetDailyCommandsEndpoint : IEndpoint
     {
         app.MapGet("/daily-commands", HandleAsync)
         .CacheOutput(policy => policy.Expire(TimeSpan.FromHours(24)))
-        .WithTags(Tags.DailyCommands);
+        .WithTags(Tags.DailyCommands)
+        .RequireAuthorization();
     }
 
     private async Task<IResult> HandleAsync(
