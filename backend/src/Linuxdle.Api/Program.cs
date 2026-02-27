@@ -6,12 +6,8 @@ using Linuxdle.Api.Configurations;
 using Linuxdle.Api.Extensions;
 using Linuxdle.Api.Health;
 using Linuxdle.Infrastructure.Extensions;
-using Linuxdle.Services.DailyDistros;
-using Linuxdle.Services.DailyPuzzles;
 using Linuxdle.Services.Extensions;
-using Linuxdle.Services.Users;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,7 +50,13 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.ConfigureOptions<ConfigureDailyPuzzleJob>();
 
+builder.Services.ConfigureOptions<ConfigureJwtOptions>();
+
 builder.Services.AddQuartzConfiguration(builder.Configuration);
+
+builder.Services.AddAuthentication().AddJwtBearer();
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("Database")!, name: "database", tags: ["ready"])
@@ -71,6 +73,12 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "Linuxdle API v1");
     });
 }
+
+app.UseRouting();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.UseRateLimiter();
 
