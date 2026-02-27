@@ -1,5 +1,3 @@
-using System;
-
 namespace Linuxdle.Api.Endpoints;
 
 internal static class Tags
