@@ -1,4 +1,5 @@
-using System;
+using Linuxdle.Services.DailyDistros;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Linuxdle.Api.Endpoints.DailyDistros.GetDailyDistros;
 
@@ -7,11 +8,17 @@ internal sealed class GetDailyDistrosEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/daily-distros", HandleAsync)
-        .WithTags(Tags.DailyDistros);
+        .CacheOutput(policy => policy.Expire(TimeSpan.FromHours(24)))
+        .WithTags(Tags.DailyDistros)
+        .RequireAuthorization();
     }
 
-    private async Task<IResult> HandleAsync()
+    private async Task<IResult> HandleAsync(
+        [FromServices] IDailyDistroService dailyDistroService,
+        CancellationToken cancellationToken)
     {
-        return Results.Ok();
+        var distros = await dailyDistroService.GetDailyDistrosAsync(cancellationToken);
+
+        return Results.Ok(distros);
     }
 }

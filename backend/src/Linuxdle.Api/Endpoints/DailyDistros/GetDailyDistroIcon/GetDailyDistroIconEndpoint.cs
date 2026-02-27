@@ -8,7 +8,8 @@ internal sealed class GetDailyDistroIconEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/daily-distros/daily-distro.png", HandleAsync)
-        .WithTags(Tags.DailyDistros);
+        .WithTags(Tags.DailyDistros)
+        .RequireAuthorization();
     }
 
     private async Task<IResult> HandleAsync(

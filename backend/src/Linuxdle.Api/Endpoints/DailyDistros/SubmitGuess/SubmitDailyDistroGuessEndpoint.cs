@@ -8,7 +8,8 @@ internal sealed class SubmitDailyDistroGuessEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/daily-distros/guesses", HandleAsync)
-        .WithTags(Tags.DailyDistros);
+        .WithTags(Tags.DailyDistros)
+        .RequireAuthorization();
     }
 
     private async Task<IResult> HandleAsync(

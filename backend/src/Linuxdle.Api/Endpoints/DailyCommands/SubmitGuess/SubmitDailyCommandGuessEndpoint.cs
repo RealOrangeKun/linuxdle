@@ -12,7 +12,8 @@ internal sealed partial class SubmitDailyCommandGuessEndpoint
     {
         app.MapPost("/daily-commands/guesses", HandleAsync)
         .AddEndpointFilter<ValidationFilter<SubmitDailyCommandGuessRequest>>()
-        .WithTags(Tags.DailyCommands);
+        .WithTags(Tags.DailyCommands)
+        .RequireAuthorization();
     }
 
     public static async Task<IResult> HandleAsync(
