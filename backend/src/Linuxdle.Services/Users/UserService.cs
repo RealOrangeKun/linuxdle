@@ -1,6 +1,7 @@
 using Linuxdle.Domain.Users;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Dtos.Records;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Linuxdle.Services.Users;
@@ -22,8 +23,24 @@ internal sealed class UserService(
         return new UserTokensDto(accessToken, user.RefreshToken);
     }
 
-    public Task RefreshUserToken(string refreshToken, CancellationToken cancellationToken = default)
+    public async Task<UserTokensDto> RefreshUserToken(string refreshToken, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        User? user = await dbContext.Users
+            .Where(u => u.RefreshToken == refreshToken)
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("User with the provided refresh token does not exist.");
+
+        if (user.IsRefreshExpired)
+        {
+            throw new InvalidOperationException("Refresh token is already expired");
+        }
+
+        user.Refresh(refreshTokenOptions.Value.MaxAgeDays);
+
+        var accessToken = JwtTokenGenerator.GenerateJwtToken(user.Id, accessTokenOptions.Value);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new(accessToken, user.RefreshToken);
     }
 }
