@@ -87,6 +87,14 @@ internal sealed class DailyPuzzleService(
                         .ToListAsync(cancel),
                     cancellationToken: ct,
                     options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(14) }),
+            3 =>
+                await hybridCache.GetOrCreateAsync($"{gameId}_target_ids",
+                    async cancel => await dbContext.DailyDesktopEnvironments
+                        .AsNoTracking()
+                        .Select(dd => dd.Id)
+                        .ToListAsync(cancel),
+                    cancellationToken: ct,
+                    options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(14) }),
             _ => throw new ArgumentException($"Game mode {gameId} not implemented")
         };
     }
