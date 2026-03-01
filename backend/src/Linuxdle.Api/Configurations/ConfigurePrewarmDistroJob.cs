@@ -16,6 +16,8 @@ internal sealed class ConfigurePrewarmDistroJob() : IConfigureOptions<QuartzOpti
                 builder
                     .ForJob(jobKey)
                     .WithIdentity($"{jobKey.Name}-trigger")
-                    .WithCronSchedule("0 2 0 ? * *"));
+                    .WithSimpleSchedule(s => s.WithIntervalInSeconds(10).RepeatForever())
+                    // .WithCronSchedule("0 2 0 ? * *")
+                    );
     }
 }
