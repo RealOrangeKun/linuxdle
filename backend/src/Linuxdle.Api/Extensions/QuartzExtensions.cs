@@ -1,3 +1,4 @@
+using Linuxdle.Api.BackgroundJobs.Listeners;
 using Quartz;
 
 namespace Linuxdle.Api.Extensions;
@@ -13,6 +14,7 @@ internal static class QuartzExtensions
             services.AddQuartz(q =>
             {
                 q.SchedulerId = "AUTO";
+
                 q.UsePersistentStore(s =>
                 {
                     s.UsePostgres(postgres =>
@@ -28,6 +30,8 @@ internal static class QuartzExtensions
                         c.CheckinMisfireThreshold = TimeSpan.FromSeconds(60);
                     });
                 });
+
+                q.AddJobListener<LoggingJobListener>();
             });
 
             return services;
