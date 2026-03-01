@@ -6,4 +6,5 @@ public interface IUserService
 {
     Task<UserTokensDto> RegisterUserAsync(CancellationToken cancellationToken = default);
     Task<UserTokensDto> RefreshUserToken(string refreshToken, CancellationToken cancellationToken = default);
+    Task CleanUnactiveUsers(CancellationToken cancellationToken = default);
 }
