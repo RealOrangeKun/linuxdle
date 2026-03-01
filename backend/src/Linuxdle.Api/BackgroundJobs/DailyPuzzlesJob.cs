@@ -11,7 +11,7 @@ internal sealed class DailyPuzzlesJob(
     {
         try
         {
-            await dailyPuzzleService.PrepareDailyPuzzle();
+            await dailyPuzzleService.PrepareDailyPuzzle(context.CancellationToken);
         }
         catch (Exception ex)
         {
