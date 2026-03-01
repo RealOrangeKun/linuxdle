@@ -33,6 +33,8 @@ internal static class OptionsExtensions
 
             services.ConfigureOptions<ConfigureCleanUsersJob>();
 
+            services.ConfigureOptions<ConfigurePrewarmDistroJob>();
+
             services.ConfigureOptions<ConfigureJwtOptions>();
 
             return services;
