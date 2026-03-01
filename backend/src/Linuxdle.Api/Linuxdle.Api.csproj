@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <Folder Include="BackgroundJobs/" />
+    <Folder Include="BackgroundJobs/Listeners/" />
     <Folder Include="Configurations/" />
     <Folder Include="Endpoints/DailyCommands/SubmitGuess/" />
     <Folder Include="Endpoints/DailyDistros/" />

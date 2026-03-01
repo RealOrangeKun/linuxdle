@@ -21,7 +21,6 @@ internal sealed class ConfigureDailyPuzzleJob(IOptions<DailyPuzzleOptions> optio
                     .ForJob(jobKey)
                     .WithIdentity($"{jobKey.Name}-trigger")
                     // .WithCronSchedule(_options.CronSchedule)
-                    .WithSimpleSchedule(s => s.WithIntervalInSeconds(10).RepeatForever())
-                    );
+                    .WithSimpleSchedule(s => s.WithIntervalInSeconds(10).RepeatForever()));
     }
 }
