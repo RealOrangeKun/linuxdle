@@ -1,8 +1,6 @@
 using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
 using FluentValidation;
 using HealthChecks.UI.Client;
-using Linuxdle.Api.Configurations;
 using Linuxdle.Api.Extensions;
 using Linuxdle.Api.Health;
 using Linuxdle.Infrastructure.Extensions;
@@ -23,34 +21,12 @@ builder.Services.AddOptionsConfiguration(builder.Configuration);
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
 
-var registerUserRateLimitOptions = builder.Configuration
-    .GetSection(nameof(RegisterUserRateLimitOptions))
-    .Get<RegisterUserRateLimitOptions>()!;
-
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-    options.AddPolicy("registerUser", context =>
-        RateLimitPartition.GetSlidingWindowLimiter(
-            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new SlidingWindowRateLimiterOptions
-            {
-                PermitLimit = registerUserRateLimitOptions.PermitLimit,
-                Window = TimeSpan.FromSeconds(registerUserRateLimitOptions.WindowInSeconds),
-                QueueLimit = registerUserRateLimitOptions.QueueLimit,
-                SegmentsPerWindow = 2
-            }));
-});
+builder.Services.AddRateLimiting(builder.Configuration);
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
-
-builder.Services.ConfigureOptions<ConfigureDailyPuzzleJob>();
-
-builder.Services.ConfigureOptions<ConfigureJwtOptions>();
 
 builder.Services.AddQuartzConfiguration(builder.Configuration);
 

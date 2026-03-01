@@ -26,6 +26,15 @@ internal static class OptionsExtensions
             services.Configure<RegisterUserRateLimitOptions>(
                 configuration.GetSection(nameof(RegisterUserRateLimitOptions)));
 
+            services.Configure<GlobalRateLimitOptions>(
+                configuration.GetSection(nameof(GlobalRateLimitOptions)));
+
+            services.ConfigureOptions<ConfigureDailyPuzzleJob>();
+
+            services.ConfigureOptions<ConfigureCleanUsersJob>();
+
+            services.ConfigureOptions<ConfigureJwtOptions>();
+
             return services;
         }
     }
