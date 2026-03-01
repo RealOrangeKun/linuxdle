@@ -43,4 +43,14 @@ internal sealed class UserService(
 
         return new(accessToken, user.RefreshToken);
     }
+
+    public async Task CleanUnactiveUsers(CancellationToken cancellationToken = default)
+    {
+        var today = DateTime.UtcNow;
+        var cutoffDate = today.Subtract(TimeSpan.FromDays(refreshTokenOptions.Value.MaxAgeDays));
+
+        await dbContext.Users
+            .Where(u => u.LastRefreshAt < cutoffDate)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
 }
