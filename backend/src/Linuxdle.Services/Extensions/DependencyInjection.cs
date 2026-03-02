@@ -1,4 +1,5 @@
 using Linuxdle.Services.DailyCommands;
+using Linuxdle.Services.DailyDesktopEnvironments;
 using Linuxdle.Services.DailyDistros;
 using Linuxdle.Services.DailyPuzzles;
 using Linuxdle.Services.Users;
@@ -19,6 +20,8 @@ public static class DependencyInjection
             services.AddScoped<IDailyDistroService, DailyDistroService>();
 
             services.AddScoped<IUserService, UserService>();
+
+            services.AddScoped<IDailyDesktopEnvironmentService, DailyDesktopEnvironmentService>();
 
             return services;
         }
