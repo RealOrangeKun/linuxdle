@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using FluentValidation;
 using HealthChecks.UI.Client;
+using Linuxdle.Api.ExceptionHandlers;
 using Linuxdle.Api.Extensions;
 using Linuxdle.Api.Health;
 using Linuxdle.Infrastructure.Extensions;
@@ -12,6 +13,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddOpenApi();
+
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddInternalServices();
 
