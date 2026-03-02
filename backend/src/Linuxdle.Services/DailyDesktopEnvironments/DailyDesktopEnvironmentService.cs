@@ -1,3 +1,4 @@
+using Linuxdle.Domain.Games;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Dtos.Records;
 using Microsoft.EntityFrameworkCore;
@@ -18,14 +19,21 @@ internal sealed class DailyDesktopEnvironmentService(
             $"daily_de_target_{today}", async cancel => await dbContext.DailyDesktopEnvironments
                 .AsNoTracking()
                 .Include(dde => dde.DesktopEnvironmentScreenshots)
-                .Select(dde => new { dde.DesktopEnvironmentScreenshots, dde.Id })
                 .Where(dde => dbContext.DailyPuzzles
-                .Any(dp => dp.ScheduledDate == today && dp.TargetId == dde.Id))
+                .Any(dp => dp.ScheduledDate == today && dp.TargetId == dde.Id && dp.GameId == GameIds.DailyDesktopEnvironments))
+                .Select(dde => new DailyDesktopEnvironmentTargetDto(
+                    dde.Id,
+                    dde.DesktopEnvironmentScreenshots.Select(s => new DesktopEnvironmentScreenshotDto(
+                        s.Id,
+                        s.FilePath,
+                        s.Credit
+                    )).ToList()
+                ))
                 .FirstOrDefaultAsync(cancel),
             cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"No daily puzzle found for {today:yyyy-MM-dd}");
 
-        var screenshots = target.DesktopEnvironmentScreenshots.ToList();
+        var screenshots = target.Screenshots.ToList();
 
         if (screenshots.Count == 0)
         {
@@ -47,7 +55,7 @@ internal sealed class DailyDesktopEnvironmentService(
             $"daily_de_target_{today}", async cancel => await dbContext.DailyDesktopEnvironments
                 .AsNoTracking()
                 .Where(dde => dbContext.DailyPuzzles
-                .Any(dp => dp.ScheduledDate == today && dp.TargetId == dde.Id))
+                .Any(dp => dp.ScheduledDate == today && dp.TargetId == dde.Id && dp.GameId == GameIds.DailyDesktopEnvironments))
                 .Select(dd => new { dd.Id })
                 .FirstOrDefaultAsync(cancel),
             cancellationToken: cancellationToken)
