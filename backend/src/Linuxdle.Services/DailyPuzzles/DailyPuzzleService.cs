@@ -1,4 +1,5 @@
 using Linuxdle.Domain.DailyPuzzles;
+using Linuxdle.Domain.Games;
 using Linuxdle.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -71,7 +72,7 @@ internal sealed class DailyPuzzleService(
     {
         return gameId switch
         {
-            1 =>
+            GameIds.DailyCommands =>
                 await hybridCache.GetOrCreateAsync($"{gameId}_target_ids",
                     async cancel => await dbContext.DailyCommands
                         .AsNoTracking()
@@ -79,7 +80,7 @@ internal sealed class DailyPuzzleService(
                         .ToListAsync(cancel),
                     cancellationToken: ct,
                     options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(14) }),
-            2 =>
+            GameIds.DailyDistros =>
                 await hybridCache.GetOrCreateAsync($"{gameId}_target_ids",
                     async cancel => await dbContext.DailyDistros
                         .AsNoTracking()
@@ -87,7 +88,7 @@ internal sealed class DailyPuzzleService(
                         .ToListAsync(cancel),
                     cancellationToken: ct,
                     options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(14) }),
-            3 =>
+            GameIds.DailyDesktopEnvironments =>
                 await hybridCache.GetOrCreateAsync($"{gameId}_target_ids",
                     async cancel => await dbContext.DailyDesktopEnvironments
                         .AsNoTracking()

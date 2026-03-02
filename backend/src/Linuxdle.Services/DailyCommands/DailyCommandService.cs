@@ -1,3 +1,4 @@
+using Linuxdle.Domain.Games;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Dtos.Records;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,7 @@ internal sealed class DailyCommandService(
             async cancel => await dbContext.DailyCommands
                 .Include(c => c.Categories)
                 .Where(c => dbContext.DailyPuzzles
-                .Any(p => p.ScheduledDate == today && p.TargetId == c.Id))
+                .Any(p => p.ScheduledDate == today && p.TargetId == c.Id && p.GameId == GameIds.DailyCommands))
                 .Select(c => new DailyCommandDto(
                     c.Id,
                     c.Name,

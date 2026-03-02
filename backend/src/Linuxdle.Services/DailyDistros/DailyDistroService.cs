@@ -1,3 +1,4 @@
+using Linuxdle.Domain.Games;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Dtos.Records;
 using Microsoft.AspNetCore.Hosting;
@@ -25,7 +26,7 @@ internal sealed class DailyDistroService(
             $"daily_distro_target_{today}", async cancel => await dbContext.DailyDistros
                 .AsNoTracking()
                 .Where(dd => dbContext.DailyPuzzles
-                .Any(dp => dp.ScheduledDate == today && dp.TargetId == dd.Id))
+                .Any(dp => dp.ScheduledDate == today && dp.TargetId == dd.Id && dp.GameId == GameIds.DailyDistros))
                 .Select(dd => new { dd.Id, dd.LogoPath })
                 .FirstOrDefaultAsync(cancel),
             cancellationToken: cancellationToken)
@@ -60,7 +61,7 @@ internal sealed class DailyDistroService(
             $"daily_distro_target_{today}", async cancel => await dbContext.DailyDistros
                 .AsNoTracking()
                 .Where(dd => dbContext.DailyPuzzles
-                .Any(dp => dp.ScheduledDate == today && dp.TargetId == dd.Id))
+                .Any(dp => dp.ScheduledDate == today && dp.TargetId == dd.Id && dp.GameId == GameIds.DailyDistros))
                 .Select(dd => new { dd.Id })
                 .FirstOrDefaultAsync(cancel),
             cancellationToken: cancellationToken)
