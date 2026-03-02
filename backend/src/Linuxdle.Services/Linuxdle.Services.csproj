@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Folder Include="DailyCommands/" />
+    <Folder Include="DailyDesktopEnvironments/" />
     <Folder Include="DailyDistros/" />
     <Folder Include="Dtos/Enums/" />
     <Folder Include="Extensions/" />
