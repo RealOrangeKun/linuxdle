@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using Linuxdle.Services.DailyDistros;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,6 +24,6 @@ internal sealed class GetDailyDistroIconEndpoint : IEndpoint
             request.HardMode,
             cancellationToken);
 
-        return Results.File(imageBytes, "image/png");
+        return Results.File(imageBytes, MediaTypeNames.Image.Png);
     }
 }
