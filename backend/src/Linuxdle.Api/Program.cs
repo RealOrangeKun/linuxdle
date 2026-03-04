@@ -34,6 +34,17 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddQuartzConfiguration(builder.Configuration);
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
+
 builder.Services.AddAuthentication().AddJwtBearer();
 
 builder.Services.AddAuthorization();
@@ -55,6 +66,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+
+app.UseCors();
 
 app.UseAuthentication();
 
