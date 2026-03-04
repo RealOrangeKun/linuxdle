@@ -11,13 +11,14 @@ namespace Linuxdle.Services.DailyPuzzles;
 internal sealed class DailyPuzzleService(
     LinuxdleDbContext dbContext,
     HybridCache hybridCache,
-    IOptions<DailyPuzzleOptions> puzzleOptions)
+    IOptions<DailyPuzzleOptions> puzzleOptions,
+    ILogger<DailyPuzzleService> logger)
     : IDailyPuzzleService
 {
     public async Task PrepareDailyPuzzle(CancellationToken cancellationToken = default)
     {
-        var startDate = DateOnly.FromDateTime(DateTime.UtcNow);
-        var endDate = startDate.AddDays(puzzleOptions.Value.DaysToSchedule);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var endDate = today.AddDays(puzzleOptions.Value.DaysToSchedule);
 
         var games = await dbContext.Games
             .AsNoTracking()
@@ -25,27 +26,26 @@ internal sealed class DailyPuzzleService(
 
         foreach (var game in games)
         {
-            var lastScheduledDate = await dbContext.DailyPuzzles
+            var existingDates = await dbContext.DailyPuzzles
                 .AsNoTracking()
-                .Where(p => p.GameId == game.Id)
-                .OrderByDescending(p => p.ScheduledDate)
+                .Where(p => p.GameId == game.Id && p.ScheduledDate >= today && p.ScheduledDate <= endDate)
                 .Select(p => p.ScheduledDate)
-                .FirstOrDefaultAsync(cancellationToken: cancellationToken);
-
-            var currentPointer = lastScheduledDate > startDate ? lastScheduledDate.AddDays(1) : startDate;
+                .ToHashSetAsync(cancellationToken);
 
             List<int> targetIds = await GetTargetIdsForGame(game.Id, cancellationToken);
 
             if (targetIds.Count == 0)
             {
+                logger.LogWarning("No target IDs found for game {GameId}. Skipping scheduling.", game.Id);
                 continue;
             }
 
             var random = new Random();
+            var currentPointer = today;
 
             while (currentPointer <= endDate)
             {
-                if (await dbContext.DailyPuzzles.AnyAsync(p => p.ScheduledDate == currentPointer && p.GameId == game.Id, cancellationToken: cancellationToken))
+                if (existingDates.Contains(currentPointer))
                 {
                     currentPointer = currentPointer.AddDays(1);
                     continue;
@@ -53,18 +53,23 @@ internal sealed class DailyPuzzleService(
 
                 int targetId = targetIds[random.Next(targetIds.Count)];
 
-                await dbContext.DailyPuzzles
-                    .AddAsync(
-                        DailyPuzzle.Create(
-                            game.Id,
-                            targetId,
-                            currentPointer),
-                        cancellationToken);
+                await dbContext.DailyPuzzles.AddAsync(
+                    DailyPuzzle.Create(game.Id, targetId, currentPointer),
+                    cancellationToken);
 
+                existingDates.Add(currentPointer);
                 currentPointer = currentPointer.AddDays(1);
             }
+        }
 
+        try
+        {
             await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+        {
+            logger.LogError(ex, "Conflict during DailyPuzzle generation. Unique constraint violated.");
+            throw;
         }
     }
 
