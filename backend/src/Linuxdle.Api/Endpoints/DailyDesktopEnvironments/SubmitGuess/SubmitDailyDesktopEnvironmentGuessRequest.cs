@@ -1,3 +1,4 @@
+using Linuxdle.Api.Filters;
 using Linuxdle.Services.DailyDesktopEnvironments;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +12,7 @@ internal sealed class SubmitDailyDesktopEnvironmentGuessEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/daily-desktop-environments/guesses", HandleAsync)
+        .AddEndpointFilter<ValidationFilter<SubmitDailyDesktopEnvironmentGuessRequest>>()
         .WithTags(Tags.DailyDesktopEnvironments);
     }
     private async Task<IResult> HandleAsync(

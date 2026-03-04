@@ -1,4 +1,5 @@
 using System.Net.Mime;
+using Linuxdle.Api.Filters;
 using Linuxdle.Services.DailyDistros;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ internal sealed class GetDailyDistroIconEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/daily-distros/daily-distro.png", HandleAsync)
+        .AddEndpointFilter<ValidationFilter<GetDailyDistroIconRequest>>()
         .WithTags(Tags.DailyDistros)
         .RequireAuthorization();
     }
