@@ -1,7 +1,8 @@
-namespace Linuxdle.Api.ExceptionHandlers;
-
+using Linuxdle.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+
+namespace Linuxdle.Api.ExceptionHandlers;
 
 internal sealed class GlobalExceptionHandler(
     IHostEnvironment env,
@@ -19,18 +20,18 @@ internal sealed class GlobalExceptionHandler(
     {
         _logger.LogError(exception, "Unhandled exception: {Message}", exception.Message);
 
-        var statusCode = exception switch
+        var (statusCode, title) = exception switch
         {
-            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
-            _ => StatusCodes.Status500InternalServerError
+            NotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
+            BadRequestException => (StatusCodes.Status400BadRequest, "Bad request"),
+            UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
         };
 
-        var title = "An unexpected error occurred";
-        var detail = "Please contact support if the issue persists.";
+        var detail = exception.Message;
 
-        if (_env.IsDevelopment())
+        if (_env.IsDevelopment() && statusCode == StatusCodes.Status500InternalServerError)
         {
-            title = exception.GetType().Name;
             detail = exception.ToString();
         }
 
