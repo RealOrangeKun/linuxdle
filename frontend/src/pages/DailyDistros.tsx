@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
-  CircularProgress, Alert, Snackbar
+  CircularProgress, Alert, Snackbar, Divider
 } from '@mui/material';
-import { Refresh } from '@mui/icons-material';
+import { ArrowForward } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 
 interface Distro {
@@ -11,26 +12,36 @@ interface Distro {
   slug: string;
 }
 
+interface Guess {
+  name: string;
+  isCorrect: boolean;
+}
+
 interface GuessResult {
   isCorrect: boolean;
 }
 
+const STORAGE_KEY = 'linuxdle_distros_state';
+
 const DailyDistros: React.FC = () => {
+  const navigate = useNavigate();
   const [distros, setDistros] = useState<Distro[]>([]);
   const [selectedGuess, setSelectedGuess] = useState<Distro | null>(null);
-  const [guesses, setGuesses] = useState<string[]>([]);
+  const [guesses, setGuesses] = useState<Guess[]>([]);
   const [logoUrl, setLogoUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [hardMode] = useState(false);
 
+  const today = new Date().toISOString().split('T')[0];
+
   const fetchDistros = useCallback(async () => {
     try {
       const response = await apiClient.get<Distro[]>('/daily-distros');
       setDistros(response.data);
     } catch (error) {
-      console.error('Error fetching distros:', error);
+      console.error('Error:', error);
     }
   }, []);
 
@@ -40,62 +51,73 @@ const DailyDistros: React.FC = () => {
       const response = await apiClient.get(`/daily-distros/daily-distro.png?numberOfTries=${tries}&hardMode=${hardMode}&t=${timestamp}`, {
         responseType: 'blob'
       });
-      
       const newUrl = URL.createObjectURL(response.data);
       setLogoUrl(prevUrl => {
-        if (prevUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(prevUrl);
-        }
+        if (prevUrl.startsWith('blob:')) URL.revokeObjectURL(prevUrl);
         return newUrl;
       });
     } catch (error) {
-      console.error('Error fetching distro logo:', error);
+      console.error('Error:', error);
     }
   }, [hardMode]);
 
   useEffect(() => {
     const init = async () => {
       await fetchDistros();
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const state = JSON.parse(saved);
+        if (state.date === today) {
+          setGuesses(state.guesses);
+          setIsGameOver(state.isGameOver);
+          setShowSuccess(state.showSuccess);
+          await updateLogoUrl(state.isGameOver ? 12 : state.guesses.length + 1);
+          setLoading(false);
+          return;
+        }
+      }
       await updateLogoUrl(1);
       setLoading(false);
     };
-
     init();
-    
     return () => {
       setLogoUrl(prevUrl => {
-        if (prevUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(prevUrl);
-        }
+        if (prevUrl.startsWith('blob:')) URL.revokeObjectURL(prevUrl);
         return '';
       });
     };
-  }, [fetchDistros, updateLogoUrl]);
+  }, [fetchDistros, updateLogoUrl, today]);
+
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        date: today,
+        guesses,
+        isGameOver,
+        showSuccess
+      }));
+    }
+  }, [guesses, isGameOver, showSuccess, today, loading]);
 
   const handleSubmitGuess = async () => {
     if (!selectedGuess || isGameOver) return;
-
     try {
       const response = await apiClient.post<GuessResult>('/daily-distros/guesses', {
         userGuess: selectedGuess.slug
       });
-
-      const newGuesses = [...guesses, selectedGuess.name];
+      const newGuess = { name: selectedGuess.name, isCorrect: response.data.isCorrect };
+      const newGuesses = [...guesses, newGuess];
       setGuesses(newGuesses);
-
       if (response.data.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-        updateLogoUrl(6); // Final clear version
-      } else if (newGuesses.length >= 6) {
-        setIsGameOver(true);
-        updateLogoUrl(6);
+        updateLogoUrl(12);
       } else {
-        updateLogoUrl(newGuesses.length + 1);
+        updateLogoUrl(Math.min(newGuesses.length + 1, 12));
       }
       setSelectedGuess(null);
     } catch (error) {
-      console.error('Error submitting guess:', error);
+      console.error('Error:', error);
     }
   };
 
@@ -103,36 +125,49 @@ const DailyDistros: React.FC = () => {
 
   return (
     <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography variant="h4" gutterBottom fontWeight="bold">
-          Daily Distro 🐧
+      <Box mb={4}>
+        <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
+          {`_ > DAILY_DISTRO`}
         </Typography>
+        <Divider sx={{ my: 1 }} />
+        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+          $ fetch-logo --render
+        </Typography>
+      </Box>
 
-        <Box sx={{ my: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
+        <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
           <Box
             component="img"
             src={logoUrl}
-            alt="Distro Logo"
+            alt="distro_logo"
             sx={{
-              width: 250,
-              height: 250,
+              width: 200,
+              height: 200,
               objectFit: 'contain',
-              borderRadius: 2,
-              border: '2px solid #e0e0e0',
-              bgcolor: '#fff'
+              border: '1px solid',
+              borderColor: 'divider',
+              p: 1
             }}
           />
         </Box>
 
         <Box sx={{ width: '100%', mb: 4 }}>
           {guesses.map((guess, index) => (
-            <Paper key={index} variant="outlined" sx={{ p: 1, mb: 1, textAlign: 'center', bgcolor: '#f5f5f5' }}>
-              {guess}
-            </Paper>
-          ))}
-          {Array.from({ length: 6 - guesses.length }).map((_, i) => (
-            <Paper key={`empty-${i}`} variant="outlined" sx={{ p: 1, mb: 1, textAlign: 'center', borderStyle: 'dashed', color: '#bdbdbd' }}>
-              Guess {guesses.length + i + 1}
+            <Paper 
+              key={index} 
+              variant="outlined" 
+              sx={{ 
+                p: 1, 
+                mb: 1, 
+                textAlign: 'center', 
+                bgcolor: guess.isCorrect ? '#4caf50' : '#f44336',
+                color: 'white',
+                fontWeight: 'bold',
+                border: 'none'
+              }}
+            >
+              {`[${index + 1}] ${guess.name}`}
             </Paper>
           ))}
         </Box>
@@ -141,37 +176,35 @@ const DailyDistros: React.FC = () => {
           <Box sx={{ width: '100%', display: 'flex', gap: 1 }}>
             <Autocomplete
               fullWidth
-              options={distros}
-              getOptionLabel={(option) => option.name}
+              size="small"
+              options={distros.filter(d => !guesses.some(g => g.name === d.name))}
+              getOptionLabel={(option) => option?.name || ''}
               value={selectedGuess}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
-              renderInput={(params) => <TextField {...params} label="Select a Distribution" variant="outlined" />}
+              onKeyDown={(e) => { if (e.key === 'Enter' && selectedGuess) handleSubmitGuess(); }}
+              renderInput={(params) => <TextField {...params} label="select_distro" variant="outlined" />}
             />
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              disabled={!selectedGuess}
-              onClick={handleSubmitGuess}
-            >
-              Guess
+            <Button variant="contained" color="primary" onClick={handleSubmitGuess} disabled={!selectedGuess}>
+              EXEC
             </Button>
           </Box>
         ) : (
           <Box textAlign="center">
-            <Typography variant="h6" color={showSuccess ? "success.main" : "error.main"} gutterBottom>
-              {showSuccess ? "Well done! You got it! 🎉" : "Out of tries! Better luck tomorrow! 🐧"}
+            <Typography variant="h6" color="success.main" fontWeight="bold">
+              {`[OK] DISTRO_MATCHED`}
             </Typography>
-            <Button variant="outlined" onClick={() => window.location.reload()} startIcon={<Refresh />}>
-              Play Again?
+            <Button 
+              variant="outlined" 
+              color="secondary" 
+              onClick={() => navigate('/des')} 
+              endIcon={<ArrowForward />}
+              sx={{ mt: 2 }}
+            >
+              CD ../DESKTOP_ENV
             </Button>
           </Box>
         )}
       </Paper>
-
-      <Snackbar open={showSuccess} autoHideDuration={6000} onClose={() => setShowSuccess(false)}>
-        <Alert severity="success" sx={{ width: '100%' }}>Correct guess!</Alert>
-      </Snackbar>
     </Container>
   );
 };

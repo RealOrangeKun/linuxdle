@@ -1,28 +1,59 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Container, Button, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, Container, Button, Box, IconButton, useTheme } from '@mui/material';
 import { Outlet, useNavigate } from 'react-router-dom';
+import { Brightness4, Brightness7, Terminal } from '@mui/icons-material';
+import { ColorModeContext } from '../App';
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const colorMode = React.useContext(ColorModeContext);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#f5f5f5' }}>
-      <AppBar position="static" color="primary" elevation={0}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="static" color="inherit" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Container maxWidth="lg">
           <Toolbar disableGutters>
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 'bold' }}
+            <Box 
+              sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexGrow: 1 }}
               onClick={() => navigate('/')}
             >
-              Linuxdle 🐧
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button color="inherit" onClick={() => navigate('/commands')}>Commands</Button>
-              <Button color="inherit" onClick={() => navigate('/distros')}>Distros</Button>
-              <Button color="inherit" onClick={() => navigate('/des')}>Desktop Environments</Button>
+              <Terminal sx={{ mr: 1, color: 'primary.main' }} />
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{ fontWeight: 'bold', fontFamily: 'monospace', letterSpacing: '.1rem' }}
+              >
+                LINUXDLE
+              </Typography>
+            </Box>
+            
+            <Box sx={{ display: 'flex', gap: { xs: 1, md: 2 }, alignItems: 'center' }}>
+              <Button 
+                color="inherit" 
+                onClick={() => navigate('/commands')}
+                sx={{ display: { xs: 'none', sm: 'block' }, fontFamily: 'monospace' }}
+              >
+                ./commands
+              </Button>
+              <Button 
+                color="inherit" 
+                onClick={() => navigate('/distros')}
+                sx={{ display: { xs: 'none', sm: 'block' }, fontFamily: 'monospace' }}
+              >
+                ./distros
+              </Button>
+              <Button 
+                color="inherit" 
+                onClick={() => navigate('/des')}
+                sx={{ display: { xs: 'none', sm: 'block' }, fontFamily: 'monospace' }}
+              >
+                ./des
+              </Button>
+              
+              <IconButton onClick={colorMode.toggleColorMode} color="inherit" sx={{ ml: 1 }}>
+                {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+              </IconButton>
             </Box>
           </Toolbar>
         </Container>
@@ -32,10 +63,10 @@ const Layout: React.FC = () => {
         <Outlet />
       </Container>
 
-      <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', bgcolor: 'primary.dark', color: 'white' }}>
+      <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
-          <Typography variant="body2" align="center">
-            © {new Date().getFullYear()} Linuxdle. Build your Linux knowledge daily.
+          <Typography variant="body2" align="center" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>
+            $ user@linuxdle: ~ {new Date().getFullYear()} --version 1.0.0
           </Typography>
         </Container>
       </Box>

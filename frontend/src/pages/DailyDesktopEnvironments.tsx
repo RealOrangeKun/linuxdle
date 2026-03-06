@@ -1,23 +1,39 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
-  CircularProgress, Alert, Snackbar
+  CircularProgress, Alert, Snackbar, Divider
 } from '@mui/material';
-import { Refresh } from '@mui/icons-material';
+import { Home } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
+
+interface DesktopEnvironment {
+  name: string;
+  slug: string;
+}
+
+interface Guess {
+  name: string;
+  isCorrect: boolean;
+}
 
 interface GuessResult {
   isCorrect: boolean;
 }
 
+const STORAGE_KEY = 'linuxdle_des_state';
+
 const DailyDesktopEnvironments: React.FC = () => {
-  const [des, setDes] = useState<string[]>([]);
-  const [selectedGuess, setSelectedGuess] = useState<string | null>(null);
-  const [guesses, setGuesses] = useState<string[]>([]);
+  const navigate = useNavigate();
+  const [des, setDes] = useState<DesktopEnvironment[]>([]);
+  const [selectedGuess, setSelectedGuess] = useState<DesktopEnvironment | null>(null);
+  const [guesses, setGuesses] = useState<Guess[]>([]);
   const [screenshotUrl, setScreenshotUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const today = new Date().toISOString().split('T')[0];
 
   const fetchScreenshot = useCallback(async () => {
     try {
@@ -26,61 +42,73 @@ const DailyDesktopEnvironments: React.FC = () => {
       });
       const newUrl = URL.createObjectURL(response.data);
       setScreenshotUrl(prevUrl => {
-        if (prevUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(prevUrl);
-        }
+        if (prevUrl.startsWith('blob:')) URL.revokeObjectURL(prevUrl);
         return newUrl;
       });
     } catch (error) {
-      console.error('Error fetching screenshot:', error);
+      console.error('Error:', error);
+    }
+  }, []);
+
+  const fetchDes = useCallback(async () => {
+    try {
+      const response = await apiClient.get<DesktopEnvironment[]>('/daily-desktop-environments');
+      setDes(response.data);
+    } catch (error) {
+      console.error('Error:', error);
     }
   }, []);
 
   useEffect(() => {
-    const fetchDes = async () => {
-      try {
-        // Assuming there's an endpoint to get all DE names for the autocomplete
-        // If not, we can hardcode some common ones for the MVP
-        setDes(['GNOME', 'KDE Plasma', 'XFCE', 'MATE', 'Cinnamon', 'Pantheon', 'Budgie', 'Sway', 'i3', 'LXQt']);
-      } catch (error) {
-        console.error('Error fetching DEs:', error);
-      } finally {
-        setLoading(false);
+    const init = async () => {
+      await Promise.all([fetchDes(), fetchScreenshot()]);
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const state = JSON.parse(saved);
+        if (state.date === today) {
+          setGuesses(state.guesses);
+          setIsGameOver(state.isGameOver);
+          setShowSuccess(state.showSuccess);
+        }
       }
+      setLoading(false);
     };
-    fetchDes();
-    fetchScreenshot();
-
+    init();
     return () => {
       setScreenshotUrl(prevUrl => {
-        if (prevUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(prevUrl);
-        }
+        if (prevUrl.startsWith('blob:')) URL.revokeObjectURL(prevUrl);
         return '';
       });
     };
-  }, [fetchScreenshot]);
+  }, [fetchScreenshot, fetchDes, today]);
+
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        date: today,
+        guesses,
+        isGameOver,
+        showSuccess
+      }));
+    }
+  }, [guesses, isGameOver, showSuccess, today, loading]);
 
   const handleSubmitGuess = async () => {
     if (!selectedGuess || isGameOver) return;
-
     try {
       const response = await apiClient.post<GuessResult>('/daily-desktop-environments/guesses', {
-        userGuess: selectedGuess
+        userGuess: selectedGuess.slug
       });
-
-      const newGuesses = [...guesses, selectedGuess];
+      const newGuess = { name: selectedGuess.name, isCorrect: response.data.isCorrect };
+      const newGuesses = [...guesses, newGuess];
       setGuesses(newGuesses);
-
       if (response.data.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-      } else if (newGuesses.length >= 6) {
-        setIsGameOver(true);
       }
       setSelectedGuess(null);
     } catch (error) {
-      console.error('Error submitting guess:', error);
+      console.error('Error:', error);
     }
   };
 
@@ -88,39 +116,48 @@ const DailyDesktopEnvironments: React.FC = () => {
 
   return (
     <Container maxWidth="md">
-      <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography variant="h4" gutterBottom fontWeight="bold">
-          Daily Desktop Environment 🖥️
+      <Box mb={4}>
+        <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
+          {`_ > DAILY_DESKTOP_ENV`}
         </Typography>
-        <Typography variant="body1" color="textSecondary" mb={4}>
-          Identify the Desktop Environment from the screenshot!
+        <Divider sx={{ my: 1 }} />
+        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+          $ view-screenshot --full-screen
         </Typography>
+      </Box>
 
+      <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
         <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
           <Box
             component="img"
             src={screenshotUrl}
-            alt="Desktop Screenshot"
+            alt="system_screenshot"
             sx={{
               width: '100%',
-              maxWidth: 700,
+              maxWidth: 600,
               height: 'auto',
-              borderRadius: 2,
-              border: '2px solid #e0e0e0',
-              boxShadow: 2
+              border: '1px solid',
+              borderColor: 'divider'
             }}
           />
         </Box>
 
         <Box sx={{ width: '100%', maxWidth: 500, mb: 4 }}>
           {guesses.map((guess, index) => (
-            <Paper key={index} variant="outlined" sx={{ p: 1, mb: 1, textAlign: 'center', bgcolor: '#f5f5f5' }}>
-              {guess}
-            </Paper>
-          ))}
-          {Array.from({ length: 6 - guesses.length }).map((_, i) => (
-            <Paper key={`empty-${i}`} variant="outlined" sx={{ p: 1, mb: 1, textAlign: 'center', borderStyle: 'dashed', color: '#bdbdbd' }}>
-              Guess {guesses.length + i + 1}
+            <Paper 
+              key={index} 
+              variant="outlined" 
+              sx={{ 
+                p: 1, 
+                mb: 1, 
+                textAlign: 'center', 
+                bgcolor: guess.isCorrect ? '#4caf50' : '#f44336',
+                color: 'white',
+                fontWeight: 'bold',
+                border: 'none'
+              }}
+            >
+              {`[${index + 1}] ${guess.name}`}
             </Paper>
           ))}
         </Box>
@@ -129,36 +166,35 @@ const DailyDesktopEnvironments: React.FC = () => {
           <Box sx={{ width: '100%', maxWidth: 500, display: 'flex', gap: 1 }}>
             <Autocomplete
               fullWidth
-              options={des}
+              size="small"
+              options={des.filter(de => !guesses.some(g => g.name === de.name))}
+              getOptionLabel={(option) => option?.name || ''}
               value={selectedGuess}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
-              renderInput={(params) => <TextField {...params} label="Select a Desktop Environment" variant="outlined" />}
+              onKeyDown={(e) => { if (e.key === 'Enter' && selectedGuess) handleSubmitGuess(); }}
+              renderInput={(params) => <TextField {...params} label="select_env" variant="outlined" />}
             />
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              disabled={!selectedGuess}
-              onClick={handleSubmitGuess}
-            >
-              Guess
+            <Button variant="contained" color="primary" onClick={handleSubmitGuess} disabled={!selectedGuess}>
+              EXEC
             </Button>
           </Box>
         ) : (
           <Box textAlign="center">
-            <Typography variant="h6" color={showSuccess ? "success.main" : "error.main"} gutterBottom fontWeight="bold">
-              {showSuccess ? "Spot on! That's the correct DE! 🎉" : "Out of tries! Better luck tomorrow! 🐧"}
+            <Typography variant="h6" color="success.main" fontWeight="bold">
+              {`[OK] SYSTEM_IDENTIFIED`}
             </Typography>
-            <Button variant="outlined" onClick={() => window.location.reload()} startIcon={<Refresh />}>
-              Play Again?
+            <Button 
+              variant="outlined" 
+              color="primary" 
+              onClick={() => navigate('/')} 
+              startIcon={<Home />}
+              sx={{ mt: 2 }}
+            >
+              CD /HOME
             </Button>
           </Box>
         )}
       </Paper>
-
-      <Snackbar open={showSuccess} autoHideDuration={6000} onClose={() => setShowSuccess(false)}>
-        <Alert severity="success" sx={{ width: '100%' }}>Correct guess!</Alert>
-      </Snackbar>
     </Container>
   );
 };

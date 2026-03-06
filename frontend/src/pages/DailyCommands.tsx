@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
   CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Tooltip, Alert, Snackbar
+  Alert, Snackbar, Divider
 } from '@mui/material';
-import { ArrowUpward, ArrowDownward, Refresh } from '@mui/icons-material';
+import { ArrowUpward, ArrowDownward, ArrowForward } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { MatchResult, YearDirection } from '../types/game';
 
@@ -32,7 +33,10 @@ interface CommandResult {
   };
 }
 
+const STORAGE_KEY = 'linuxdle_commands_state';
+
 const DailyCommands: React.FC = () => {
+  const navigate = useNavigate();
   const [commands, setCommands] = useState<string[]>([]);
   const [selectedGuess, setSelectedGuess] = useState<string | null>(null);
   const [results, setResults] = useState<CommandResult[]>([]);
@@ -40,19 +44,42 @@ const DailyCommands: React.FC = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const today = new Date().toISOString().split('T')[0];
+
   useEffect(() => {
     const fetchCommands = async () => {
       try {
         const response = await apiClient.get<string[]>('/daily-commands');
         setCommands(response.data);
+
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const state = JSON.parse(saved);
+          if (state.date === today) {
+            setResults(state.results);
+            setIsGameOver(state.isGameOver);
+            setShowSuccess(state.showSuccess);
+          }
+        }
       } catch (error) {
-        console.error('Error fetching commands:', error);
+        console.error('Error:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchCommands();
-  }, []);
+  }, [today]);
+
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        date: today,
+        results,
+        isGameOver,
+        showSuccess
+      }));
+    }
+  }, [results, isGameOver, showSuccess, today, loading]);
 
   const handleSubmitGuess = async () => {
     if (!selectedGuess || isGameOver) return;
@@ -68,21 +95,19 @@ const DailyCommands: React.FC = () => {
       if (response.data.matchResults.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-      } else if (newResults.length >= 8) {
-        setIsGameOver(true);
       }
       setSelectedGuess(null);
     } catch (error) {
-      console.error('Error submitting guess:', error);
+      console.error('Error:', error);
     }
   };
 
   const getCellColor = (result: MatchResult) => {
     switch (result) {
       case MatchResult.Green: return '#4caf50';
-      case MatchResult.Yellow: return '#ffeb3b';
+      case MatchResult.Yellow: return '#ff9800';
       case MatchResult.Red: return '#f44336';
-      default: return 'inherit';
+      default: return 'transparent';
     }
   };
 
@@ -90,22 +115,27 @@ const DailyCommands: React.FC = () => {
 
   return (
     <Container maxWidth="lg">
-      <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
-        <Typography variant="h4" gutterBottom fontWeight="bold" align="center">
-          Daily Command ⌨️
+      <Box mb={4}>
+        <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
+          {`_ > DAILY_COMMAND`}
         </Typography>
-        <Typography variant="body1" align="center" color="textSecondary" mb={4}>
-          Guess the Linux command based on its attributes!
+        <Divider sx={{ my: 1 }} />
+        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+          $ guess-command --interactive
         </Typography>
+      </Box>
 
-        {!isGameOver && (
-          <Box sx={{ display: 'flex', gap: 1, mb: 4, maxWidth: 500, mx: 'auto' }}>
+      <Paper variant="outlined" sx={{ p: 3, mb: 4, bgcolor: 'background.paper' }}>
+        {!isGameOver ? (
+          <Box sx={{ display: 'flex', gap: 1, mb: 4, maxWidth: 600 }}>
             <Autocomplete
               fullWidth
-              options={commands}
+              size="small"
+              options={commands.filter(cmd => !results.some(r => r.guessCommandDetails.name === cmd))}
               value={selectedGuess}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
-              renderInput={(params) => <TextField {...params} label="Type a command..." variant="outlined" />}
+              onKeyDown={(e) => { if (e.key === 'Enter' && selectedGuess) handleSubmitGuess(); }}
+              renderInput={(params) => <TextField {...params} label="input_command" variant="outlined" />}
             />
             <Button
               variant="contained"
@@ -114,67 +144,69 @@ const DailyCommands: React.FC = () => {
               onClick={handleSubmitGuess}
               sx={{ px: 4 }}
             >
-              Guess
+              EXEC
             </Button>
           </Box>
-        )}
-
-        {isGameOver && (
-          <Box textAlign="center" mb={4}>
-            <Typography variant="h5" color={showSuccess ? "success.main" : "error.main"} gutterBottom fontWeight="bold">
-              {showSuccess ? "Fantastic! You found the command! 🐧" : "Game Over! Better luck tomorrow!"}
+        ) : (
+          <Box mb={4}>
+            <Typography variant="h6" color="success.main" fontWeight="bold">
+              {`[OK] COMMAND_IDENTIFIED`}
             </Typography>
-            <Button variant="outlined" onClick={() => window.location.reload()} startIcon={<Refresh />}>
-              Try Again?
+            <Button 
+              variant="outlined" 
+              color="secondary" 
+              onClick={() => navigate('/distros')} 
+              endIcon={<ArrowForward />}
+              sx={{ mt: 2 }}
+            >
+              CD ../DAILY_DISTROS
             </Button>
           </Box>
         )}
 
         {results.length > 0 && (
-          <TableContainer component={Paper} variant="outlined">
-            <Table>
-              <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
                 <TableRow>
-                  <TableCell align="center">Name</TableCell>
-                  <TableCell align="center">Package</TableCell>
-                  <TableCell align="center">Year</TableCell>
-                  <TableCell align="center">Section</TableCell>
-                  <TableCell align="center">Built-in</TableCell>
-                  <TableCell align="center">POSIX</TableCell>
-                  <TableCell align="center">Categories</TableCell>
+                  <TableCell>NAME</TableCell>
+                  <TableCell>PKG</TableCell>
+                  <TableCell>YEAR</TableCell>
+                  <TableCell>SEC</TableCell>
+                  <TableCell>B-IN</TableCell>
+                  <TableCell>POSIX</TableCell>
+                  <TableCell>CATEGORIES</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {results.map((result, idx) => (
-                  <TableRow key={idx} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                    <TableCell align="center" sx={{ bgcolor: getCellColor(result.matchResults.name), color: result.matchResults.name === MatchResult.Yellow ? 'black' : 'white', fontWeight: 'bold' }}>
+                  <TableRow key={idx}>
+                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.name), color: 'white', fontWeight: 'bold' }}>
                       {result.guessCommandDetails.name}
                     </TableCell>
-                    <TableCell align="center" sx={{ bgcolor: getCellColor(result.matchResults.package), color: result.matchResults.package === MatchResult.Yellow ? 'black' : 'white' }}>
+                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.package), color: 'white' }}>
                       {result.guessCommandDetails.package}
                     </TableCell>
-                    <TableCell align="center" sx={{ bgcolor: getCellColor(result.matchResults.year), color: result.matchResults.year === MatchResult.Yellow ? 'black' : 'white' }}>
-                      <Box display="flex" alignItems="center" justifyContent="center" gap={0.5}>
+                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.year), color: 'white' }}>
+                      <Box display="flex" alignItems="center" gap={0.5}>
                         {result.guessCommandDetails.originYear}
-                        {result.matchResults.yearHint === YearDirection.Higher && <ArrowUpward fontSize="small" />}
-                        {result.matchResults.yearHint === YearDirection.Lower && <ArrowDownward fontSize="small" />}
+                        {result.matchResults.yearHint === YearDirection.Higher && <ArrowUpward fontSize="inherit" />}
+                        {result.matchResults.yearHint === YearDirection.Lower && <ArrowDownward fontSize="inherit" />}
                       </Box>
                     </TableCell>
-                    <TableCell align="center" sx={{ bgcolor: getCellColor(result.matchResults.section), color: result.matchResults.section === MatchResult.Yellow ? 'black' : 'white' }}>
+                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.section), color: 'white' }}>
                       {result.guessCommandDetails.manSection}
                     </TableCell>
-                    <TableCell align="center" sx={{ bgcolor: getCellColor(result.matchResults.builtIn), color: result.matchResults.builtIn === MatchResult.Yellow ? 'black' : 'white' }}>
-                      {result.guessCommandDetails.isBuiltIn ? 'Yes' : 'No'}
+                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.builtIn), color: 'white' }}>
+                      {result.guessCommandDetails.isBuiltIn ? 'Y' : 'N'}
                     </TableCell>
-                    <TableCell align="center" sx={{ bgcolor: getCellColor(result.matchResults.posix), color: result.matchResults.posix === MatchResult.Yellow ? 'black' : 'white' }}>
-                      {result.guessCommandDetails.isPosix ? 'Yes' : 'No'}
+                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.posix), color: 'white' }}>
+                      {result.guessCommandDetails.isPosix ? 'Y' : 'N'}
                     </TableCell>
-                    <TableCell align="center" sx={{ bgcolor: getCellColor(result.matchResults.categories), color: result.matchResults.categories === MatchResult.Yellow ? 'black' : 'white' }}>
-                      <Tooltip title={result.guessCommandDetails.categories.join(', ')}>
-                        <Typography variant="body2" sx={{ cursor: 'help' }}>
-                          {result.guessCommandDetails.categories.length} Categories
-                        </Typography>
-                      </Tooltip>
+                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.categories), color: 'white' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                        {result.guessCommandDetails.categories.join(', ')}
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -184,8 +216,8 @@ const DailyCommands: React.FC = () => {
         )}
       </Paper>
 
-      <Snackbar open={showSuccess} autoHideDuration={6000} onClose={() => setShowSuccess(false)}>
-        <Alert severity="success" sx={{ width: '100%' }}>Correct! System command identified.</Alert>
+      <Snackbar open={showSuccess} autoHideDuration={3000} onClose={() => setShowSuccess(false)}>
+        <Alert severity="success" variant="filled">STATUS_OK: Command recognized.</Alert>
       </Snackbar>
     </Container>
   );
