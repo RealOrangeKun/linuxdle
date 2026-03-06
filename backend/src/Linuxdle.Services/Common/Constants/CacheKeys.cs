@@ -11,7 +11,10 @@ internal static class CacheKeys
     public static string CommandByName(string name) => $"command_{name.ToLower()}";
     public static string AllCommandNames => "all_command_names";
 
+    public static string AllGameIds => "all_game_ids";
+
     public static string DailyDesktopEnvironmentTarget(DateOnly date) => $"daily_de_target_{date:yyyy-MM-dd}";
     public static string DailyDesktopEnvironmentScreenshot(int screenshotId) => $"daily_de_screenshot_{screenshotId}";
     public static string DesktopEnvironmentBySlug(string slug) => $"de_{slug.ToLower()}";
+    public static string AllDesktopEnvironments => "all_desktop_environments";
 }

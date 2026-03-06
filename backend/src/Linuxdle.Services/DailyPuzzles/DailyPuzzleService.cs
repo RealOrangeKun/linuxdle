@@ -1,6 +1,7 @@
 using Linuxdle.Domain.DailyPuzzles;
 using Linuxdle.Domain.Games;
 using Linuxdle.Infrastructure.Data;
+using Linuxdle.Services.Common.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
@@ -20,23 +21,28 @@ internal sealed class DailyPuzzleService(
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var endDate = today.AddDays(puzzleOptions.Value.DaysToSchedule);
 
-        var games = await dbContext.Games
-            .AsNoTracking()
-            .ToListAsync(cancellationToken: cancellationToken);
+        var gameIds = await hybridCache.GetOrCreateAsync(
+            CacheKeys.AllGameIds,
+            async cancel =>
+                await dbContext.Games
+                    .AsNoTracking()
+                    .Select(g => g.Id)
+                    .ToListAsync(cancel),
+            cancellationToken: cancellationToken);
 
-        foreach (var game in games)
+        foreach (var gameId in gameIds)
         {
             var existingDates = await dbContext.DailyPuzzles
                 .AsNoTracking()
-                .Where(p => p.GameId == game.Id && p.ScheduledDate >= today && p.ScheduledDate <= endDate)
+                .Where(p => p.GameId == gameId && p.ScheduledDate >= today.AddDays(-1))
                 .Select(p => p.ScheduledDate)
                 .ToHashSetAsync(cancellationToken);
 
-            List<int> targetIds = await GetTargetIdsForGame(game.Id, cancellationToken);
+            List<int> targetIds = await GetTargetIdsForGame(gameId, cancellationToken);
 
             if (targetIds.Count == 0)
             {
-                logger.LogWarning("No target IDs found for game {GameId}. Skipping scheduling.", game.Id);
+                logger.LogWarning("No target IDs found for game {GameId}. Skipping scheduling.", gameId);
                 continue;
             }
 
@@ -53,9 +59,8 @@ internal sealed class DailyPuzzleService(
 
                 int targetId = targetIds[random.Next(targetIds.Count)];
 
-                await dbContext.DailyPuzzles.AddAsync(
-                    DailyPuzzle.Create(game.Id, targetId, currentPointer),
-                    cancellationToken);
+                dbContext.DailyPuzzles.Add(
+                    DailyPuzzle.Create(gameId, targetId, currentPointer));
 
                 existingDates.Add(currentPointer);
                 currentPointer = currentPointer.AddDays(1);

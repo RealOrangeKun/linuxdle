@@ -13,13 +13,9 @@ internal sealed class DailyPuzzlesJob(
         {
             await dailyPuzzleService.PrepareDailyPuzzle(context.CancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            var jobException = new JobExecutionException(ex)
-            {
-                RefireImmediately = true
-            };
-            throw jobException;
+            throw;
         }
     }
 }

@@ -85,4 +85,16 @@ internal sealed class DailyDesktopEnvironmentService(
             cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"No daily puzzle found for {today:yyyy-MM-dd}");
     }
+
+    public async Task<IEnumerable<DailyDesktopEnvironmentDto>> GetDailyDesktopEnvironmentsAsync(CancellationToken cancellationToken = default)
+    {
+        return await hybridCache.GetOrCreateAsync(
+            CacheKeys.AllDesktopEnvironments,
+            async cancel => await dbContext.DailyDesktopEnvironments
+                .AsNoTracking()
+                .Select(dde => new DailyDesktopEnvironmentDto(dde.Name, dde.Slug))
+                .ToListAsync(cancel),
+            cancellationToken: cancellationToken
+        );
+    }
 }

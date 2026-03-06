@@ -41,6 +41,19 @@ services:
     networks:
       - linuxdle-network
 
+  frontend:
+    container_name: linuxdle-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - linuxdle-network
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: linuxdle-pgadmin
