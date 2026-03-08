@@ -40,5 +40,24 @@ internal sealed class DailyDesktopEnvironmentConfiguration : IEntityTypeConfigur
             .Property(dde => dde.Compositor)
             .IsRequired()
             .HasMaxLength(100);
+
+        builder
+            .Property(dde => dde.Family)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder
+            .Property(dde => dde.ConfigurationLanguage)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder
+            .Property(dde => dde.ReleaseYear)
+            .IsRequired();
+
+        builder
+            .Property(dde => dde.PrimaryLanguage)
+            .IsRequired()
+            .HasMaxLength(100);
     }
 }
