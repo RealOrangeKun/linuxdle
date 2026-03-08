@@ -35,7 +35,7 @@ internal sealed class DailyDesktopEnvironmentService(
         );
     }
 
-    public async Task<DailyDesktopEnvironmentGuessResultDto> HandleUserGuessAsync(string userGuess, CancellationToken cancellationToken = default)
+    public async Task<DailyDesktopEnvironmentGuessResultDto> HandleUserGuessAsync(string userGuess, int numberOfGuesses = 0, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -51,8 +51,17 @@ internal sealed class DailyDesktopEnvironmentService(
             cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"No Distro found for {userGuess}");
 
-        return new(guess.Id == target.Id);
+        var isCorrect = guess.Id == target.Id;
+
+        return new DailyDesktopEnvironmentGuessResultDto(
+            IsCorrect: isCorrect,
+            Family: numberOfGuesses >= 2 ? target.Family : null,
+            ConfigurationLanguage: numberOfGuesses >= 4 ? target.ConfigurationLanguage : null,
+            ReleaseYear: numberOfGuesses >= 6 ? target.ReleaseYear : null,
+            PrimaryLanguage: numberOfGuesses >= 8 ? target.PrimaryLanguage : null
+        );
     }
+
 
     private async Task<DailyDesktopEnvironmentTargetDto> GetDailyTargetAsync(DateOnly today, CancellationToken cancellationToken)
     {
@@ -74,6 +83,10 @@ internal sealed class DailyDesktopEnvironmentService(
                     .Where(dde => dde.Id == targetId)
                     .Select(dde => new DailyDesktopEnvironmentTargetDto(
                         dde.Id,
+                        dde.Family,
+                        dde.ConfigurationLanguage,
+                        dde.ReleaseYear,
+                        dde.PrimaryLanguage,
                         dde.DesktopEnvironmentScreenshots.Select(s => new DesktopEnvironmentScreenshotDto(
                             s.Id,
                             s.FilePath,

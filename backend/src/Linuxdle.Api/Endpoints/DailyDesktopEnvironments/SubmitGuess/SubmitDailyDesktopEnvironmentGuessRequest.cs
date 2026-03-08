@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Linuxdle.Api.Endpoints.DailyDesktopEnvironments.SubmitGuess;
 
-public sealed record SubmitDailyDesktopEnvironmentGuessRequest(string UserGuess);
+public sealed record SubmitDailyDesktopEnvironmentGuessRequest(string UserGuess, int NumberOfGuesses = 0);
 
 internal sealed class SubmitDailyDesktopEnvironmentGuessEndpoint
     : IEndpoint
@@ -20,7 +20,7 @@ internal sealed class SubmitDailyDesktopEnvironmentGuessEndpoint
         [FromBody] SubmitDailyDesktopEnvironmentGuessRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await dailyDesktopEnvironmentService.HandleUserGuessAsync(request.UserGuess, cancellationToken);
+        var result = await dailyDesktopEnvironmentService.HandleUserGuessAsync(request.UserGuess, request.NumberOfGuesses, cancellationToken);
 
         return Results.Ok(result);
     }

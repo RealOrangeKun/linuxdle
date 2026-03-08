@@ -11,5 +11,9 @@ internal sealed class SubmitDailyDesktopEnvironmentGuessRequestValidator : Abstr
             .WithMessage("User guess is required")
             .MaximumLength(100)
             .WithMessage("User guess must not exceed 100 characters");
+
+        RuleFor(x => x.NumberOfGuesses)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Number of guesses must be greater than or equal to 0");
     }
 }
