@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
-  CircularProgress, Alert, Snackbar, Divider
+  CircularProgress, Divider, Backdrop, IconButton, Tooltip
 } from '@mui/material';
-import { Home } from '@mui/icons-material';
+import { Home, Close, ZoomIn, ZoomOut, RestartAlt } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 
@@ -32,6 +32,13 @@ const DailyDesktopEnvironments: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Zoom state
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const isDragging = useRef(false);
+  const lastMousePos = useRef({ x: 0, y: 0 });
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -112,6 +119,41 @@ const DailyDesktopEnvironments: React.FC = () => {
     }
   };
 
+  // Zoom handlers
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!isZoomed) return;
+    const delta = e.deltaY > 0 ? -0.2 : 0.2;
+    setScale(prev => Math.min(Math.max(1, prev + delta), 5));
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (scale <= 1) return;
+    isDragging.current = true;
+    lastMousePos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.clientX - lastMousePos.current.x;
+    const dy = e.clientY - lastMousePos.current.y;
+    setPosition(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+    lastMousePos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+  };
+
+  const resetZoom = () => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const toggleZoom = () => {
+    if (isZoomed) resetZoom();
+    setIsZoomed(!isZoomed);
+  };
+
   if (loading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
@@ -122,24 +164,33 @@ const DailyDesktopEnvironments: React.FC = () => {
         </Typography>
         <Divider sx={{ my: 1 }} />
         <Typography variant="body2" sx={{ opacity: 0.8 }}>
-          $ view-screenshot --full-screen
+          $ view-screenshot --interactive
         </Typography>
       </Box>
 
       <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
-        <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <Box
-            component="img"
-            src={screenshotUrl}
-            alt="system_screenshot"
-            sx={{
-              width: '100%',
-              maxWidth: 600,
-              height: 'auto',
-              border: '1px solid',
-              borderColor: 'divider'
-            }}
-          />
+        <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <Tooltip title="Click to zoom / focus">
+            <Box
+              component="img"
+              src={screenshotUrl}
+              alt="system_screenshot"
+              onClick={toggleZoom}
+              sx={{
+                width: '100%',
+                maxWidth: 600,
+                height: 'auto',
+                border: '1px solid',
+                borderColor: 'divider',
+                cursor: 'zoom-in',
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  transform: 'scale(1.01)'
+                }
+              }}
+            />
+          </Tooltip>
         </Box>
 
         <Box sx={{ width: '100%', maxWidth: 500, mb: 4 }}>
@@ -195,6 +246,71 @@ const DailyDesktopEnvironments: React.FC = () => {
           </Box>
         )}
       </Paper>
+
+      {/* Fullscreen Zoomable Backdrop */}
+      <Backdrop
+        open={isZoomed}
+        sx={{ 
+          zIndex: (theme) => theme.zIndex.drawer + 1, 
+          bgcolor: 'rgba(0,0,0,0.95)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
+        <Box sx={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 1, zIndex: 10 }}>
+          <IconButton onClick={resetZoom} color="inherit" sx={{ bgcolor: 'rgba(255,255,255,0.1)' }}>
+            <RestartAlt />
+          </IconButton>
+          <IconButton onClick={toggleZoom} color="inherit" sx={{ bgcolor: 'rgba(255,255,255,0.1)' }}>
+            <Close />
+          </IconButton>
+        </Box>
+
+        <Box sx={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 10, bgcolor: 'rgba(0,0,0,0.6)', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 2, color: 'white' }}>
+          <Typography variant="caption">SCROLL TO ZOOM | DRAG TO PAN</Typography>
+          <Divider orientation="vertical" flexItem sx={{ bgcolor: 'white' }} />
+          <Box display="flex" alignItems="center">
+            <ZoomOut fontSize="small" />
+            <Typography variant="body2" sx={{ mx: 1, minWidth: 40, textAlign: 'center' }}>
+              {Math.round(scale * 100)}%
+            </Typography>
+            <ZoomIn fontSize="small" />
+          </Box>
+        </Box>
+
+        <Box
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          sx={{
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: scale > 1 ? 'grab' : 'default',
+            '&:active': { cursor: scale > 1 ? 'grabbing' : 'default' }
+          }}
+        >
+          <Box
+            component="img"
+            src={screenshotUrl}
+            alt="zoomed_screenshot"
+            sx={{
+              maxWidth: '90%',
+              maxHeight: '90%',
+              objectFit: 'contain',
+              userSelect: 'none',
+              pointerEvents: 'none', // Handle pointer events on the container
+              transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+              transition: isDragging.current ? 'none' : 'transform 0.1s ease-out'
+            }}
+          />
+        </Box>
+      </Backdrop>
     </Container>
   );
 };

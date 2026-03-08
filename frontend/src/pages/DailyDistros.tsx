@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
-  CircularProgress, Alert, Snackbar, Divider
+  CircularProgress, Alert, Snackbar, Divider, FormControlLabel, Switch
 } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -32,7 +32,7 @@ const DailyDistros: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [hardMode] = useState(false);
+  const [hardMode, setHardMode] = useState(true);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -45,10 +45,10 @@ const DailyDistros: React.FC = () => {
     }
   }, []);
 
-  const updateLogoUrl = useCallback(async (tries: number) => {
+  const updateLogoUrl = useCallback(async (tries: number, isHardMode: boolean) => {
     try {
       const timestamp = new Date().getTime();
-      const response = await apiClient.get(`/daily-distros/daily-distro.png?numberOfTries=${tries}&hardMode=${hardMode}&t=${timestamp}`, {
+      const response = await apiClient.get(`/daily-distros/daily-distro.png?numberOfTries=${tries}&hardMode=${isHardMode}&t=${timestamp}`, {
         responseType: 'blob'
       });
       const newUrl = URL.createObjectURL(response.data);
@@ -59,7 +59,7 @@ const DailyDistros: React.FC = () => {
     } catch (error) {
       console.error('Error:', error);
     }
-  }, [hardMode]);
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -68,15 +68,17 @@ const DailyDistros: React.FC = () => {
       if (saved) {
         const state = JSON.parse(saved);
         if (state.date === today) {
+          const loadedHardMode = state.hardMode ?? true;
           setGuesses(state.guesses);
           setIsGameOver(state.isGameOver);
           setShowSuccess(state.showSuccess);
-          await updateLogoUrl(state.isGameOver ? 12 : state.guesses.length + 1);
+          setHardMode(loadedHardMode);
+          await updateLogoUrl(state.isGameOver ? 12 : state.guesses.length + 1, state.isGameOver ? false : loadedHardMode);
           setLoading(false);
           return;
         }
       }
-      await updateLogoUrl(1);
+      await updateLogoUrl(1, true);
       setLoading(false);
     };
     init();
@@ -86,7 +88,7 @@ const DailyDistros: React.FC = () => {
         return '';
       });
     };
-  }, [fetchDistros, updateLogoUrl, today]);
+  }, [fetchDistros, today]); 
 
   useEffect(() => {
     if (!loading) {
@@ -94,10 +96,18 @@ const DailyDistros: React.FC = () => {
         date: today,
         guesses,
         isGameOver,
-        showSuccess
+        showSuccess,
+        hardMode
       }));
     }
-  }, [guesses, isGameOver, showSuccess, today, loading]);
+  }, [guesses, isGameOver, showSuccess, today, loading, hardMode]);
+
+  const handleToggleHardMode = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (isGameOver) return;
+    const newMode = event.target.checked;
+    setHardMode(newMode);
+    updateLogoUrl(guesses.length + 1, newMode);
+  };
 
   const handleSubmitGuess = async () => {
     if (!selectedGuess || isGameOver) return;
@@ -111,9 +121,9 @@ const DailyDistros: React.FC = () => {
       if (response.data.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-        updateLogoUrl(12);
+        updateLogoUrl(12, false); // Force normal mode on success
       } else {
-        updateLogoUrl(Math.min(newGuesses.length + 1, 12));
+        updateLogoUrl(Math.min(newGuesses.length + 1, 12), hardMode);
       }
       setSelectedGuess(null);
     } catch (error) {
@@ -130,9 +140,33 @@ const DailyDistros: React.FC = () => {
           {`_ > DAILY_DISTRO`}
         </Typography>
         <Divider sx={{ my: 1 }} />
-        <Typography variant="body2" sx={{ opacity: 0.8 }}>
-          $ fetch-logo --render
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ opacity: 0.8 }}>
+            $ fetch-logo --render
+          </Typography>
+          {!isGameOver && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={hardMode}
+                  onChange={handleToggleHardMode}
+                  color="warning"
+                  size="small"
+                />
+              }
+              label={
+                <Typography variant="caption" sx={{ fontWeight: 'bold', color: hardMode ? 'warning.main' : 'inherit' }}>
+                  LINUS_TORVALDS_MODE
+                </Typography>
+              }
+            />
+          )}
+          {isGameOver && hardMode && (
+            <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+              MODE: LINUS_TORVALDS
+            </Typography>
+          )}
+        </Box>
       </Box>
 
       <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
@@ -147,7 +181,8 @@ const DailyDistros: React.FC = () => {
               objectFit: 'contain',
               border: '1px solid',
               borderColor: 'divider',
-              p: 1
+              p: 1,
+              filter: hardMode && !isGameOver ? 'contrast(1.2)' : 'none'
             }}
           />
         </Box>
