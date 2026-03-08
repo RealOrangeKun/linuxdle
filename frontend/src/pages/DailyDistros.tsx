@@ -116,7 +116,7 @@ const DailyDistros: React.FC = () => {
         userGuess: selectedGuess.slug
       });
       const newGuess = { name: selectedGuess.name, isCorrect: response.data.isCorrect };
-      const newGuesses = [...guesses, newGuess];
+      const newGuesses = [newGuess, ...guesses];
       setGuesses(newGuesses);
       if (response.data.isCorrect) {
         setIsGameOver(true);
@@ -187,28 +187,8 @@ const DailyDistros: React.FC = () => {
           />
         </Box>
 
-        <Box sx={{ width: '100%', mb: 4 }}>
-          {guesses.map((guess, index) => (
-            <Paper 
-              key={index} 
-              variant="outlined" 
-              sx={{ 
-                p: 1, 
-                mb: 1, 
-                textAlign: 'center', 
-                bgcolor: guess.isCorrect ? '#4caf50' : '#f44336',
-                color: 'white',
-                fontWeight: 'bold',
-                border: 'none'
-              }}
-            >
-              {`[${index + 1}] ${guess.name}`}
-            </Paper>
-          ))}
-        </Box>
-
         {!isGameOver ? (
-          <Box sx={{ width: '100%', display: 'flex', gap: 1 }}>
+          <Box sx={{ width: '100%', display: 'flex', gap: 1, mb: 4 }}>
             <Autocomplete
               fullWidth
               size="small"
@@ -224,7 +204,7 @@ const DailyDistros: React.FC = () => {
             </Button>
           </Box>
         ) : (
-          <Box textAlign="center">
+          <Box textAlign="center" mb={4}>
             <Typography variant="h6" color="success.main" fontWeight="bold">
               {`[OK] DISTRO_MATCHED`}
             </Typography>
@@ -239,6 +219,26 @@ const DailyDistros: React.FC = () => {
             </Button>
           </Box>
         )}
+
+        <Box sx={{ width: '100%' }}>
+          {guesses.map((guess, index) => (
+            <Paper 
+              key={index} 
+              variant="outlined" 
+              sx={{ 
+                p: 1, 
+                mb: 1, 
+                textAlign: 'center', 
+                bgcolor: guess.isCorrect ? '#4caf50' : '#f44336',
+                color: 'white',
+                fontWeight: 'bold',
+                border: 'none'
+              }}
+            >
+              {`[${guesses.length - index}] ${guess.name}`}
+            </Paper>
+          ))}
+        </Box>
       </Paper>
     </Container>
   );

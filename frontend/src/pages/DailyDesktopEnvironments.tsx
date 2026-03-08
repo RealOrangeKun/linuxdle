@@ -15,10 +15,18 @@ interface DesktopEnvironment {
 interface Guess {
   name: string;
   isCorrect: boolean;
+  family?: string;
+  configurationLanguage?: string;
+  releaseYear?: number;
+  primaryLanguage?: string;
 }
 
 interface GuessResult {
   isCorrect: boolean;
+  family?: string;
+  configurationLanguage?: string;
+  releaseYear?: number;
+  primaryLanguage?: string;
 }
 
 const STORAGE_KEY = 'linuxdle_des_state';
@@ -104,10 +112,20 @@ const DailyDesktopEnvironments: React.FC = () => {
     if (!selectedGuess || isGameOver) return;
     try {
       const response = await apiClient.post<GuessResult>('/daily-desktop-environments/guesses', {
-        userGuess: selectedGuess.slug
+        userGuess: selectedGuess.slug,
+        numberOfGuesses: guesses.length + 1
       });
-      const newGuess = { name: selectedGuess.name, isCorrect: response.data.isCorrect };
-      const newGuesses = [...guesses, newGuess];
+      
+      const newGuess: Guess = { 
+        name: selectedGuess.name, 
+        isCorrect: response.data.isCorrect,
+        family: response.data.family,
+        configurationLanguage: response.data.configurationLanguage,
+        releaseYear: response.data.releaseYear,
+        primaryLanguage: response.data.primaryLanguage
+      };
+
+      const newGuesses = [newGuess, ...guesses];
       setGuesses(newGuesses);
       if (response.data.isCorrect) {
         setIsGameOver(true);
@@ -154,6 +172,11 @@ const DailyDesktopEnvironments: React.FC = () => {
     setIsZoomed(!isZoomed);
   };
 
+  const latestHints = guesses[0] || {};
+  const nextHintThresholds = [2, 4, 6, 8];
+  const nextThreshold = nextHintThresholds.find(t => t > guesses.length);
+  const guessesUntilNextHint = nextThreshold ? nextThreshold - guesses.length : 0;
+
   if (loading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
@@ -193,28 +216,83 @@ const DailyDesktopEnvironments: React.FC = () => {
           </Tooltip>
         </Box>
 
+        {/* Hints / Progress Section */}
         <Box sx={{ width: '100%', maxWidth: 500, mb: 4 }}>
-          {guesses.map((guess, index) => (
-            <Paper 
-              key={index} 
-              variant="outlined" 
+          {!isGameOver && guessesUntilNextHint > 0 && (
+            <Typography 
+              variant="caption" 
               sx={{ 
-                p: 1, 
-                mb: 1, 
+                display: 'block', 
                 textAlign: 'center', 
-                bgcolor: guess.isCorrect ? '#4caf50' : '#f44336',
-                color: 'white',
-                fontWeight: 'bold',
-                border: 'none'
+                mb: 1, 
+                color: 'primary.main',
+                fontFamily: 'monospace',
+                fontWeight: 'bold'
               }}
             >
-              {`[${index + 1}] ${guess.name}`}
+              {`[ HINT_STATUS: ${guessesUntilNextHint} guess${guessesUntilNextHint === 1 ? '' : 'es'} until next leak ]`}
+            </Typography>
+          )}
+
+          {(latestHints.family || latestHints.configurationLanguage || latestHints.releaseYear || latestHints.primaryLanguage) && (
+            <Paper 
+              variant="outlined" 
+              sx={{ 
+                p: 2, 
+                bgcolor: 'rgba(0, 255, 0, 0.03)', 
+                borderColor: 'primary.main',
+                borderStyle: 'dashed',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              <Box 
+                sx={{ 
+                  position: 'absolute', 
+                  top: 0, 
+                  right: 0, 
+                  bgcolor: 'primary.main', 
+                  color: 'background.paper',
+                  px: 1,
+                  fontSize: '0.6rem',
+                  fontWeight: 'bold',
+                  letterSpacing: 1
+                }}
+              >
+                DECRYPTED_DATA
+              </Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                {latestHints.family && (
+                  <Box>
+                    <Typography variant="caption" sx={{ opacity: 0.6, display: 'block' }}>FAMILY</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{latestHints.family}</Typography>
+                  </Box>
+                )}
+                {latestHints.configurationLanguage && (
+                  <Box>
+                    <Typography variant="caption" sx={{ opacity: 0.6, display: 'block' }}>CONFIG_LANG</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{latestHints.configurationLanguage}</Typography>
+                  </Box>
+                )}
+                {latestHints.releaseYear && (
+                  <Box>
+                    <Typography variant="caption" sx={{ opacity: 0.6, display: 'block' }}>RELEASE_YEAR</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{latestHints.releaseYear}</Typography>
+                  </Box>
+                )}
+                {latestHints.primaryLanguage && (
+                  <Box>
+                    <Typography variant="caption" sx={{ opacity: 0.6, display: 'block' }}>PRIMARY_LANG</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{latestHints.primaryLanguage}</Typography>
+                  </Box>
+                )}
+              </Box>
             </Paper>
-          ))}
+          )}
         </Box>
 
         {!isGameOver ? (
-          <Box sx={{ width: '100%', maxWidth: 500, display: 'flex', gap: 1 }}>
+          <Box sx={{ width: '100%', maxWidth: 500, display: 'flex', gap: 1, mb: 4 }}>
             <Autocomplete
               fullWidth
               size="small"
@@ -230,7 +308,7 @@ const DailyDesktopEnvironments: React.FC = () => {
             </Button>
           </Box>
         ) : (
-          <Box textAlign="center">
+          <Box textAlign="center" mb={4}>
             <Typography variant="h6" color="success.main" fontWeight="bold">
               {`[OK] SYSTEM_IDENTIFIED`}
             </Typography>
@@ -245,6 +323,26 @@ const DailyDesktopEnvironments: React.FC = () => {
             </Button>
           </Box>
         )}
+
+        <Box sx={{ width: '100%', maxWidth: 500 }}>
+          {guesses.map((guess, index) => (
+            <Paper 
+              key={index} 
+              variant="outlined" 
+              sx={{ 
+                p: 1, 
+                mb: 1, 
+                textAlign: 'center', 
+                bgcolor: guess.isCorrect ? '#4caf50' : '#f44336',
+                color: 'white',
+                fontWeight: 'bold',
+                border: 'none'
+              }}
+            >
+              {`[${guesses.length - index}] ${guess.name}`}
+            </Paper>
+          ))}
+        </Box>
       </Paper>
 
       {/* Fullscreen Zoomable Backdrop */}
