@@ -35,11 +35,39 @@ The application features a strictly flat, high-contrast **Terminal Aesthetic**:
 
 ## Infrastructure & Deployment
 - **Frontend Dockerfile:** Multi-stage build supporting `dev` (hot-reload) and `production` (Nginx SPA serving).
-- **Gateway:** A dedicated Nginx container (`/gateway`) acts as the single entry point for production, handling SSL termination (planned) and reverse proxying to frontend/backend.
+- **Gateway:** A dedicated Nginx container (`/gateway`) acts as the single entry point for production, handling routing to frontend/backend and security headers.
+- **Tunnel:** Secure Cloudflare Tunnel (`cloudflared`) used for self-hosting without port forwarding.
 - **Docker Compose:** 
-  - `docker-compose.prod.yml`: Production stack using the Gateway (port 8081).
+  - `docker-compose.prod.yml`: Production stack using the Gateway and Tunnel.
   - Development override with Redis non-persistence (`--save "" --appendonly no`) for clean restarts.
-- **Image Processing:** Custom `DistroImageProcessor` handles Gaussian blur and pixelation using ImageSharp.
+
+## Server Setup & Deployment
+
+### 1. Prerequisites
+- Docker and Docker Compose installed.
+- A domain name managed via Cloudflare.
+- A Cloudflare Tunnel created in the Zero Trust Dashboard.
+
+### 2. Environment Configuration
+Create a `.env` file in the project root on the server (this file is git-ignored):
+```env
+# Cloudflare Tunnel Token (from dashboard)
+CF_TUNNEL_TOKEN=your_token_here
+
+# Database Password
+DB_PASSWORD=your_secure_password
+```
+
+### 3. Execution
+Launch the production stack:
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### 4. Cloudflare Routing
+In the Cloudflare Tunnel dashboard, point your Public Hostname to the internal Docker gateway:
+- **Service Type:** `HTTP`
+- **URL:** `gateway:80`
 
 ## Development Conventions
 
