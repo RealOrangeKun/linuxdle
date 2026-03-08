@@ -40,6 +40,18 @@ The application features a strictly flat, high-contrast **Terminal Aesthetic**:
   - Development override with Redis non-persistence (`--save "" --appendonly no`) for clean restarts.
 - **Image Processing:** Custom `DistroImageProcessor` handles Gaussian blur and pixelation using ImageSharp.
 
+## Development Conventions
+
+### UI & Layout
+- **Input Placement:** The guess input box (Autocomplete/TextField) must ALWAYS be placed **above** the list of user guesses.
+- **Guess Ordering:** New guesses should be **prepended** to the guess list so that the most recent attempt is always at the top.
+- **Terminal Styling:** Maintain the "Terminal Aesthetic" using monospace fonts, sharp borders, and shell-inspired status messages (e.g., `[OK]`, `STATUS_OK`).
+
+### Game Mechanics (Hints)
+- **Hint Reveal Logic:** Hints should generally be revealed progressively. For the Daily DE game, a hint is revealed every **2 wrong guesses** (thresholds: 2, 4, 6, 8).
+- **Hint Display:** Revealed hints should be displayed in a prominent, themed container (e.g., the "DECRYPTED_DATA" box) above the input or between the input and guesses.
+- **Parameter Naming:** Use `numberOfGuesses` (backend) and `numberOfGuesses` (frontend) when passing attempt counts to services/APIs.
+
 ## Architectural Notes
 - The project follows a **Layered Architecture (N-tier)** pattern.
 - **Dependency Flow:** `Linuxdle.Api` -> `Linuxdle.Services` -> `Linuxdle.Infrastructure` -> `Linuxdle.Domain`.
