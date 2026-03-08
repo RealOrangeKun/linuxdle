@@ -7,5 +7,6 @@ export enum MatchResult {
 export enum YearDirection {
   Higher = 'Higher',
   Lower = 'Lower',
-  None = 'None'
+  Correct = 'Correct'
 }
+

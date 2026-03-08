@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ apiClient.interceptors.response.use(
 
       try {
         const response = await axios.post<string>(
-          'http://localhost:5000/api/users/refresh-token',
+          `${import.meta.env.VITE_API_URL}/users/refresh-token`,
           {},
           { withCredentials: true }
         );

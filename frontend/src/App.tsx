@@ -1,4 +1,4 @@
-import React, { createContext, useMemo, useState } from 'react';
+import { useState, useMemo, createContext } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress, useMediaQuery } from '@mui/material';
 import Layout from './components/Layout';
@@ -7,6 +7,7 @@ import DailyDistros from './pages/DailyDistros';
 import DailyCommands from './pages/DailyCommands';
 import DailyDesktopEnvironments from './pages/DailyDesktopEnvironments';
 import { useAuth } from './hooks/useAuth';
+
 
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 

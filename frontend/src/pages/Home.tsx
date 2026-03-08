@@ -40,7 +40,7 @@ const Home: React.FC = () => {
 
       <Grid container spacing={3}>
         {games.map((game) => (
-          <Grid item xs={12} key={game.title}>
+          <Grid size={12} key={game.title}>
             <Card variant="outlined" sx={{ bgcolor: 'background.paper' }}>
               <CardActionArea onClick={() => navigate(game.path)} sx={{ p: 1 }}>
                 <CardContent>
