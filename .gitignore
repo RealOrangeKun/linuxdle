@@ -1,1 +1,17 @@
+# Docker
 *override*
+.env
+.env.*
+*.sql
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts are handled by sub-directory gitignores

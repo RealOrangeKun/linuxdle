@@ -1,15 +1,41 @@
 services:
+  gateway:
+    container_name: linuxdle-gateway
+    build:
+      context: ./gateway
+    # In a tunnel setup, we don't even NEED to expose ports to the host!
+    # But we'll keep 8081 for local testing if you want.
+    ports:
+      - "8081:80"
+    restart: always
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - linuxdle-network
+
+  tunnel:
+    container_name: linuxdle-tunnel
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CF_TUNNEL_TOKEN}
+    depends_on:
+      - gateway
+    networks:
+      - linuxdle-network
+
   backend:
     container_name: linuxdle-backend
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "5000:8080"
+    restart: always
     environment:
       - ASPNETCORE_URLS=http://+:8080
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Database=Host=postgres;Database=linuxdle;Username=linuxdle;Password=linuxdle
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Database=Host=postgres;Database=linuxdle;Username=linuxdle;Password=${DB_PASSWORD:-linuxdle}
       - ConnectionStrings__Redis=redis:6379
     volumes:
       - ./backend/src/Linuxdle.Api/wwwroot:/app/wwwroot
@@ -22,22 +48,20 @@ services:
   postgres:
     image: postgres:18
     container_name: linuxdle-postgres
+    restart: always
     environment:
       - POSTGRES_DB=linuxdle
       - POSTGRES_USER=linuxdle
-      - POSTGRES_PASSWORD=linuxdle
-    ports:
-      - "5432:5432"
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-linuxdle}
     volumes:
-      - postgres-data:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - linuxdle-network
 
   redis:
     image: redis:8
     container_name: linuxdle-redis
-    ports:
-      - "6379:6379"
+    restart: always
     networks:
       - linuxdle-network
 
@@ -47,31 +71,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: production
-    ports:
-      - "80:80"
+    restart: always
     depends_on:
       - backend
     networks:
       - linuxdle-network
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: linuxdle-pgadmin
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    depends_on:
-      - postgres
-    networks:
-      - linuxdle-network
-
 volumes:
   postgres-data:
-  pgadmin-data:
 
 networks:
   linuxdle-network:

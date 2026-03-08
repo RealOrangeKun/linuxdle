@@ -35,8 +35,9 @@ The application features a strictly flat, high-contrast **Terminal Aesthetic**:
 
 ## Infrastructure & Deployment
 - **Frontend Dockerfile:** Multi-stage build supporting `dev` (hot-reload) and `production` (Nginx SPA serving).
+- **Gateway:** A dedicated Nginx container (`/gateway`) acts as the single entry point for production, handling SSL termination (planned) and reverse proxying to frontend/backend.
 - **Docker Compose:** 
-  - Backend and Frontend services.
+  - `docker-compose.prod.yml`: Production stack using the Gateway (port 8081).
   - Development override with Redis non-persistence (`--save "" --appendonly no`) for clean restarts.
 - **Image Processing:** Custom `DistroImageProcessor` handles Gaussian blur and pixelation using ImageSharp.
 
