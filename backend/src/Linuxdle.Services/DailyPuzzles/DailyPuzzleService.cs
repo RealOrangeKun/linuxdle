@@ -38,13 +38,25 @@ internal sealed class DailyPuzzleService(
                 .Select(p => p.ScheduledDate)
                 .ToHashSetAsync(cancellationToken);
 
-            List<int> targetIds = await GetTargetIdsForGame(gameId, cancellationToken);
+            List<int> allTargetIds = await GetTargetIdsForGame(gameId, cancellationToken);
 
-            if (targetIds.Count == 0)
+            if (allTargetIds.Count == 0)
             {
                 logger.LogWarning("No target IDs found for game {GameId}. Skipping scheduling.", gameId);
                 continue;
             }
+
+            int historyLimit = Math.Min(30, allTargetIds.Count / 2);
+            var recentlyUsedIds = await dbContext.DailyPuzzles
+                .AsNoTracking()
+                .Where(p => p.GameId == gameId)
+                .OrderByDescending(p => p.ScheduledDate)
+                .Select(p => p.TargetId)
+                .Take(historyLimit)
+                .ToHashSetAsync(cancellationToken);
+
+            var availableIds = allTargetIds.Where(id => !recentlyUsedIds.Contains(id)).ToList();
+            if (availableIds.Count == 0) availableIds = allTargetIds;
 
             var random = new Random();
             var currentPointer = today;
@@ -57,10 +69,15 @@ internal sealed class DailyPuzzleService(
                     continue;
                 }
 
-                int targetId = targetIds[random.Next(targetIds.Count)];
+                int targetId = availableIds[random.Next(availableIds.Count)];
 
                 dbContext.DailyPuzzles.Add(
                     DailyPuzzle.Create(gameId, targetId, currentPointer));
+
+                recentlyUsedIds.Add(targetId);
+                availableIds.Remove(targetId);
+
+                if (availableIds.Count == 0) availableIds = [.. allTargetIds];
 
                 existingDates.Add(currentPointer);
                 currentPointer = currentPointer.AddDays(1);
