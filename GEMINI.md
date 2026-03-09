@@ -11,6 +11,7 @@ The application features a strictly flat, high-contrast **Terminal Aesthetic**:
 - **Shell-like Symbols:** Replaced emojis with prompt symbols (`_ >`, `[+]`, `[OK]`, `STATUS_OK`).
 - **Prompt-Driven UI:** Headers and footers mimic shell environments (e.g., `$ user@linuxdle: ~ 2026`).
 - **Zero Shadows:** Strictly flat UI with sharp borders (`border-radius: 0`) and high-contrast color palettes (Arch Blue/Cyan primary).
+- **Custom Branding:** Favicon is a terminal-inspired `_ >` icon in `frontend/public/favicon.svg`.
 
 ### Game Modes
 - **Daily Commands:** Guess the correct Linux command.
@@ -36,6 +37,7 @@ The application features a strictly flat, high-contrast **Terminal Aesthetic**:
 ## Infrastructure & Deployment
 - **Frontend Dockerfile:** Multi-stage build supporting `dev` (hot-reload) and `production` (Nginx SPA serving).
 - **Gateway:** A dedicated Nginx container (`/gateway`) acts as the single entry point for production, handling routing to frontend/backend and security headers.
+  - **Redirects:** Automatically redirects `www` traffic to the root domain (`linuxdle.site`).
 - **Tunnel:** Secure Cloudflare Tunnel (`cloudflared`) used for self-hosting without port forwarding.
 - **Docker Compose:** 
   - `docker-compose.prod.yml`: Production stack using the Gateway and Tunnel.
@@ -64,10 +66,12 @@ Launch the production stack:
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-### 4. Cloudflare Routing
-In the Cloudflare Tunnel dashboard, point your Public Hostname to the internal Docker gateway:
-- **Service Type:** `HTTP`
-- **URL:** `gateway:80`
+### 4. Cloudflare Routing & SSL Troubleshooting
+In the Cloudflare Dashboard, configure your domain as follows:
+- **Cloudflare Tunnel:** Point your Public Hostname (`linuxdle.site`) to the internal service `http://gateway:80`.
+- **SSL/TLS Mode:** Set to **Flexible** (since the tunnel provides the secure bridge and origin is HTTP).
+- **Enforce HTTPS:** Enable **Always Use HTTPS** and **Automatic HTTPS Rewrites** in the SSL/TLS Edge Certificates tab.
+- **DNS Cleanup:** Ensure no conflicting A or CNAME records exist for the root domain or `www` (e.g., delete Namecheap parking page records). Let the tunnel manage the records.
 
 ## Development Conventions
 
