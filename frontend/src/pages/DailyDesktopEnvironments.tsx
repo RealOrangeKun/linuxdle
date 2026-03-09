@@ -50,21 +50,6 @@ const DailyDesktopEnvironments: React.FC = () => {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const fetchScreenshot = useCallback(async () => {
-    try {
-      const response = await apiClient.get('/daily-desktop-environments/daily-desktop-environment.png', {
-        responseType: 'blob'
-      });
-      const newUrl = URL.createObjectURL(response.data);
-      setScreenshotUrl(prevUrl => {
-        if (prevUrl.startsWith('blob:')) URL.revokeObjectURL(prevUrl);
-        return newUrl;
-      });
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  }, []);
-
   const fetchDes = useCallback(async () => {
     try {
       const response = await apiClient.get<DesktopEnvironment[]>('/daily-desktop-environments');
@@ -76,7 +61,8 @@ const DailyDesktopEnvironments: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
-      await Promise.all([fetchDes(), fetchScreenshot()]);
+      await fetchDes();
+      setScreenshotUrl(`${apiClient.defaults.baseURL}/daily-desktop-environments/daily-desktop-environment.png?v=${today}`);
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const state = JSON.parse(saved);
@@ -89,13 +75,7 @@ const DailyDesktopEnvironments: React.FC = () => {
       setLoading(false);
     };
     init();
-    return () => {
-      setScreenshotUrl(prevUrl => {
-        if (prevUrl.startsWith('blob:')) URL.revokeObjectURL(prevUrl);
-        return '';
-      });
-    };
-  }, [fetchScreenshot, fetchDes, today]);
+  }, [fetchDes, today]);
 
   useEffect(() => {
     if (!loading) {

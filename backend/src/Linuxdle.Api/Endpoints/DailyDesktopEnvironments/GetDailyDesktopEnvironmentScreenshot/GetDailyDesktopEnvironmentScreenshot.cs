@@ -17,6 +17,6 @@ internal sealed class GetDailyDesktopEnvironmentScreenshot : IEndpoint
     {
         var bytes = await dailyDesktopEnvironmentService.GetDailyDesktopEnvironmentScreenshot(cancellationToken);
 
-        return Results.File(bytes, MediaTypeNames.Image.Png);
+        return Results.File(bytes, MediaTypeNames.Image.Png, lastModified: DateTimeOffset.UtcNow.Date, enableRangeProcessing: true);
     }
 }

@@ -35,6 +35,8 @@ internal static class OptionsExtensions
 
             services.ConfigureOptions<ConfigurePrewarmDistroJob>();
 
+            services.ConfigureOptions<ConfigurePrewarmDailyDesktopEnvironmentJob>();
+
             services.ConfigureOptions<ConfigureJwtOptions>();
 
             return services;
