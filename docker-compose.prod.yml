@@ -1,10 +1,7 @@
 services:
   gateway:
     container_name: linuxdle-gateway
-    build:
-      context: ./gateway
-    # In a tunnel setup, we don't even NEED to expose ports to the host!
-    # But we'll keep 8081 for local testing if you want.
+    image: ghcr.io/yousseftarek/linuxdle-gateway:latest
     ports:
       - "8081:80"
     restart: always
@@ -28,9 +25,7 @@ services:
 
   backend:
     container_name: linuxdle-backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/yousseftarek/linuxdle-backend:latest
     restart: always
     environment:
       - ASPNETCORE_URLS=http://+:8080
@@ -67,10 +62,7 @@ services:
 
   frontend:
     container_name: linuxdle-frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: production
+    image: ghcr.io/yousseftarek/linuxdle-frontend:latest
     restart: always
     depends_on:
       - backend
