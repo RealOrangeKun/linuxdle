@@ -38,7 +38,7 @@ services:
       - ConnectionStrings__Database=Host=postgres;Database=linuxdle;Username=linuxdle;Password=${DB_PASSWORD:-linuxdle}
       - ConnectionStrings__Redis=redis:6379
     volumes:
-      - ./backend/src/Linuxdle.Api/wwwroot:/app/wwwroot
+      - ./backend/src/Linuxdle.Api/wwwroot:/app/wwwroot:Z
     depends_on:
       - postgres
       - redis
