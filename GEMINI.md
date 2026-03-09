@@ -15,77 +15,56 @@ The application features a strictly flat, high-contrast **Terminal Aesthetic**:
 
 ### Game Modes
 - **Daily Commands:** Guess the correct Linux command.
-  - **Logic:** Categories show names separated by commas.
-  - **Color Coding:** Green (perfect match), Orange (intersection), Red (no match).
-- **Daily Distros:** Identify a Linux distribution.
-  - **Mechanic:** Uses "Distro Logo Blur" where the logo clears up progressively with each try.
-  - **Quality Tuning:** Supports up to 12 levels of clarity.
-- **Daily Desktop Environments:** Recognize a DE from a screenshot.
-  - **Features:** Supports zoom and pan for high-resolution screenshots from r/unixporn.
-- **Unlimited Guesses:** Users can guess as many times as they want; suggestions are filtered as they are used.
-- **Persistence:** Game state (guesses, win/loss) is persisted in `localStorage` per day.
+- **Daily Distros:** Identify a Linux distribution using "Logo Blur".
+- **Daily Desktop Environments:** Recognize a DE/WM from a screenshot.
 
 ## Technical Stack
 - **Backend:** .NET 10 (ASP.NET Core Minimal APIs)
 - **Database:** PostgreSQL (v18)
-- **Caching & Rate Limiting:** Redis (v8)
-- **ORM:** Entity Framework Core (Clean Architecture)
-- **Background Tasks:** Quartz.NET (with Clustering and Postgres persistence)
+- **Caching:** Redis (v8)
 - **Frontend:** React 19 (TypeScript), Vite 7, Material UI (Monospace styled)
-- **Orchestration:** Docker Compose (Multi-stage builds, Hot-reloading in Dev)
+- **Orchestration:** Docker Compose
 
-## Infrastructure & Deployment
-- **Frontend Dockerfile:** Multi-stage build supporting `dev` (hot-reload) and `production` (Nginx SPA serving).
-- **Gateway:** A dedicated Nginx container (`/gateway`) acts as the single entry point for production, handling routing to frontend/backend and security headers.
-  - **Redirects:** Automatically redirects `www` traffic to the root domain (`linuxdle.site`).
-- **Tunnel:** Secure Cloudflare Tunnel (`cloudflared`) used for self-hosting without port forwarding.
-- **Docker Compose:** 
-  - `docker-compose.prod.yml`: Production stack using the Gateway and Tunnel.
-  - Development override with Redis non-persistence (`--save "" --appendonly no`) for clean restarts.
+## Infrastructure & Workflows
 
-## Server Setup & Deployment
+### 1. Development Workflow
+For local development without Cloudflare or Nginx overhead:
+- **Command:** `docker-compose -f docker-compose.dev.yml up --build -d`
+- **Frontend:** `http://localhost:5173` (Vite Hot-reload)
+- **Backend:** `http://localhost:5000`
+- **Database Tools:** pgAdmin available at `http://localhost:5050`
 
-### 1. Prerequisites
-- Docker and Docker Compose installed.
-- A domain name managed via Cloudflare.
-- A Cloudflare Tunnel created in the Zero Trust Dashboard.
+### 2. Production Stack
+Production uses a secure gateway and tunnel architecture:
+- **Command:** `docker-compose -f docker-compose.prod.yml up -d`
+- **Gateway:** Nginx handles internal routing (`/api/` to `backend:8080`, `/` to `frontend:80`).
+- **Tunnel:** `cloudflared` creates a secure outbound connection to Cloudflare.
+- **Security:** No ports are exposed publicly; Cloudflare handles SSL and DDoS protection.
 
-### 2. Environment Configuration
-Create a `.env` file in the project root on the server (this file is git-ignored):
-```env
-# Cloudflare Tunnel Token (from dashboard)
-CF_TUNNEL_TOKEN=your_token_here
+### 3. Maintenance Mode & Monitoring
+A custom maintenance system is implemented via Cloudflare Workers:
+- **Status URL:** `https://status.linuxdle.site`
+- **Worker:** `linuxdle-maintenance-guard` serves a terminal-themed maintenance page.
+- **Toggle Script:** `infrastructure/cloudflare/maintenance-mode.sh` allows switching maintenance mode `on`/`off`.
+- **Auto-Monitor (PROD ONLY):** A `linuxdle-monitor` sidecar container polls the backend health. If the backend fails, it automatically runs the toggle script to activate maintenance mode (302 redirect to status page).
 
-# Database Password
-DB_PASSWORD=your_secure_password
-```
-
-### 3. Execution
-Launch the production stack:
-```bash
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-### 4. Cloudflare Routing & SSL Troubleshooting
-In the Cloudflare Dashboard, configure your domain as follows:
-- **Cloudflare Tunnel:** Point your Public Hostname (`linuxdle.site`) to the internal service `http://gateway:80`.
-- **SSL/TLS Mode:** Set to **Flexible** (since the tunnel provides the secure bridge and origin is HTTP).
-- **Enforce HTTPS:** Enable **Always Use HTTPS** and **Automatic HTTPS Rewrites** in the SSL/TLS Edge Certificates tab.
-- **DNS Cleanup:** Ensure no conflicting A or CNAME records exist for the root domain or `www` (e.g., delete Namecheap parking page records). Let the tunnel manage the records.
+### 4. Database Management
+- **Seeding:** Use `seed_db.py` to reset and populate the database with game data.
+- **Connection:** Requires `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` env vars.
+- **Logic:** Truncates game tables and re-inserts fresh data while fixing Postgres sequences.
 
 ## Development Conventions
 
 ### UI & Layout
-- **Input Placement:** The guess input box (Autocomplete/TextField) must ALWAYS be placed **above** the list of user guesses.
-- **Guess Ordering:** New guesses should be **prepended** to the guess list so that the most recent attempt is always at the top.
-- **Terminal Styling:** Maintain the "Terminal Aesthetic" using monospace fonts, sharp borders, and shell-inspired status messages (e.g., `[OK]`, `STATUS_OK`).
+- **Input Placement:** The guess input box must ALWAYS be placed **above** the list of user guesses.
+- **Guess Ordering:** New guesses should be **prepended** to the guess list (most recent at the top).
+- **Terminal Styling:** Maintain monospace fonts, sharp borders, and status-style messages (`[OK]`, `[FAIL]`).
 
 ### Game Mechanics (Hints)
-- **Hint Reveal Logic:** Hints should generally be revealed progressively. For the Daily DE game, a hint is revealed every **2 wrong guesses** (thresholds: 2, 4, 6, 8).
-- **Hint Display:** Revealed hints should be displayed in a prominent, themed container (e.g., the "DECRYPTED_DATA" box) above the input or between the input and guesses.
-- **Parameter Naming:** Use `numberOfGuesses` (backend) and `numberOfGuesses` (frontend) when passing attempt counts to services/APIs.
+- **Hint Reveal Logic:** Hints reveal progressively (e.g., every 2 wrong guesses).
+- **Parameter Naming:** Consistently use `numberOfGuesses` for attempt counts in all layers.
 
 ## Architectural Notes
-- The project follows a **Layered Architecture (N-tier)** pattern.
-- **Dependency Flow:** `Linuxdle.Api` -> `Linuxdle.Services` -> `Linuxdle.Infrastructure` -> `Linuxdle.Domain`.
-- **State Management:** Simple `localStorage` sync for daily progress tracking.
+- **N-tier Architecture:** `Api` -> `Services` -> `Infrastructure` -> `Domain`.
+- **State Management:** `localStorage` for daily persistence.
+- **Gateway Routing:** ALWAYS use service names (e.g., `http://backend:8080`) in Nginx configs to support Docker's dynamic IP assignment.
