@@ -1,7 +1,7 @@
 services:
   gateway:
     container_name: linuxdle-gateway
-    image: ghcr.io/yousseftarek/linuxdle-gateway:latest
+    image: ghcr.io/realorangekun/linuxdle-gateway:latest
     ports:
       - "8081:80"
     restart: always
@@ -25,7 +25,7 @@ services:
 
   backend:
     container_name: linuxdle-backend
-    image: ghcr.io/yousseftarek/linuxdle-backend:latest
+    image: ghcr.io/realorangekun/linuxdle-backend:latest
     restart: always
     environment:
       - ASPNETCORE_URLS=http://+:8080
@@ -62,7 +62,7 @@ services:
 
   frontend:
     container_name: linuxdle-frontend
-    image: ghcr.io/yousseftarek/linuxdle-frontend:latest
+    image: ghcr.io/realorangekun/linuxdle-frontend:latest
     restart: always
     depends_on:
       - backend
