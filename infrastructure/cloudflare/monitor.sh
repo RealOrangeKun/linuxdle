@@ -25,10 +25,8 @@ while true; do
         echo "[MONITOR] Backend is DOWN. Activating Maintenance Mode..."
         bash "$MAINTENANCE_SCRIPT" on
     else
-        # Optional: Uncomment if you want it to automatically turn OFF when backend recovers
-        # echo "[MONITOR] Backend is UP. Deactivating Maintenance Mode..."
-        # bash "$MAINTENANCE_SCRIPT" off
-        :
+        echo "[MONITOR] Backend is UP. Deactivating Maintenance Mode..."
+        bash "$MAINTENANCE_SCRIPT" off
     fi
 
     sleep "$CHECK_INTERVAL"
