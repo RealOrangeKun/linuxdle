@@ -6,6 +6,7 @@ import {
 import { Home, Close, ZoomIn, ZoomOut, RestartAlt } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
+import { checkAllGamesCompleted } from '../utils/gameStatus';
 
 interface DesktopEnvironment {
   name: string;
@@ -110,6 +111,9 @@ const DailyDesktopEnvironments: React.FC = () => {
       if (response.data.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
+        if (checkAllGamesCompleted()) {
+          setTimeout(() => navigate('/'), 2000);
+        }
       }
       setSelectedGuess(null);
     } catch (error) {

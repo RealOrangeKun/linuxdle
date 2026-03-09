@@ -6,6 +6,7 @@ import {
 import { ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
+import { checkAllGamesCompleted } from '../utils/gameStatus';
 
 interface Distro {
   name: string;
@@ -122,6 +123,9 @@ const DailyDistros: React.FC = () => {
         setIsGameOver(true);
         setShowSuccess(true);
         updateLogoUrl(12, false); // Force normal mode on success
+        if (checkAllGamesCompleted()) {
+          setTimeout(() => navigate('/'), 2000);
+        }
       } else {
         updateLogoUrl(Math.min(newGuesses.length + 1, 12), hardMode);
       }

@@ -8,6 +8,7 @@ import { ArrowUpward, ArrowDownward, ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { MatchResult, YearDirection } from '../types/game';
+import { checkAllGamesCompleted } from '../utils/gameStatus';
 
 interface CommandResult {
   matchResults: {
@@ -95,6 +96,9 @@ const DailyCommands: React.FC = () => {
       if (response.data.matchResults.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
+        if (checkAllGamesCompleted()) {
+          setTimeout(() => navigate('/'), 2000);
+        }
       }
       setSelectedGuess(null);
     } catch (error) {
