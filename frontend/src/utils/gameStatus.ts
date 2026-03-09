@@ -1,0 +1,20 @@
+export const ALL_STORAGE_KEYS = {
+  commands: 'linuxdle_commands_state',
+  distros: 'linuxdle_distros_state',
+  des: 'linuxdle_des_state',
+};
+
+export const checkAllGamesCompleted = (): boolean => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  const status = Object.values(ALL_STORAGE_KEYS).map(key => {
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      const state = JSON.parse(saved);
+      return state.date === today && state.isGameOver;
+    }
+    return false;
+  });
+
+  return status.every(s => s === true);
+};
