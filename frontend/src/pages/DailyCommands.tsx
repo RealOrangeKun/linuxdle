@@ -82,6 +82,15 @@ const DailyCommands: React.FC = () => {
     }
   }, [results, isGameOver, showSuccess, today, loading]);
 
+  useEffect(() => {
+    if (isGameOver && !loading) {
+      if (checkAllGamesCompleted()) {
+        const timer = setTimeout(() => navigate('/'), 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isGameOver, loading, navigate]);
+
   const handleSubmitGuess = async () => {
     if (!selectedGuess || isGameOver) return;
 
@@ -96,9 +105,6 @@ const DailyCommands: React.FC = () => {
       if (response.data.matchResults.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-        if (checkAllGamesCompleted()) {
-          setTimeout(() => navigate('/'), 2000);
-        }
       }
       setSelectedGuess(null);
     } catch (error) {

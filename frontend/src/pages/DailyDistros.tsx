@@ -103,6 +103,15 @@ const DailyDistros: React.FC = () => {
     }
   }, [guesses, isGameOver, showSuccess, today, loading, hardMode]);
 
+  useEffect(() => {
+    if (isGameOver && !loading) {
+      if (checkAllGamesCompleted()) {
+        const timer = setTimeout(() => navigate('/'), 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isGameOver, loading, navigate]);
+
   const handleToggleHardMode = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (isGameOver) return;
     const newMode = event.target.checked;

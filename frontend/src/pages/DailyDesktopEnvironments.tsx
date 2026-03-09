@@ -89,6 +89,15 @@ const DailyDesktopEnvironments: React.FC = () => {
     }
   }, [guesses, isGameOver, showSuccess, today, loading]);
 
+  useEffect(() => {
+    if (isGameOver && !loading) {
+      if (checkAllGamesCompleted()) {
+        const timer = setTimeout(() => navigate('/'), 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isGameOver, loading, navigate]);
+
   const handleSubmitGuess = async () => {
     if (!selectedGuess || isGameOver) return;
     try {
@@ -96,7 +105,7 @@ const DailyDesktopEnvironments: React.FC = () => {
         userGuess: selectedGuess.slug,
         numberOfGuesses: guesses.length + 1
       });
-      
+
       const newGuess: Guess = { 
         name: selectedGuess.name, 
         isCorrect: response.data.isCorrect,
@@ -111,9 +120,6 @@ const DailyDesktopEnvironments: React.FC = () => {
       if (response.data.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-        if (checkAllGamesCompleted()) {
-          setTimeout(() => navigate('/'), 2000);
-        }
       }
       setSelectedGuess(null);
     } catch (error) {
