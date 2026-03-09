@@ -54,7 +54,7 @@ services:
       - POSTGRES_USER=linuxdle
       - POSTGRES_PASSWORD=${DB_PASSWORD:-linuxdle}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     networks:
       - linuxdle-network
 

@@ -17,6 +17,7 @@ internal sealed class LoggingJobListener(
 
     public Task JobToBeExecuted(IJobExecutionContext context, CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("START: Job {Key}", context.JobDetail.Key);
         return Task.CompletedTask;
     }
 

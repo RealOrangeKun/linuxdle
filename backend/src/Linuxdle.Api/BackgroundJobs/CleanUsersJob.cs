@@ -12,13 +12,9 @@ internal sealed class CleanUsersJob(IUserService userService) : IJob
         {
             await userService.CleanUnactiveUsers();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            var jobException = new JobExecutionException(ex)
-            {
-                RefireImmediately = true
-            };
-            throw jobException;
+            throw;
         }
     }
 }
