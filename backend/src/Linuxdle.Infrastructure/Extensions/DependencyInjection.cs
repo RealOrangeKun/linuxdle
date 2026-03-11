@@ -23,7 +23,11 @@ public static class DependencyInjection
                 options.InstanceName = "Linuxdle_";
             });
 
-            services.AddHybridCache();
+            services.AddHybridCache(options =>
+            {
+                options.MaximumPayloadBytes = configuration.GetValue<long>("HybridCache:MaximumPayloadBytes");
+                options.MaximumKeyLength = configuration.GetValue<int>("HybridCache:MaximumKeyLength");
+            });
 
             return services;
         }

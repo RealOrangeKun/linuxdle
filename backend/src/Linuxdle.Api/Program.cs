@@ -27,6 +27,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTyp
 
 builder.Services.AddRateLimiting(builder.Configuration);
 
+builder.Services.AddOpenTelemetry(builder.Configuration);
+
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
