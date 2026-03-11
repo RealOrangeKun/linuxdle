@@ -8,8 +8,9 @@ import { ArrowUpward, ArrowDownward, ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { MatchResult, YearDirection } from '../types/game';
-import { checkAllGamesCompleted } from '../utils/gameStatus';
+import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
 import { SEO, pageSEO } from '../components/SEO';
+import CountdownTimer from '../components/CountdownTimer';
 
 interface CommandResult {
   matchResults: {
@@ -108,7 +109,8 @@ const DailyCommands: React.FC = () => {
 
   useEffect(() => {
     if (isGameOver && !loading) {
-      if (checkAllGamesCompleted()) {
+      if (checkAllGamesCompleted() && !hasRedirectedToday()) {
+        markAsRedirected();
         const timer = setTimeout(() => navigate('/'), 2000);
         return () => clearTimeout(timer);
       }
@@ -160,6 +162,15 @@ const DailyCommands: React.FC = () => {
           $ guess-command --interactive
         </Typography>
       </Box>
+
+      {isGameOver && checkAllGamesCompleted() && (
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography variant="h6" sx={{ color: 'success.main', mb: 1, fontWeight: 'bold' }}>
+            [OK] ALL_MODULES_COMPLETE
+          </Typography>
+          <CountdownTimer />
+        </Box>
+      )}
 
       <Paper variant="outlined" sx={{ p: 3, mb: 4, bgcolor: 'background.paper' }}>
         {!isGameOver ? (

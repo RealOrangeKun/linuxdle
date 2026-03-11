@@ -6,8 +6,9 @@ import {
 import { Home, Close, ZoomIn, ZoomOut, RestartAlt } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
-import { checkAllGamesCompleted } from '../utils/gameStatus';
+import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
 import { SEO, pageSEO } from '../components/SEO';
+import CountdownTimer from '../components/CountdownTimer';
 
 interface DesktopEnvironment {
   name: string;
@@ -102,7 +103,8 @@ const DailyDesktopEnvironments: React.FC = () => {
 
   useEffect(() => {
     if (isGameOver && !loading) {
-      if (checkAllGamesCompleted()) {
+      if (checkAllGamesCompleted() && !hasRedirectedToday()) {
+        markAsRedirected();
         const timer = setTimeout(() => navigate('/'), 2000);
         return () => clearTimeout(timer);
       }
@@ -193,6 +195,15 @@ const DailyDesktopEnvironments: React.FC = () => {
           $ view-screenshot --interactive
         </Typography>
       </Box>
+
+      {isGameOver && checkAllGamesCompleted() && (
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography variant="h6" sx={{ color: 'success.main', mb: 1, fontWeight: 'bold' }}>
+            [OK] ALL_MODULES_COMPLETE
+          </Typography>
+          <CountdownTimer />
+        </Box>
+      )}
 
       <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
         <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>

@@ -4,6 +4,8 @@ export const ALL_STORAGE_KEYS = {
   des: 'linuxdle_des_state',
 };
 
+const REDIRECT_FLAG_KEY = 'linuxdle_redirected_today';
+
 export const checkAllGamesCompleted = (): boolean => {
   const today = new Date().toISOString().split('T')[0];
   
@@ -17,4 +19,15 @@ export const checkAllGamesCompleted = (): boolean => {
   });
 
   return status.every(s => s === true);
+};
+
+export const hasRedirectedToday = (): boolean => {
+  const today = new Date().toISOString().split('T')[0];
+  const redirectFlag = sessionStorage.getItem(REDIRECT_FLAG_KEY);
+  return redirectFlag === today;
+};
+
+export const markAsRedirected = (): void => {
+  const today = new Date().toISOString().split('T')[0];
+  sessionStorage.setItem(REDIRECT_FLAG_KEY, today);
 };

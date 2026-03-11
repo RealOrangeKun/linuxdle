@@ -6,8 +6,9 @@ import {
 import { ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
-import { checkAllGamesCompleted } from '../utils/gameStatus';
+import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
 import { SEO, pageSEO } from '../components/SEO';
+import CountdownTimer from '../components/CountdownTimer';
 
 interface Distro {
   name: string;
@@ -116,7 +117,8 @@ const DailyDistros: React.FC = () => {
 
   useEffect(() => {
     if (isGameOver && !loading) {
-      if (checkAllGamesCompleted()) {
+      if (checkAllGamesCompleted() && !hasRedirectedToday()) {
+        markAsRedirected();
         const timer = setTimeout(() => navigate('/'), 2000);
         return () => clearTimeout(timer);
       }
@@ -143,9 +145,6 @@ const DailyDistros: React.FC = () => {
         setIsGameOver(true);
         setShowSuccess(true);
         updateLogoUrl(12, false); // Force normal mode on success
-        if (checkAllGamesCompleted()) {
-          setTimeout(() => navigate('/'), 2000);
-        }
       } else {
         updateLogoUrl(Math.min(newGuesses.length + 1, 12), hardMode);
       }
@@ -194,6 +193,15 @@ const DailyDistros: React.FC = () => {
           )}
         </Box>
       </Box>
+
+      {isGameOver && checkAllGamesCompleted() && (
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography variant="h6" sx={{ color: 'success.main', mb: 1, fontWeight: 'bold' }}>
+            [OK] ALL_MODULES_COMPLETE
+          </Typography>
+          <CountdownTimer />
+        </Box>
+      )}
 
       <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
         <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
