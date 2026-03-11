@@ -126,35 +126,64 @@ rate({service_name="linuxdle-backend"}[1m])
 
 ## Creating a Dashboard
 
-### Quick Start
-1. **Dashboards** → **New** → **New Dashboard**
-2. **Add visualization**
-3. **Select "Prometheus"** as data source
-4. Enter a query from above
-5. **Apply**
-6. Repeat for other panels
+### Exact Steps to Create Your First Dashboard
 
-### Recommended 4-Panel Layout (Golden Signals)
+1. **Click "Dashboards"** in the left sidebar (icon looks like 4 squares)
+2. **Click the blue "New" button** (top right)
+3. **Click "New Dashboard"** from the dropdown
+4. **Click the blue "+ Add visualization" button**
+5. **Click "Prometheus"** from the data source list
 
-**Panel 1: Request Rate (Traffic)**
-- Query: `rate(http_server_request_duration_seconds_count{service_name="linuxdle-backend"}[5m])`
-- Type: Graph
-- Title: "Requests per Second"
+#### First Panel - Request Rate
 
-**Panel 2: Response Time (Latency)**
-- Query: `histogram_quantile(0.95, rate(http_server_request_duration_seconds_bucket{service_name="linuxdle-backend"}[5m]))`
-- Type: Graph
-- Title: "Response Time (p95)"
+6. In the query box at the bottom, **paste this**:
+   ```
+   rate(http_server_request_duration_seconds_count{service_name="linuxdle-backend"}[5m])
+   ```
+7. **Click in the "Panel title" field** (top left, says "Panel Title")
+8. **Type**: `Requests per Second`
+9. **Click the blue "Apply" button** (top right corner)
 
-**Panel 3: Error Rate (Reliability)**
-- Query: `rate(http_server_request_duration_seconds_count{service_name="linuxdle-backend",http_response_status_code=~"5.."}[5m])`
-- Type: Graph
-- Title: "5xx Errors per Second"
+#### Second Panel - Response Time
 
-**Panel 4: Memory Usage (Resources)**
-- Query: `container_memory_usage_bytes{name="linuxdle-backend"} / 1024 / 1024`
-- Type: Graph
-- Title: "Backend Memory (MB)"
+10. **Click "+ Add" dropdown** (top right) → **Click "Visualization"**
+11. **Click "Prometheus"** again
+12. **Paste this query**:
+    ```
+    histogram_quantile(0.95, rate(http_server_request_duration_seconds_bucket{service_name="linuxdle-backend"}[5m]))
+    ```
+13. **Change title to**: `Response Time (p95)`
+14. **Click "Apply"**
+
+#### Third Panel - Error Rate
+
+15. **Click "+ Add" → "Visualization"**
+16. **Click "Prometheus"**
+17. **Paste this query**:
+    ```
+    rate(http_server_request_duration_seconds_count{service_name="linuxdle-backend",http_response_status_code=~"5.."}[5m])
+    ```
+18. **Change title to**: `5xx Errors per Second`
+19. **Click "Apply"**
+
+#### Fourth Panel - Memory Usage
+
+20. **Click "+ Add" → "Visualization"**
+21. **Click "Prometheus"**
+22. **Paste this query**:
+    ```
+    container_memory_usage_bytes{name="linuxdle-backend"} / 1024 / 1024
+    ```
+23. **Change title to**: `Backend Memory (MB)`
+24. **Click "Apply"**
+
+#### Save Your Dashboard
+
+25. **Click the save icon** (disk/floppy icon, top right)
+26. **Type a name**: `Linuxdle Monitoring`
+27. **Click "Save"**
+
+Done! You now have a 4-panel monitoring dashboard.
 
 ---
 
