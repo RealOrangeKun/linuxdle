@@ -34,6 +34,19 @@ interface CommandResult {
   };
 }
 
+interface YesterdaysCommand {
+  id: number;
+  name: string;
+  package: string;
+  originYear: number;
+  manSection: number;
+  isBuiltIn: boolean;
+  requiresArgs: boolean;
+  isPosix: boolean;
+  categoryIds: number[];
+  categoryNames: string[];
+}
+
 const STORAGE_KEY = 'linuxdle_commands_state';
 
 const DailyCommands: React.FC = () => {
@@ -44,6 +57,7 @@ const DailyCommands: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [yesterdaysTarget, setYesterdaysTarget] = useState<YesterdaysCommand | null>(null);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -61,6 +75,15 @@ const DailyCommands: React.FC = () => {
             setIsGameOver(state.isGameOver);
             setShowSuccess(state.showSuccess);
           }
+        }
+
+        // Fetch yesterday's target
+        try {
+          const yesterdayResponse = await apiClient.get<YesterdaysCommand>('/daily-commands/yesterdays-target');
+          setYesterdaysTarget(yesterdayResponse.data);
+        } catch (error) {
+          // Yesterday's target might not exist (e.g., first day)
+          console.log('No yesterday\'s target available');
         }
       } catch (error) {
         console.error('Error:', error);
@@ -225,6 +248,28 @@ const DailyCommands: React.FC = () => {
           </TableContainer>
         )}
       </Paper>
+
+      {yesterdaysTarget && (
+        <Paper variant="outlined" sx={{ p: 2, mt: 3, bgcolor: 'background.paper', borderColor: 'primary.main' }}>
+          <Typography variant="subtitle2" color="primary" fontWeight="bold" gutterBottom>
+            $ cat /var/log/yesterday.log
+          </Typography>
+          <Divider sx={{ mb: 1 }} />
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            Yesterday's target was: <strong>{yesterdaysTarget.name}</strong>
+          </Typography>
+          <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.7 }}>
+            Package: {yesterdaysTarget.package} | Year: {yesterdaysTarget.originYear} | 
+            Section: {yesterdaysTarget.manSection} | Built-in: {yesterdaysTarget.isBuiltIn ? 'Yes' : 'No'} | 
+            POSIX: {yesterdaysTarget.isPosix ? 'Yes' : 'No'}
+          </Typography>
+          {yesterdaysTarget.categoryNames.length > 0 && (
+            <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.7 }}>
+              Categories: {yesterdaysTarget.categoryNames.join(', ')}
+            </Typography>
+          )}
+        </Paper>
+      )}
 
       <Snackbar open={showSuccess} autoHideDuration={3000} onClose={() => setShowSuccess(false)}>
         <Alert severity="success" variant="filled">STATUS_OK: Command recognized.</Alert>

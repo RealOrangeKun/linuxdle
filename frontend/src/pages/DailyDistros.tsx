@@ -34,6 +34,7 @@ const DailyDistros: React.FC = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [hardMode, setHardMode] = useState(true);
+  const [yesterdaysTarget, setYesterdaysTarget] = useState<Distro | null>(null);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -41,6 +42,15 @@ const DailyDistros: React.FC = () => {
     try {
       const response = await apiClient.get<Distro[]>('/daily-distros');
       setDistros(response.data);
+
+      // Fetch yesterday's target
+      try {
+        const yesterdayResponse = await apiClient.get<Distro>('/daily-distros/yesterdays-target');
+        setYesterdaysTarget(yesterdayResponse.data);
+      } catch (error) {
+        // Yesterday's target might not exist
+        console.log('No yesterday\'s target available');
+      }
     } catch (error) {
       console.error('Error:', error);
     }
@@ -253,6 +263,18 @@ const DailyDistros: React.FC = () => {
           ))}
         </Box>
       </Paper>
+
+      {yesterdaysTarget && (
+        <Paper variant="outlined" sx={{ p: 2, mt: 3, bgcolor: 'background.paper', borderColor: 'primary.main' }}>
+          <Typography variant="subtitle2" color="primary" fontWeight="bold" gutterBottom>
+            $ cat /var/log/yesterday.log
+          </Typography>
+          <Divider sx={{ mb: 1 }} />
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            Yesterday's target was: <strong>{yesterdaysTarget.name}</strong>
+          </Typography>
+        </Paper>
+      )}
     </Container>
   );
 };

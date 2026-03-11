@@ -41,6 +41,7 @@ const DailyDesktopEnvironments: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [yesterdaysTarget, setYesterdaysTarget] = useState<DesktopEnvironment | null>(null);
 
   // Zoom state
   const [isZoomed, setIsZoomed] = useState(false);
@@ -55,6 +56,15 @@ const DailyDesktopEnvironments: React.FC = () => {
     try {
       const response = await apiClient.get<DesktopEnvironment[]>('/daily-desktop-environments');
       setDes(response.data);
+
+      // Fetch yesterday's target
+      try {
+        const yesterdayResponse = await apiClient.get<DesktopEnvironment>('/daily-desktop-environments/yesterdays-target');
+        setYesterdaysTarget(yesterdayResponse.data);
+      } catch (error) {
+        // Yesterday's target might not exist
+        console.log('No yesterday\'s target available');
+      }
     } catch (error) {
       console.error('Error:', error);
     }
@@ -334,6 +344,18 @@ const DailyDesktopEnvironments: React.FC = () => {
           ))}
         </Box>
       </Paper>
+
+      {yesterdaysTarget && (
+        <Paper variant="outlined" sx={{ p: 2, mt: 3, bgcolor: 'background.paper', borderColor: 'primary.main' }}>
+          <Typography variant="subtitle2" color="primary" fontWeight="bold" gutterBottom>
+            $ cat /var/log/yesterday.log
+          </Typography>
+          <Divider sx={{ mb: 1 }} />
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            Yesterday's target was: <strong>{yesterdaysTarget.name}</strong>
+          </Typography>
+        </Paper>
+      )}
 
       {/* Fullscreen Zoomable Backdrop */}
       <Backdrop
