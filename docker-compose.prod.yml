@@ -30,8 +30,8 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__Database=Host=postgres;Database=linuxdle;Username=linuxdle;Password=${DB_PASSWORD:-linuxdle}
-      - ConnectionStrings__Redis=redis:6379
+      - ConnectionStrings__Database=Host=postgres;Database=linuxdle;Username=linuxdle;Password=${DB_PASSWORD}
+      - ConnectionStrings__Redis=redis:6379,password=${REDIS_PASSWORD}
     volumes:
       - ./backend/src/Linuxdle.Api/wwwroot:/app/wwwroot:Z
     depends_on:
@@ -47,7 +47,7 @@ services:
     environment:
       - POSTGRES_DB=linuxdle
       - POSTGRES_USER=linuxdle
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-linuxdle}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql
     networks:
@@ -57,6 +57,7 @@ services:
     image: redis:8
     container_name: linuxdle-redis
     restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     networks:
       - linuxdle-network
 
@@ -82,8 +83,85 @@ services:
     networks:
       - linuxdle-network
 
+  # Observability Stack
+  grafana:
+    image: grafana/grafana:latest
+    container_name: linuxdle-grafana
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "3000:3000"
+    networks:
+      - linuxdle-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: linuxdle-prometheus
+    restart: always
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - linuxdle-network
+
+  loki:
+    image: grafana/loki:latest
+    container_name: linuxdle-loki
+    restart: always
+    command: -config.file=/etc/loki/loki.yaml
+    volumes:
+      - ./monitoring/loki/loki.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+    networks:
+      - linuxdle-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: linuxdle-cadvisor
+    restart: always
+    privileged: true
+    command:
+      - '--housekeeping_interval=30s'
+      - '--docker_only=true'
+      - '--disable_metrics=disk,diskIO,network,tcp,udp,percpu,sched,process'
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - linuxdle-network
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: linuxdle-node-exporter
+    restart: always
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - linuxdle-network
+
 volumes:
   postgres-data:
+  grafana-data:
+  prometheus-data:
+  loki-data:
 
 networks:
   linuxdle-network:
