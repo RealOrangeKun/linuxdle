@@ -157,11 +157,27 @@ services:
     networks:
       - linuxdle-network
 
+  dockge:
+    image: louislam/dockge:latest
+    container_name: linuxdle-dockge
+    restart: always
+    ports:
+      - "5001:5001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - dockge-data:/app/data
+      - /opt/stacks:/opt/stacks
+    environment:
+      - DOCKGE_STACKS_DIR=/opt/stacks
+    networks:
+      - linuxdle-network
+
 volumes:
   postgres-data:
   grafana-data:
   prometheus-data:
   loki-data:
+  dockge-data:
 
 networks:
   linuxdle-network:
