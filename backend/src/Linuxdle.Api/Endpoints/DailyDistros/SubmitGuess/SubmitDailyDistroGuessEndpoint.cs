@@ -1,6 +1,8 @@
+using Linuxdle.Api.Extensions;
 using Linuxdle.Api.Filters;
 using Linuxdle.Services.DailyDistros;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Linuxdle.Api.Endpoints.DailyDistros.SubmitGuess;
 
@@ -17,9 +19,12 @@ internal sealed class SubmitDailyDistroGuessEndpoint : IEndpoint
     private async Task<IResult> HandleAsync(
         [FromBody] SubmitDailyDistroGuessRequest request,
         [FromServices] IDailyDistroService dailyDistroService,
+        ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
-        var response = await dailyDistroService.HandleUserGuessAsync(request.UserGuess, cancellationToken);
+        var userId = user.GetUserId();
+
+        var response = await dailyDistroService.HandleUserGuessAsync(userId, request.UserGuess, cancellationToken);
 
         return Results.Ok(response);
     }

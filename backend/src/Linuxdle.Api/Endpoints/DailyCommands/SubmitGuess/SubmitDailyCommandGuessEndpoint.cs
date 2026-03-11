@@ -1,7 +1,9 @@
+using Linuxdle.Api.Extensions;
 using Linuxdle.Api.Filters;
 using Linuxdle.Services.DailyCommands;
 using Linuxdle.Services.Dtos.Records;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Linuxdle.Api.Endpoints.DailyCommands.SubmitGuess;
 
@@ -19,9 +21,12 @@ internal sealed partial class SubmitDailyCommandGuessEndpoint
     public static async Task<IResult> HandleAsync(
         [FromBody] SubmitDailyCommandGuessRequest request,
         [FromServices] IDailyCommandService dailyCommandService,
+        ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
-        DailyCommandGuessResultDto response = await dailyCommandService.HandleUserGuessAsync(request.UserGuess, cancellationToken);
+        var userId = user.GetUserId();
+
+        DailyCommandGuessResultDto response = await dailyCommandService.HandleUserGuessAsync(userId, request.UserGuess, cancellationToken);
 
         return Results.Ok(response);
     }
