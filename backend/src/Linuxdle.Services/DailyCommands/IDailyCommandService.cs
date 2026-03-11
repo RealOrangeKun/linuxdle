@@ -4,8 +4,9 @@ namespace Linuxdle.Services.DailyCommands;
 
 public interface IDailyCommandService
 {
-    Task<DailyCommandGuessResultDto> HandleUserGuessAsync(string userGuess, CancellationToken cancellationToken = default);
+    Task<DailyCommandGuessResultDto> HandleUserGuessAsync(Guid userId, string userGuess, CancellationToken cancellationToken = default);
     Task<IEnumerable<string>> GetDailyCommandsAsync(CancellationToken cancellationToken = default);
+    Task<DailyCommandDto?> GetYesterdaysTargetAsync(CancellationToken cancellationToken = default);
 }
 
 

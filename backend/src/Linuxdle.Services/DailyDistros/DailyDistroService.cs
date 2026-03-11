@@ -1,5 +1,6 @@
 using Linuxdle.Domain.Exceptions;
 using Linuxdle.Domain.Games;
+using Linuxdle.Domain.UserGuesses;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Common.Constants;
 using Linuxdle.Services.Dtos.Records;
@@ -24,7 +25,7 @@ internal sealed class DailyDistroService(
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var target = await GetDailyTargetAsync(today, cancellationToken);
+        var (_, target) = await GetDailyTargetAsync(today, cancellationToken);
 
         var filePath = Path.Combine(_contentRoot, target.LogoPath);
 
@@ -47,11 +48,11 @@ internal sealed class DailyDistroService(
                 .ToListAsync(cancel), cancellationToken: cancellationToken);
     }
 
-    public async Task<DailyDistroGuessResultDto> HandleUserGuessAsync(string userGuess, CancellationToken cancellationToken = default)
+    public async Task<DailyDistroGuessResultDto> HandleUserGuessAsync(Guid userId, string userGuess, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var target = await GetDailyTargetAsync(today, cancellationToken);
+        var (puzzleId, target) = await GetDailyTargetAsync(today, cancellationToken);
 
         var guess = await hybridCache.GetOrCreateAsync(
             CacheKeys.DistroBySlug(userGuess),
@@ -63,18 +64,53 @@ internal sealed class DailyDistroService(
             cancellationToken: cancellationToken)
             ?? throw new NotFoundException($"No Distro found for {userGuess}");
 
-        return new(guess.Id == target.Id);
+        var isCorrect = guess.Id == target.Id;
+
+        dbContext.UserGuesses.Add(UserGuess.Create(userId, puzzleId, GameIds.DailyDistros, today, target.Id, isCorrect));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new(isCorrect);
     }
 
-    private async Task<DailyDistroTargetInfo> GetDailyTargetAsync(DateOnly today, CancellationToken cancellationToken)
+    private async Task<(int PuzzleId, DailyDistroTargetInfo Target)> GetDailyTargetAsync(DateOnly today, CancellationToken cancellationToken)
     {
         return await hybridCache.GetOrCreateAsync(
             CacheKeys.DailyDistroTarget(today),
             async cancel =>
             {
-                var targetId = await dbContext.DailyPuzzles
+                var puzzle = await dbContext.DailyPuzzles
                     .AsNoTracking()
                     .Where(p => p.GameId == GameIds.DailyDistros && p.ScheduledDate == today)
+                    .Select(p => new { p.Id, p.TargetId })
+                    .FirstOrDefaultAsync(cancel);
+
+                if (puzzle == null) return null;
+
+                var target = await dbContext.DailyDistros
+                    .AsNoTracking()
+                    .Where(dd => dd.Id == puzzle.TargetId)
+                    .Select(dd => new DailyDistroTargetInfo(dd.Id, dd.LogoPath))
+                    .FirstOrDefaultAsync(cancel);
+
+                return target != null ? (puzzle.Id, target) : ((int, DailyDistroTargetInfo)?)null;
+            },
+            cancellationToken: cancellationToken)
+            ?? throw new NotFoundException($"No daily puzzle found for {today:yyyy-MM-dd}");
+    }
+
+    private sealed record DailyDistroTargetInfo(int Id, string LogoPath);
+
+    public async Task<DailyDistroDto?> GetYesterdaysTargetAsync(CancellationToken cancellationToken = default)
+    {
+        var yesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+
+        return await hybridCache.GetOrCreateAsync(
+            CacheKeys.DailyDistroTarget(yesterday),
+            async cancel =>
+            {
+                var targetId = await dbContext.DailyPuzzles
+                    .AsNoTracking()
+                    .Where(p => p.GameId == GameIds.DailyDistros && p.ScheduledDate == yesterday)
                     .Select(p => p.TargetId)
                     .FirstOrDefaultAsync(cancel);
 
@@ -83,12 +119,9 @@ internal sealed class DailyDistroService(
                 return await dbContext.DailyDistros
                     .AsNoTracking()
                     .Where(dd => dd.Id == targetId)
-                    .Select(dd => new DailyDistroTargetInfo(dd.Id, dd.LogoPath))
+                    .Select(dd => new DailyDistroDto(dd.Name, dd.Slug))
                     .FirstOrDefaultAsync(cancel);
             },
-            cancellationToken: cancellationToken)
-            ?? throw new NotFoundException($"No daily puzzle found for {today:yyyy-MM-dd}");
+            cancellationToken: cancellationToken);
     }
-
-    private sealed record DailyDistroTargetInfo(int Id, string LogoPath);
 }

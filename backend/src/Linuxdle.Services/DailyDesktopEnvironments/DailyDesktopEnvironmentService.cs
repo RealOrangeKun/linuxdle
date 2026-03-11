@@ -1,4 +1,5 @@
 using Linuxdle.Domain.Games;
+using Linuxdle.Domain.UserGuesses;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Common.Constants;
 using Linuxdle.Services.Dtos.Records;
@@ -16,7 +17,7 @@ internal sealed class DailyDesktopEnvironmentService(
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var target = await GetDailyTargetAsync(today, cancellationToken);
+        var (_, target) = await GetDailyTargetAsync(today, cancellationToken);
 
         var screenshots = target.Screenshots.ToList();
 
@@ -35,11 +36,11 @@ internal sealed class DailyDesktopEnvironmentService(
         );
     }
 
-    public async Task<DailyDesktopEnvironmentGuessResultDto> HandleUserGuessAsync(string userGuess, int numberOfGuesses = 0, CancellationToken cancellationToken = default)
+    public async Task<DailyDesktopEnvironmentGuessResultDto> HandleUserGuessAsync(Guid userId, string userGuess, int numberOfGuesses = 0, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var target = await GetDailyTargetAsync(today, cancellationToken);
+        var (puzzleId, target) = await GetDailyTargetAsync(today, cancellationToken);
 
         var guess = await hybridCache.GetOrCreateAsync(
             CacheKeys.DesktopEnvironmentBySlug(userGuess),
@@ -53,6 +54,9 @@ internal sealed class DailyDesktopEnvironmentService(
 
         var isCorrect = guess.Id == target.Id;
 
+        dbContext.UserGuesses.Add(UserGuess.Create(userId, puzzleId, GameIds.DailyDesktopEnvironments, today, target.Id, isCorrect));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
         return new DailyDesktopEnvironmentGuessResultDto(
             IsCorrect: isCorrect,
             Family: numberOfGuesses >= 2 ? target.Family : null,
@@ -63,24 +67,24 @@ internal sealed class DailyDesktopEnvironmentService(
     }
 
 
-    private async Task<DailyDesktopEnvironmentTargetDto> GetDailyTargetAsync(DateOnly today, CancellationToken cancellationToken)
+    private async Task<(int PuzzleId, DailyDesktopEnvironmentTargetDto Target)> GetDailyTargetAsync(DateOnly today, CancellationToken cancellationToken)
     {
         return await hybridCache.GetOrCreateAsync(
             CacheKeys.DailyDesktopEnvironmentTarget(today),
             async cancel =>
             {
-                var targetId = await dbContext.DailyPuzzles
+                var puzzle = await dbContext.DailyPuzzles
                     .AsNoTracking()
                     .Where(p => p.GameId == GameIds.DailyDesktopEnvironments && p.ScheduledDate == today)
-                    .Select(p => p.TargetId)
+                    .Select(p => new { p.Id, p.TargetId })
                     .FirstOrDefaultAsync(cancel);
 
-                if (targetId == default) return null;
+                if (puzzle == null) return null;
 
-                return await dbContext.DailyDesktopEnvironments
+                var target = await dbContext.DailyDesktopEnvironments
                     .AsNoTracking()
                     .Include(dde => dde.DesktopEnvironmentScreenshots)
-                    .Where(dde => dde.Id == targetId)
+                    .Where(dde => dde.Id == puzzle.TargetId)
                     .Select(dde => new DailyDesktopEnvironmentTargetDto(
                         dde.Id,
                         dde.Family,
@@ -94,6 +98,8 @@ internal sealed class DailyDesktopEnvironmentService(
                         )).ToList()
                     ))
                     .FirstOrDefaultAsync(cancel);
+
+                return target != null ? (puzzle.Id, target) : ((int, DailyDesktopEnvironmentTargetDto)?)null;
             },
             cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"No daily puzzle found for {today:yyyy-MM-dd}");
@@ -109,5 +115,30 @@ internal sealed class DailyDesktopEnvironmentService(
                 .ToListAsync(cancel),
             cancellationToken: cancellationToken
         );
+    }
+
+    public async Task<DailyDesktopEnvironmentDto?> GetYesterdaysTargetAsync(CancellationToken cancellationToken = default)
+    {
+        var yesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+
+        return await hybridCache.GetOrCreateAsync(
+            CacheKeys.DailyDesktopEnvironmentTarget(yesterday),
+            async cancel =>
+            {
+                var targetId = await dbContext.DailyPuzzles
+                    .AsNoTracking()
+                    .Where(p => p.GameId == GameIds.DailyDesktopEnvironments && p.ScheduledDate == yesterday)
+                    .Select(p => p.TargetId)
+                    .FirstOrDefaultAsync(cancel);
+
+                if (targetId == default) return null;
+
+                return await dbContext.DailyDesktopEnvironments
+                    .AsNoTracking()
+                    .Where(dde => dde.Id == targetId)
+                    .Select(dde => new DailyDesktopEnvironmentDto(dde.Name, dde.Slug))
+                    .FirstOrDefaultAsync(cancel);
+            },
+            cancellationToken: cancellationToken);
     }
 }

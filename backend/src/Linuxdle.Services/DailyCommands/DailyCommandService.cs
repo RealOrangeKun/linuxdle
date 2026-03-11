@@ -1,5 +1,6 @@
 using Linuxdle.Domain.Exceptions;
 using Linuxdle.Domain.Games;
+using Linuxdle.Domain.UserGuesses;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Common.Constants;
 using Linuxdle.Services.Dtos.Records;
@@ -13,11 +14,11 @@ internal sealed class DailyCommandService(
     HybridCache hybridCache)
     : IDailyCommandService
 {
-    public async Task<DailyCommandGuessResultDto> HandleUserGuessAsync(string userGuess, CancellationToken cancellationToken = default)
+    public async Task<DailyCommandGuessResultDto> HandleUserGuessAsync(Guid userId, string userGuess, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var target = await GetDailyTargetAsync(today, cancellationToken);
+        var (puzzleId, target) = await GetDailyTargetAsync(today, cancellationToken);
 
         var guess = await hybridCache.GetOrCreateAsync(
             CacheKeys.CommandByName(userGuess),
@@ -41,7 +42,13 @@ internal sealed class DailyCommandService(
             cancellationToken: cancellationToken)
             ?? throw new NotFoundException($"Command '{userGuess}' not found");
 
-        return DailyCommandGuessResultCalculator.CalculateResults(target, guess);
+        var result = DailyCommandGuessResultCalculator.CalculateResults(target, guess);
+        var isCorrect = result.MatchResults.IsCorrect;
+
+        dbContext.UserGuesses.Add(UserGuess.Create(userId, puzzleId, GameIds.DailyCommands, today, target.Id, isCorrect));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return result;
     }
     public async Task<IEnumerable<string>> GetDailyCommandsAsync(CancellationToken cancellationToken = default)
     {
@@ -56,15 +63,57 @@ internal sealed class DailyCommandService(
             cancellationToken: cancellationToken
         );
     }
-    private async Task<DailyCommandDto> GetDailyTargetAsync(DateOnly today, CancellationToken cancellationToken)
+    private async Task<(int PuzzleId, DailyCommandDto Target)> GetDailyTargetAsync(DateOnly today, CancellationToken cancellationToken)
     {
-        return await hybridCache.GetOrCreateAsync(
+        var cachedTarget = await hybridCache.GetOrCreateAsync(
             CacheKeys.DailyCommandTarget(today),
+            async cancel =>
+            {
+                var puzzle = await dbContext.DailyPuzzles
+                    .AsNoTracking()
+                    .Where(p => p.GameId == GameIds.DailyCommands && p.ScheduledDate == today)
+                    .Select(p => new { p.Id, p.TargetId })
+                    .FirstOrDefaultAsync(cancel);
+
+                if (puzzle == null) return null;
+
+                var target = await dbContext.DailyCommands
+                    .Include(c => c.Categories)
+                    .Where(c => c.Id == puzzle.TargetId)
+                    .Select(c => new DailyCommandDto(
+                        c.Id,
+                        c.Name,
+                        c.Package,
+                        c.OriginYear,
+                        c.ManSection,
+                        c.IsBuiltIn,
+                        c.RequiresArgs,
+                        c.IsPosix,
+                        c.Categories.Select(cat => cat.Id).ToHashSet(),
+                        c.Categories.Select(cat => cat.Name).ToList()
+                    ))
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(cancel);
+
+                return target != null ? (puzzle.Id, target) : ((int, DailyCommandDto)?)null;
+            },
+            cancellationToken: cancellationToken)
+            ?? throw new NotFoundException($"No daily puzzle found for {today:yyyy-MM-dd}");
+
+        return cachedTarget;
+    }
+
+    public async Task<DailyCommandDto?> GetYesterdaysTargetAsync(CancellationToken cancellationToken = default)
+    {
+        var yesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+
+        return await hybridCache.GetOrCreateAsync(
+            CacheKeys.DailyCommandTarget(yesterday),
             async cancel =>
             {
                 var targetId = await dbContext.DailyPuzzles
                     .AsNoTracking()
-                    .Where(p => p.GameId == GameIds.DailyCommands && p.ScheduledDate == today)
+                    .Where(p => p.GameId == GameIds.DailyCommands && p.ScheduledDate == yesterday)
                     .Select(p => p.TargetId)
                     .FirstOrDefaultAsync(cancel);
 
@@ -88,7 +137,6 @@ internal sealed class DailyCommandService(
                     .AsNoTracking()
                     .FirstOrDefaultAsync(cancel);
             },
-            cancellationToken: cancellationToken)
-            ?? throw new NotFoundException($"No daily puzzle found for {today:yyyy-MM-dd}");
+            cancellationToken: cancellationToken);
     }
 }
