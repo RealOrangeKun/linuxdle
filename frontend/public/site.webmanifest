@@ -1,0 +1,48 @@
+{
+  "name": "Linuxdle - Daily Linux Puzzle Games",
+  "short_name": "Linuxdle",
+  "description": "Daily Linux puzzle games for enthusiasts. Guess commands, distros, and desktop environments.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D1117",
+  "theme_color": "#1793D1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "education"],
+  "shortcuts": [
+    {
+      "name": "Daily Commands",
+      "short_name": "Commands",
+      "description": "Guess the Linux command of the day",
+      "url": "/daily-commands",
+      "icons": [{ "src": "/favicon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Daily Distros",
+      "short_name": "Distros",
+      "description": "Identify the Linux distribution",
+      "url": "/daily-distros",
+      "icons": [{ "src": "/favicon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Desktop Environments",
+      "short_name": "DE",
+      "description": "Recognize the desktop environment",
+      "url": "/daily-desktop-environments",
+      "icons": [{ "src": "/favicon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

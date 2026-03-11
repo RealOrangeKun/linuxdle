@@ -7,6 +7,7 @@ import { Home, Close, ZoomIn, ZoomOut, RestartAlt } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { checkAllGamesCompleted } from '../utils/gameStatus';
+import { SEO, pageSEO } from '../components/SEO';
 
 interface DesktopEnvironment {
   name: string;
@@ -180,11 +181,13 @@ const DailyDesktopEnvironments: React.FC = () => {
   if (loading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
-    <Container maxWidth="md">
-      <Box mb={4}>
-        <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
-          {`_ > DAILY_DESKTOP_ENV`}
-        </Typography>
+    <>
+      <SEO {...pageSEO.dailyDesktopEnvironments} />
+      <Container maxWidth="md">
+        <Box mb={4}>
+          <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
+            {`_ > DAILY_DESKTOP_ENV`}
+          </Typography>
         <Divider sx={{ my: 1 }} />
         <Typography variant="body2" sx={{ opacity: 0.8 }}>
           $ view-screenshot --interactive
@@ -422,6 +425,7 @@ const DailyDesktopEnvironments: React.FC = () => {
         </Box>
       </Backdrop>
     </Container>
+    </>
   );
 };
 

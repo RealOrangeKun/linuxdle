@@ -7,6 +7,7 @@ import { ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { checkAllGamesCompleted } from '../utils/gameStatus';
+import { SEO, pageSEO } from '../components/SEO';
 
 interface Distro {
   name: string;
@@ -157,11 +158,13 @@ const DailyDistros: React.FC = () => {
   if (loading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
-    <Container maxWidth="sm">
-      <Box mb={4}>
-        <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
-          {`_ > DAILY_DISTRO`}
-        </Typography>
+    <>
+      <SEO {...pageSEO.dailyDistros} />
+      <Container maxWidth="sm">
+        <Box mb={4}>
+          <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
+            {`_ > DAILY_DISTRO`}
+          </Typography>
         <Divider sx={{ my: 1 }} />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="body2" sx={{ opacity: 0.8 }}>
@@ -276,6 +279,7 @@ const DailyDistros: React.FC = () => {
         </Paper>
       )}
     </Container>
+    </>
   );
 };
 

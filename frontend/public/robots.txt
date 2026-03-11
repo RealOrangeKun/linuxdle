@@ -1,0 +1,9 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://linuxdle.site/sitemap.xml
+
+# Crawl-delay (optional, in seconds)
+Crawl-delay: 1

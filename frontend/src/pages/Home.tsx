@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, Grid, Card, CardContent, CardActionArea, Box, Divider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CountdownTimer from '../components/CountdownTimer';
+import { SEO, pageSEO } from '../components/SEO';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -44,10 +45,12 @@ const Home: React.FC = () => {
   }, []);
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box mb={6}>
-        <Typography variant="h3" component="h1" fontWeight="bold" sx={{ color: 'primary.main', mb: 1 }}>
-          {`_ > LINUXDLE`}
+    <>
+      <SEO {...pageSEO.home} />
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Box mb={6}>
+          <Typography variant="h3" component="h1" fontWeight="bold" sx={{ color: 'primary.main', mb: 1 }}>
+            {`_ > LINUXDLE`}
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <Typography variant="body1" sx={{ fontStyle: 'italic', opacity: 0.8 }}>
@@ -109,6 +112,7 @@ const Home: React.FC = () => {
         })}
       </Grid>
     </Container>
+    </>
   );
 };
 

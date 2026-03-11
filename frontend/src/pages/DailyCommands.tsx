@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { MatchResult, YearDirection } from '../types/game';
 import { checkAllGamesCompleted } from '../utils/gameStatus';
+import { SEO, pageSEO } from '../components/SEO';
 
 interface CommandResult {
   matchResults: {
@@ -147,11 +148,13 @@ const DailyCommands: React.FC = () => {
   if (loading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
-    <Container maxWidth="lg">
-      <Box mb={4}>
-        <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
-          {`_ > DAILY_COMMAND`}
-        </Typography>
+    <>
+      <SEO {...pageSEO.dailyCommands} />
+      <Container maxWidth="lg">
+        <Box mb={4}>
+          <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
+            {`_ > DAILY_COMMAND`}
+          </Typography>
         <Divider sx={{ my: 1 }} />
         <Typography variant="body2" sx={{ opacity: 0.8 }}>
           $ guess-command --interactive
@@ -275,6 +278,7 @@ const DailyCommands: React.FC = () => {
         <Alert severity="success" variant="filled">STATUS_OK: Command recognized.</Alert>
       </Snackbar>
     </Container>
+    </>
   );
 };
 
