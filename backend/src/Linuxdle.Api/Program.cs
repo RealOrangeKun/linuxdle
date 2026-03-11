@@ -69,6 +69,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
 app.UseCors();
 
 app.UseAuthentication();

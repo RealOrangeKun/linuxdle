@@ -25,7 +25,10 @@ internal static class OpenTelemetryExtensions
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
                     .AddProcessInstrumentation()
-                    .AddPrometheusExporter());
+                    .AddPrometheusExporter(options =>
+                    {
+                        options.ScrapeEndpointPath = "/metrics";
+                    }));
 
             // Logging to Loki - application logs
             services.AddLogging(logging =>
