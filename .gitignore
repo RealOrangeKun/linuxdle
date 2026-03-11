@@ -1,7 +1,5 @@
 # Docker
 *override*
-.env
-.env.*
 *.sql
 
 # IDEs
