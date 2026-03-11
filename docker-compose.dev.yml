@@ -95,8 +95,6 @@ services:
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
-    ports:
-      - "9090:9090"
     networks:
       - linuxdle-network
 
@@ -108,8 +106,6 @@ services:
     volumes:
       - ./monitoring/loki/loki.yaml:/etc/loki/loki.yaml:ro
       - loki-data:/loki
-    ports:
-      - "3100:3100"  # HTTP API for Grafana
     networks:
       - linuxdle-network
 
