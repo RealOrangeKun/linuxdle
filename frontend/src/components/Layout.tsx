@@ -66,7 +66,7 @@ const Layout: React.FC = () => {
       <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <Typography variant="body2" align="center" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>
-            $ user@linuxdle: ~ {new Date().getFullYear()} --version 1.0.0
+            $ user@linuxdle: ~ {new Date().getFullYear()}
           </Typography>
         </Container>
       </Box>

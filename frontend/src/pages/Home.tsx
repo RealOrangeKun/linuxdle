@@ -54,7 +54,7 @@ const Home: React.FC = () => {
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <Typography variant="body1" sx={{ fontStyle: 'italic', opacity: 0.8 }}>
-          $ man linuxdle --version 1.0.0
+          $ man linuxdle
         </Typography>
         <Typography variant="body2" mt={1}>
           Welcome to the daily puzzle suite for Linux enthusiasts. Select a module to begin.
