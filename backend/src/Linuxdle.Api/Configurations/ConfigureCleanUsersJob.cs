@@ -14,12 +14,11 @@ internal sealed class ConfigureCleanUsersJob(IOptions<CleanUsersJobOptions> opti
         var jobKey = new JobKey(nameof(CleanUsersJob));
 
         options
-            .AddJob<DailyPuzzlesJob>(builder => builder.WithIdentity(jobKey))
+            .AddJob<CleanUsersJob>(builder => builder.WithIdentity(jobKey))
             .AddTrigger(builder =>
                 builder
                     .ForJob(jobKey)
                     .WithIdentity($"{jobKey.Name}-trigger")
-                    .WithCronSchedule(_cleanUsersJobOptions.CronSchedule)
-                    .WithSimpleSchedule(s => s.WithIntervalInSeconds(10).RepeatForever()));
+                    .WithCronSchedule(_cleanUsersJobOptions.CronSchedule));
     }
 }

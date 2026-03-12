@@ -34,6 +34,7 @@ services:
       - ConnectionStrings__Redis=redis:6379,password=${REDIS_PASSWORD}
     volumes:
       - ./backend/src/Linuxdle.Api/wwwroot:/app/wwwroot
+      - ./backend/src/Linuxdle.Api/appsettings.json:/app/appsettings.json
     depends_on:
       - postgres
       - redis
