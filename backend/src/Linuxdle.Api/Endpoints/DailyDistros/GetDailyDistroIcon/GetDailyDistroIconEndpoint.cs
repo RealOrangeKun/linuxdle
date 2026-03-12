@@ -11,8 +11,7 @@ internal sealed class GetDailyDistroIconEndpoint : IEndpoint
     {
         app.MapGet("/daily-distros/daily-distro.png", HandleAsync)
         .AddEndpointFilter<ValidationFilter<GetDailyDistroIconRequest>>()
-        .WithTags(Tags.DailyDistros)
-        .RequireAuthorization();
+        .WithTags(Tags.DailyDistros);
     }
 
     private async Task<IResult> HandleAsync(
