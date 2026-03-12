@@ -9,6 +9,13 @@ internal sealed class GetDailyDesktopEnvironmentsEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/daily-desktop-environments", HandleAsync)
+        .CacheOutput(policy =>
+        {
+            var now = DateTime.UtcNow;
+            var tomorrow = now.Date.AddDays(1);
+            var timeUntilMidnight = tomorrow - now;
+            policy.Expire(timeUntilMidnight);
+        })
         .WithTags(Tags.DailyDesktopEnvironments);
     }
 
