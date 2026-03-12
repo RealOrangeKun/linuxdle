@@ -65,21 +65,10 @@ const DailyDistros: React.FC = () => {
     }
   }, []);
 
-  const updateLogoUrl = useCallback(async (tries: number, isHardMode: boolean) => {
-    try {
-      const timestamp = new Date().getTime();
-      const response = await apiClient.get(`/daily-distros/daily-distro.png?numberOfTries=${tries}&hardMode=${isHardMode}&t=${timestamp}`, {
-        responseType: 'blob'
-      });
-      const newUrl = URL.createObjectURL(response.data);
-      setLogoUrl(prevUrl => {
-        if (prevUrl.startsWith('blob:')) URL.revokeObjectURL(prevUrl);
-        return newUrl;
-      });
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  }, []);
+  const updateLogoUrl = useCallback((tries: number, isHardMode: boolean) => {
+    const url = `${apiClient.defaults.baseURL}/daily-distros/daily-distro.png?numberOfTries=${tries}&hardMode=${isHardMode}&v=${today}`;
+    setLogoUrl(url);
+  }, [today]);
 
   useEffect(() => {
     const init = async () => {
@@ -93,22 +82,16 @@ const DailyDistros: React.FC = () => {
           setIsGameOver(state.isGameOver);
           setShowSuccess(state.showSuccess);
           setHardMode(loadedHardMode);
-          await updateLogoUrl(state.isGameOver ? 12 : state.guesses.length + 1, state.isGameOver ? false : loadedHardMode);
+          updateLogoUrl(state.isGameOver ? 12 : state.guesses.length + 1, state.isGameOver ? false : loadedHardMode);
           setLoading(false);
           return;
         }
       }
-      await updateLogoUrl(1, true);
+      updateLogoUrl(1, true);
       setLoading(false);
     };
     init();
-    return () => {
-      setLogoUrl(prevUrl => {
-        if (prevUrl.startsWith('blob:')) URL.revokeObjectURL(prevUrl);
-        return '';
-      });
-    };
-  }, [fetchDistros, today]); 
+  }, [fetchDistros, today, updateLogoUrl]); 
 
   useEffect(() => {
     if (!loading) {
