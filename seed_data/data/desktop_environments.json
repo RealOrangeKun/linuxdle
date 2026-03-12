@@ -1,0 +1,222 @@
+[
+  {
+    "id": 1,
+    "name": "GNOME",
+    "slug": "gnome",
+    "type": "DesktopEnvironment",
+    "compositor": "Mutter",
+    "configuration_language": "GUI / GSettings",
+    "family": "Independent",
+    "primary_language": "C",
+    "release_year": 1999
+  },
+  {
+    "id": 2,
+    "name": "KDE Plasma",
+    "slug": "kde-plasma",
+    "type": "DesktopEnvironment",
+    "compositor": "KWin",
+    "configuration_language": "GUI",
+    "family": "Independent",
+    "primary_language": "C++",
+    "release_year": 1996
+  },
+  {
+    "id": 3,
+    "name": "Hyprland",
+    "slug": "hyprland",
+    "type": "TilingWm",
+    "compositor": "Hyprland",
+    "configuration_language": "Custom",
+    "family": "wlroots-based",
+    "primary_language": "C++",
+    "release_year": 2022
+  },
+  {
+    "id": 4,
+    "name": "Sway",
+    "slug": "sway",
+    "type": "TilingWm",
+    "compositor": "Sway",
+    "configuration_language": "Custom",
+    "family": "wlroots-based",
+    "primary_language": "C",
+    "release_year": 2016
+  },
+  {
+    "id": 5,
+    "name": "i3wm",
+    "slug": "i3",
+    "type": "TilingWm",
+    "compositor": "i3",
+    "configuration_language": "Custom",
+    "family": "Independent",
+    "primary_language": "C",
+    "release_year": 2009
+  },
+  {
+    "id": 6,
+    "name": "Xfce",
+    "slug": "xfce",
+    "type": "DesktopEnvironment",
+    "compositor": "Xfwm4",
+    "configuration_language": "GUI",
+    "family": "Independent",
+    "primary_language": "C",
+    "release_year": 1996
+  },
+  {
+    "id": 7,
+    "name": "bspwm",
+    "slug": "bspwm",
+    "type": "TilingWm",
+    "compositor": "bspwm",
+    "configuration_language": "Shell",
+    "family": "Independent",
+    "primary_language": "C",
+    "release_year": 2013
+  },
+  {
+    "id": 8,
+    "name": "Cosmic",
+    "slug": "cosmic",
+    "type": "DesktopEnvironment",
+    "compositor": "cosmic-comp",
+    "configuration_language": "GUI",
+    "family": "Independent",
+    "primary_language": "Rust",
+    "release_year": 2024
+  },
+  {
+    "id": 9,
+    "name": "AwesomeWM",
+    "slug": "awesome",
+    "type": "TilingWm",
+    "compositor": "Awesome",
+    "configuration_language": "Lua",
+    "family": "Independent",
+    "primary_language": "C",
+    "release_year": 2007
+  },
+  {
+    "id": 10,
+    "name": "Openbox",
+    "slug": "openbox",
+    "type": "FloatingWm",
+    "compositor": "Openbox",
+    "configuration_language": "XML",
+    "family": "Independent",
+    "primary_language": "C",
+    "release_year": 2002
+  },
+  {
+    "id": 11,
+    "name": "Cinnamon",
+    "slug": "cinnamon",
+    "type": "DesktopEnvironment",
+    "compositor": "Muffin",
+    "configuration_language": "GUI / GSettings",
+    "family": "GNOME-based",
+    "primary_language": "C",
+    "release_year": 2011
+  },
+  {
+    "id": 12,
+    "name": "MATE",
+    "slug": "mate",
+    "type": "DesktopEnvironment",
+    "compositor": "Marco",
+    "configuration_language": "GUI",
+    "family": "GNOME-based",
+    "primary_language": "C",
+    "release_year": 2011
+  },
+  {
+    "id": 13,
+    "name": "LXQt",
+    "slug": "lxqt",
+    "type": "DesktopEnvironment",
+    "compositor": "Openbox",
+    "configuration_language": "GUI",
+    "family": "Independent",
+    "primary_language": "C++",
+    "release_year": 2014
+  },
+  {
+    "id": 14,
+    "name": "xmonad",
+    "slug": "xmonad",
+    "type": "TilingWm",
+    "compositor": "xmonad",
+    "configuration_language": "Haskell",
+    "family": "Independent",
+    "primary_language": "Haskell",
+    "release_year": 2007
+  },
+  {
+    "id": 15,
+    "name": "dwm",
+    "slug": "dwm",
+    "type": "TilingWm",
+    "compositor": "dwm",
+    "configuration_language": "C",
+    "family": "Independent",
+    "primary_language": "C",
+    "release_year": 2006
+  },
+  {
+    "id": 16,
+    "name": "Budgie",
+    "slug": "budgie",
+    "type": "DesktopEnvironment",
+    "compositor": "Mutter",
+    "configuration_language": "GUI",
+    "family": "GNOME-based",
+    "primary_language": "C",
+    "release_year": 2014
+  },
+  {
+    "id": 17,
+    "name": "Qtile",
+    "slug": "qtile",
+    "type": "TilingWm",
+    "compositor": "Qtile",
+    "configuration_language": "Python",
+    "family": "Independent",
+    "primary_language": "Python",
+    "release_year": 2008
+  },
+  {
+    "id": 18,
+    "name": "herbstluftwm",
+    "slug": "herbstluftwm",
+    "type": "TilingWm",
+    "compositor": "herbstluftwm",
+    "configuration_language": "Shell",
+    "family": "Independent",
+    "primary_language": "C++",
+    "release_year": 2011
+  },
+  {
+    "id": 19,
+    "name": "Fluxbox",
+    "slug": "fluxbox",
+    "type": "FloatingWm",
+    "compositor": "Fluxbox",
+    "configuration_language": "Custom",
+    "family": "Independent",
+    "primary_language": "C++",
+    "release_year": 2001
+  },
+  {
+    "id": 20,
+    "name": "Enlightenment",
+    "slug": "enlightenment",
+    "type": "DesktopEnvironment",
+    "compositor": "Enlightenment",
+    "configuration_language": "GUI",
+    "family": "Independent",
+    "primary_language": "C",
+    "release_year": 1997
+  }
+]

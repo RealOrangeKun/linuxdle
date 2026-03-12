@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "File System"
+  },
+  {
+    "id": 2,
+    "name": "File Manipulation"
+  },
+  {
+    "id": 3,
+    "name": "Text Processing"
+  },
+  {
+    "id": 4,
+    "name": "System Information"
+  },
+  {
+    "id": 5,
+    "name": "Process Management"
+  },
+  {
+    "id": 6,
+    "name": "Networking"
+  },
+  {
+    "id": 7,
+    "name": "Permissions"
+  },
+  {
+    "id": 8,
+    "name": "Archiving"
+  },
+  {
+    "id": 9,
+    "name": "User Management"
+  },
+  {
+    "id": 10,
+    "name": "Shell Built-in"
+  }
+]

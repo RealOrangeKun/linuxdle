@@ -1,0 +1,245 @@
+[
+  {
+    "id": 1,
+    "name": "Arch Linux",
+    "slug": "arch",
+    "logo_path": "assets/distros/arch.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 2002
+  },
+  {
+    "id": 2,
+    "name": "Ubuntu",
+    "slug": "ubuntu",
+    "logo_path": "assets/distros/ubuntu.png",
+    "base_distro": "Debian",
+    "default_de": "GNOME",
+    "release_year": 2004
+  },
+  {
+    "id": 3,
+    "name": "Fedora",
+    "slug": "fedora",
+    "logo_path": "assets/distros/fedora.png",
+    "base_distro": "Independent",
+    "default_de": "GNOME",
+    "release_year": 2003
+  },
+  {
+    "id": 4,
+    "name": "Debian",
+    "slug": "debian",
+    "logo_path": "assets/distros/debian.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 1993
+  },
+  {
+    "id": 5,
+    "name": "Linux Mint",
+    "slug": "mint",
+    "logo_path": "assets/distros/mint.png",
+    "base_distro": "Ubuntu",
+    "default_de": "Cinnamon",
+    "release_year": 2006
+  },
+  {
+    "id": 6,
+    "name": "openSUSE",
+    "slug": "opensuse",
+    "logo_path": "assets/distros/opensuse.png",
+    "base_distro": "Independent",
+    "default_de": "KDE Plasma",
+    "release_year": 2005
+  },
+  {
+    "id": 7,
+    "name": "Alpine Linux",
+    "slug": "alpine",
+    "logo_path": "assets/distros/alpine.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 2005
+  },
+  {
+    "id": 8,
+    "name": "Gentoo",
+    "slug": "gentoo",
+    "logo_path": "assets/distros/gentoo.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 2000
+  },
+  {
+    "id": 9,
+    "name": "Slackware",
+    "slug": "slackware",
+    "logo_path": "assets/distros/slackware.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 1993
+  },
+  {
+    "id": 10,
+    "name": "Manjaro",
+    "slug": "manjaro",
+    "logo_path": "assets/distros/manjaro.png",
+    "base_distro": "Arch Linux",
+    "default_de": "Xfce",
+    "release_year": 2011
+  },
+  {
+    "id": 11,
+    "name": "Kubuntu",
+    "slug": "kubuntu",
+    "logo_path": "assets/distros/kubuntu.png",
+    "base_distro": "Ubuntu",
+    "default_de": "KDE Plasma",
+    "release_year": 2006
+  },
+  {
+    "id": 12,
+    "name": "Xubuntu",
+    "slug": "xubuntu",
+    "logo_path": "assets/distros/xubuntu.png",
+    "base_distro": "Ubuntu",
+    "default_de": "Xfce",
+    "release_year": 2006
+  },
+  {
+    "id": 13,
+    "name": "Lubuntu",
+    "slug": "lubuntu",
+    "logo_path": "assets/distros/lubuntu.png",
+    "base_distro": "Ubuntu",
+    "default_de": "LXQt",
+    "release_year": 2008
+  },
+  {
+    "id": 14,
+    "name": "Ubuntu MATE",
+    "slug": "ubuntu-mate",
+    "logo_path": "assets/distros/ubuntu-mate.png",
+    "base_distro": "Ubuntu",
+    "default_de": "MATE",
+    "release_year": 2014
+  },
+  {
+    "id": 15,
+    "name": "Ubuntu Budgie",
+    "slug": "ubuntu-budgie",
+    "logo_path": "assets/distros/ubuntu-budgie.png",
+    "base_distro": "Ubuntu",
+    "default_de": "Budgie",
+    "release_year": 2016
+  },
+  {
+    "id": 16,
+    "name": "EndeavourOS",
+    "slug": "endeavouros",
+    "logo_path": "assets/distros/endeavouros.png",
+    "base_distro": "Arch Linux",
+    "default_de": "None",
+    "release_year": 2019
+  },
+  {
+    "id": 17,
+    "name": "ArcoLinux",
+    "slug": "arcolinux",
+    "logo_path": "assets/distros/arcolinux.png",
+    "base_distro": "Arch Linux",
+    "default_de": "Xfce",
+    "release_year": 2017
+  },
+  {
+    "id": 18,
+    "name": "Garuda Linux",
+    "slug": "garuda",
+    "logo_path": "assets/distros/garuda.png",
+    "base_distro": "Arch Linux",
+    "default_de": "KDE Plasma",
+    "release_year": 2020
+  },
+  {
+    "id": 19,
+    "name": "CachyOS",
+    "slug": "cachyos",
+    "logo_path": "assets/distros/cachyos.png",
+    "base_distro": "Arch Linux",
+    "default_de": "KDE Plasma",
+    "release_year": 2021
+  },
+  {
+    "id": 20,
+    "name": "MX Linux",
+    "slug": "mx",
+    "logo_path": "assets/distros/mx.png",
+    "base_distro": "Debian",
+    "default_de": "Xfce",
+    "release_year": 2014
+  },
+  {
+    "id": 21,
+    "name": "Pop!_OS",
+    "slug": "popos",
+    "logo_path": "assets/distros/popos.png",
+    "base_distro": "Ubuntu",
+    "default_de": "GNOME",
+    "release_year": 2017
+  },
+  {
+    "id": 22,
+    "name": "Zorin OS",
+    "slug": "zorin",
+    "logo_path": "assets/distros/zorin.png",
+    "base_distro": "Ubuntu",
+    "default_de": "GNOME",
+    "release_year": 2008
+  },
+  {
+    "id": 23,
+    "name": "Kali Linux",
+    "slug": "kali",
+    "logo_path": "assets/distros/kali.png",
+    "base_distro": "Debian",
+    "default_de": "Xfce",
+    "release_year": 2013
+  },
+  {
+    "id": 24,
+    "name": "elementary OS",
+    "slug": "elementary",
+    "logo_path": "assets/distros/elementary.png",
+    "base_distro": "Ubuntu",
+    "default_de": "Pantheon",
+    "release_year": 2011
+  },
+  {
+    "id": 25,
+    "name": "Nobara",
+    "slug": "nobara",
+    "logo_path": "assets/distros/nobara.png",
+    "base_distro": "Fedora",
+    "default_de": "GNOME",
+    "release_year": 2022
+  },
+  {
+    "id": 26,
+    "name": "Void Linux",
+    "slug": "void",
+    "logo_path": "assets/distros/void.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 2008
+  },
+  {
+    "id": 27,
+    "name": "NixOS",
+    "slug": "nixos",
+    "logo_path": "assets/distros/nixos.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 2003
+  }
+]

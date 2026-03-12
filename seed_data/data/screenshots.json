@@ -1,0 +1,248 @@
+[
+  {
+    "id": 1,
+    "daily_desktop_environment_id": 6,
+    "file_path": "wwwroot/assets/des/xfce/xfce1.png",
+    "credit": "u/7ech0es7"
+  },
+  {
+    "id": 2,
+    "daily_desktop_environment_id": 7,
+    "file_path": "wwwroot/assets/des/bspwm/bspwm1.png",
+    "credit": "u/zby"
+  },
+  {
+    "id": 3,
+    "daily_desktop_environment_id": 3,
+    "file_path": "wwwroot/assets/des/hyprland/hyprland1.png",
+    "credit": "u/terpinedream"
+  },
+  {
+    "id": 4,
+    "daily_desktop_environment_id": 4,
+    "file_path": "wwwroot/assets/des/sway/sway1.png",
+    "credit": "u/CryptographerHappy77"
+  },
+  {
+    "id": 5,
+    "daily_desktop_environment_id": 5,
+    "file_path": "wwwroot/assets/des/i3/i31.png",
+    "credit": "u/konatamonogatari"
+  },
+  {
+    "id": 6,
+    "daily_desktop_environment_id": 8,
+    "file_path": "wwwroot/assets/des/cosmic/cosmic1.png",
+    "credit": "u/einlinus"
+  },
+  {
+    "id": 7,
+    "daily_desktop_environment_id": 9,
+    "file_path": "wwwroot/assets/des/awesome/awesome1.png",
+    "credit": "u/drxcosilver"
+  },
+  {
+    "id": 8,
+    "daily_desktop_environment_id": 10,
+    "file_path": "wwwroot/assets/des/openbox/openbox1.png",
+    "credit": "u/Jas_Sri"
+  },
+  {
+    "id": 9,
+    "daily_desktop_environment_id": 1,
+    "file_path": "wwwroot/assets/des/gnome/gnome1.png",
+    "credit": "u/Adventurous_Body2019"
+  },
+  {
+    "id": 10,
+    "daily_desktop_environment_id": 2,
+    "file_path": "wwwroot/assets/des/kde-plasma/kde-plasma1.png",
+    "credit": "u/jom4d4"
+  },
+  {
+    "id": 59,
+    "daily_desktop_environment_id": 11,
+    "file_path": "wwwroot/assets/des/cinnamon/cinnamon1.png",
+    "credit": "u/mint_nz"
+  },
+  {
+    "id": 60,
+    "daily_desktop_environment_id": 13,
+    "file_path": "wwwroot/assets/des/lxqt/lxqt1.png",
+    "credit": "u/lxqt_beauty"
+  },
+  {
+    "id": 61,
+    "daily_desktop_environment_id": 14,
+    "file_path": "wwwroot/assets/des/xmonad/xmonad1.png",
+    "credit": "u/soft_xmonad"
+  },
+  {
+    "id": 62,
+    "daily_desktop_environment_id": 15,
+    "file_path": "wwwroot/assets/des/dwm/dwm1.png",
+    "credit": "u/gruvbox_dwm"
+  },
+  {
+    "id": 79,
+    "daily_desktop_environment_id": 12,
+    "file_path": "wwwroot/assets/des/mate/mate1.png",
+    "credit": "u/mate_user"
+  },
+  {
+    "id": 80,
+    "daily_desktop_environment_id": 6,
+    "file_path": "wwwroot/assets/des/xfce/xfce2.png",
+    "credit": "u/[deleted]"
+  },
+  {
+    "id": 81,
+    "daily_desktop_environment_id": 6,
+    "file_path": "wwwroot/assets/des/xfce/xfce3.png",
+    "credit": "u/Vivid-Masterpiece815"
+  },
+  {
+    "id": 82,
+    "daily_desktop_environment_id": 3,
+    "file_path": "wwwroot/assets/des/hyprland/hyprland2.png",
+    "credit": "u/Khymmmm"
+  },
+  {
+    "id": 83,
+    "daily_desktop_environment_id": 5,
+    "file_path": "wwwroot/assets/des/i3/i32.png",
+    "credit": "u/haikuosextremist"
+  },
+  {
+    "id": 84,
+    "daily_desktop_environment_id": 2,
+    "file_path": "wwwroot/assets/des/kde-plasma/kde-plasma2.png",
+    "credit": "u/DiamantBebii"
+  },
+  {
+    "id": 85,
+    "daily_desktop_environment_id": 1,
+    "file_path": "wwwroot/assets/des/gnome/gnome2.png",
+    "credit": "u/Commercial-Bee9677"
+  },
+  {
+    "id": 86,
+    "daily_desktop_environment_id": 7,
+    "file_path": "wwwroot/assets/des/bspwm/bspwm2.png",
+    "credit": "u/Ok-Technician-5330"
+  },
+  {
+    "id": 87,
+    "daily_desktop_environment_id": 15,
+    "file_path": "wwwroot/assets/des/dwm/dwm2.png",
+    "credit": "u/NerdyKimmy"
+  },
+  {
+    "id": 88,
+    "daily_desktop_environment_id": 4,
+    "file_path": "wwwroot/assets/des/sway/sway2.png",
+    "credit": "u/ForgotOldAcc-_-"
+  },
+  {
+    "id": 89,
+    "daily_desktop_environment_id": 9,
+    "file_path": "wwwroot/assets/des/awesome/awesome2.png",
+    "credit": "u/ltzkr82"
+  },
+  {
+    "id": 90,
+    "daily_desktop_environment_id": 10,
+    "file_path": "wwwroot/assets/des/openbox/openbox2.png",
+    "credit": "r/unixporn"
+  },
+  {
+    "id": 91,
+    "daily_desktop_environment_id": 14,
+    "file_path": "wwwroot/assets/des/xmonad/xmonad2.png",
+    "credit": "u/astenorh"
+  },
+  {
+    "id": 92,
+    "daily_desktop_environment_id": 13,
+    "file_path": "wwwroot/assets/des/lxqt/lxqt2.jpg",
+    "credit": "r/unixporn"
+  },
+  {
+    "id": 93,
+    "daily_desktop_environment_id": 11,
+    "file_path": "wwwroot/assets/des/cinnamon/cinnamon2.png",
+    "credit": "u/srafckz"
+  },
+  {
+    "id": 94,
+    "daily_desktop_environment_id": 12,
+    "file_path": "wwwroot/assets/des/mate/mate2.png",
+    "credit": "r/unixporn"
+  },
+  {
+    "id": 95,
+    "daily_desktop_environment_id": 8,
+    "file_path": "wwwroot/assets/des/cosmic/cosmic2.png",
+    "credit": "u/einlinus"
+  },
+  {
+    "id": 96,
+    "daily_desktop_environment_id": 17,
+    "file_path": "wwwroot/assets/des/qtile/qtile1.png",
+    "credit": "u/Darkkal_44"
+  },
+  {
+    "id": 97,
+    "daily_desktop_environment_id": 17,
+    "file_path": "wwwroot/assets/des/qtile/qtile2.png",
+    "credit": "u/Abhra00"
+  },
+  {
+    "id": 98,
+    "daily_desktop_environment_id": 18,
+    "file_path": "wwwroot/assets/des/herbstluftwm/herbstluftwm1.png",
+    "credit": "u/megarealisticchatbot"
+  },
+  {
+    "id": 99,
+    "daily_desktop_environment_id": 18,
+    "file_path": "wwwroot/assets/des/herbstluftwm/herbstluftwm2.png",
+    "credit": "u/Spondora2"
+  },
+  {
+    "id": 100,
+    "daily_desktop_environment_id": 16,
+    "file_path": "wwwroot/assets/des/budgie/budgie1.png",
+    "credit": "u/Enbyyyyyyy"
+  },
+  {
+    "id": 101,
+    "daily_desktop_environment_id": 16,
+    "file_path": "wwwroot/assets/des/budgie/budgie2.png",
+    "credit": "u/miguel04685"
+  },
+  {
+    "id": 102,
+    "daily_desktop_environment_id": 19,
+    "file_path": "wwwroot/assets/des/fluxbox/fluxbox1.png",
+    "credit": "u/09Violet"
+  },
+  {
+    "id": 103,
+    "daily_desktop_environment_id": 19,
+    "file_path": "wwwroot/assets/des/fluxbox/fluxbox2.png",
+    "credit": "u/ssjlance"
+  },
+  {
+    "id": 104,
+    "daily_desktop_environment_id": 20,
+    "file_path": "wwwroot/assets/des/enlightenment/enlightenment1.png",
+    "credit": "u/Lovethecreeper"
+  },
+  {
+    "id": 105,
+    "daily_desktop_environment_id": 20,
+    "file_path": "wwwroot/assets/des/enlightenment/enlightenment2.png",
+    "credit": "u/Lovethecreeper"
+  }
+]
