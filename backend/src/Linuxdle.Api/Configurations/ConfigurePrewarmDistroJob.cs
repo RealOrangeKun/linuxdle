@@ -4,8 +4,11 @@ using Quartz;
 
 namespace Linuxdle.Api.Configurations;
 
-internal sealed class ConfigurePrewarmDistroJob() : IConfigureOptions<QuartzOptions>
+internal sealed class ConfigurePrewarmDistroJob(IOptions<PrewarmDailyDistroJobOptions> options)
+    : IConfigureOptions<QuartzOptions>
 {
+    private readonly PrewarmDailyDistroJobOptions _options = options.Value;
+
     public void Configure(QuartzOptions options)
     {
         var jobKey = new JobKey(nameof(PrewarmDailyDistroJob));
@@ -18,7 +21,6 @@ internal sealed class ConfigurePrewarmDistroJob() : IConfigureOptions<QuartzOpti
                     .WithIdentity($"{jobKey.Name}-trigger")
                     .StartAt(DateTimeOffset.UtcNow.AddMinutes(1))
                     .WithSimpleSchedule(s => s.WithIntervalInSeconds(10).RepeatForever())
-                    // .WithCronSchedule("0 2 0 ? * *")
-                    );
+                    .WithCronSchedule(_options.CronSchedule));
     }
 }

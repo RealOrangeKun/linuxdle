@@ -1,3 +1,4 @@
+using Linuxdle.Api.BackgroundJobs;
 using Linuxdle.Api.Configurations;
 using Linuxdle.Services.DailyDistros;
 using Linuxdle.Services.DailyPuzzles;
@@ -28,6 +29,12 @@ internal static class OptionsExtensions
 
             services.Configure<GlobalRateLimitOptions>(
                 configuration.GetSection(nameof(GlobalRateLimitOptions)));
+
+            services.Configure<PrewarmDailyDistroJobOptions>(
+                configuration.GetSection(nameof(PrewarmDailyDistroJobOptions)));
+
+            services.Configure<PrewarmDailyDesktopEnvironmentJobOptions>(
+                configuration.GetSection(nameof(PrewarmDailyDesktopEnvironmentJobOptions)));
 
             services.ConfigureOptions<ConfigureDailyPuzzleJob>();
 
