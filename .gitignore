@@ -12,4 +12,6 @@
 .DS_Store
 Thumbs.db
 
+__pycache__
+
 # Build artifacts are handled by sub-directory gitignores
