@@ -39,6 +39,7 @@ internal sealed class DailyCommandService(
                 ))
                 .AsNoTracking()
                 .FirstOrDefaultAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
             cancellationToken: cancellationToken)
             ?? throw new NotFoundException($"Command '{userGuess}' not found");
 
@@ -59,7 +60,7 @@ internal sealed class DailyCommandService(
                 .OrderBy(c => c.Name)
                 .Select(c => c.Name)
                 .ToListAsync(cancellationToken: cancel),
-            options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(7) },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
             cancellationToken: cancellationToken
         );
     }
@@ -97,6 +98,7 @@ internal sealed class DailyCommandService(
 
                 return target != null ? (puzzle.Id, target) : ((int, DailyCommandDto)?)null;
             },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DailyContent },
             cancellationToken: cancellationToken)
             ?? throw new NotFoundException($"No daily puzzle found for {today:yyyy-MM-dd}");
 
@@ -137,6 +139,7 @@ internal sealed class DailyCommandService(
                     .AsNoTracking()
                     .FirstOrDefaultAsync(cancel);
             },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DailyContent },
             cancellationToken: cancellationToken);
     }
 }

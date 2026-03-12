@@ -34,8 +34,8 @@ internal sealed class DailyDistroService(
         return await hybridCache.GetOrCreateAsync(
             CacheKeys.DailyDistroImage(today, cappedTries, hardMode),
             async cancel => await DistroImageProcessor.ProcessDistroImageAsync(filePath, cappedTries, _imageOptions, hardMode, cancel),
-            cancellationToken: cancellationToken,
-            options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(1) });
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DistroImages },
+            cancellationToken: cancellationToken);
     }
 
     public async Task<IEnumerable<DailyDistroDto>> GetDailyDistrosAsync(CancellationToken cancellationToken = default)
@@ -45,7 +45,9 @@ internal sealed class DailyDistroService(
             async cancel => await dbContext.DailyDistros
                 .AsNoTracking()
                 .Select(dd => new DailyDistroDto(dd.Name, dd.Slug))
-                .ToListAsync(cancel), cancellationToken: cancellationToken);
+                .ToListAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+            cancellationToken: cancellationToken);
     }
 
     public async Task<DailyDistroGuessResultDto> HandleUserGuessAsync(Guid userId, string userGuess, CancellationToken cancellationToken = default)
@@ -61,6 +63,7 @@ internal sealed class DailyDistroService(
                 .Where(dd => dd.Slug == userGuess.ToLower())
                 .Select(dd => new { dd.Id })
                 .FirstOrDefaultAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
             cancellationToken: cancellationToken)
             ?? throw new NotFoundException($"No Distro found for {userGuess}");
 
@@ -94,6 +97,7 @@ internal sealed class DailyDistroService(
 
                 return target != null ? (puzzle.Id, target) : ((int, DailyDistroTargetInfo)?)null;
             },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DailyContent },
             cancellationToken: cancellationToken)
             ?? throw new NotFoundException($"No daily puzzle found for {today:yyyy-MM-dd}");
     }
@@ -122,6 +126,7 @@ internal sealed class DailyDistroService(
                     .Select(dd => new DailyDistroDto(dd.Name, dd.Slug))
                     .FirstOrDefaultAsync(cancel);
             },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DailyContent },
             cancellationToken: cancellationToken);
     }
 }

@@ -28,6 +28,7 @@ internal sealed class DailyPuzzleService(
                     .AsNoTracking()
                     .Select(g => g.Id)
                     .ToListAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
             cancellationToken: cancellationToken);
 
         foreach (var gameId in gameIds)
@@ -105,24 +106,24 @@ internal sealed class DailyPuzzleService(
                         .AsNoTracking()
                         .Select(dc => dc.Id)
                         .ToListAsync(cancel),
-                    cancellationToken: ct,
-                    options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(14) }),
+                    options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+                    cancellationToken: ct),
             GameIds.DailyDistros =>
                 await hybridCache.GetOrCreateAsync($"{gameId}_target_ids",
                     async cancel => await dbContext.DailyDistros
                         .AsNoTracking()
                         .Select(dd => dd.Id)
                         .ToListAsync(cancel),
-                    cancellationToken: ct,
-                    options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(14) }),
+                    options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+                    cancellationToken: ct),
             GameIds.DailyDesktopEnvironments =>
                 await hybridCache.GetOrCreateAsync($"{gameId}_target_ids",
                     async cancel => await dbContext.DailyDesktopEnvironments
                         .AsNoTracking()
                         .Select(dd => dd.Id)
                         .ToListAsync(cancel),
-                    cancellationToken: ct,
-                    options: new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(14) }),
+                    options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+                    cancellationToken: ct),
             _ => throw new ArgumentException($"Game mode {gameId} not implemented")
         };
     }

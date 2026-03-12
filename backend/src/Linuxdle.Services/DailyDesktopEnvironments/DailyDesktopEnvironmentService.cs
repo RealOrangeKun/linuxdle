@@ -32,6 +32,7 @@ internal sealed class DailyDesktopEnvironmentService(
         return await hybridCache.GetOrCreateAsync(
             CacheKeys.DailyDesktopEnvironmentScreenshot(selectedScreenshot.Id),
             async cancel => await File.ReadAllBytesAsync(selectedScreenshot.FilePath, cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.ProcessedAssets },
             cancellationToken: cancellationToken
         );
     }
@@ -49,6 +50,7 @@ internal sealed class DailyDesktopEnvironmentService(
                 .Where(dde => dde.Slug == userGuess.ToLower())
                 .Select(dd => new { dd.Id })
                 .FirstOrDefaultAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
             cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"No Distro found for {userGuess}");
 
@@ -101,6 +103,7 @@ internal sealed class DailyDesktopEnvironmentService(
 
                 return target != null ? (puzzle.Id, target) : ((int, DailyDesktopEnvironmentTargetDto)?)null;
             },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DailyContent },
             cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"No daily puzzle found for {today:yyyy-MM-dd}");
     }
@@ -113,6 +116,7 @@ internal sealed class DailyDesktopEnvironmentService(
                 .AsNoTracking()
                 .Select(dde => new DailyDesktopEnvironmentDto(dde.Name, dde.Slug))
                 .ToListAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
             cancellationToken: cancellationToken
         );
     }
@@ -139,6 +143,7 @@ internal sealed class DailyDesktopEnvironmentService(
                     .Select(dde => new DailyDesktopEnvironmentDto(dde.Name, dde.Slug))
                     .FirstOrDefaultAsync(cancel);
             },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DailyContent },
             cancellationToken: cancellationToken);
     }
 }
