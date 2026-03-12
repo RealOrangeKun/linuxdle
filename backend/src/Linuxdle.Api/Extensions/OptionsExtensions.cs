@@ -36,6 +36,9 @@ internal static class OptionsExtensions
             services.Configure<PrewarmDailyDesktopEnvironmentJobOptions>(
                 configuration.GetSection(nameof(PrewarmDailyDesktopEnvironmentJobOptions)));
 
+            services.Configure<CleanUsersJobOptions>(
+                configuration.GetSection(nameof(CleanUsersJobOptions)));
+
             services.ConfigureOptions<ConfigureDailyPuzzleJob>();
 
             services.ConfigureOptions<ConfigureCleanUsersJob>();
