@@ -7,6 +7,7 @@ import { Home, Close, ZoomIn, ZoomOut, RestartAlt } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
+import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
 
@@ -59,13 +60,19 @@ const DailyDesktopEnvironments: React.FC = () => {
       const response = await apiClient.get<DesktopEnvironment[]>('/daily-desktop-environments');
       setDes(response.data);
 
-      // Fetch yesterday's target
-      try {
-        const yesterdayResponse = await apiClient.get<DesktopEnvironment>('/daily-desktop-environments/yesterdays-target');
-        setYesterdaysTarget(yesterdayResponse.data);
-      } catch (error) {
-        // Yesterday's target might not exist
-        console.log('No yesterday\'s target available');
+      // Fetch yesterday's target (check cache first)
+      const cachedYesterday = getCachedYesterday<DesktopEnvironment>('des');
+      if (cachedYesterday) {
+        setYesterdaysTarget(cachedYesterday);
+      } else {
+        try {
+          const yesterdayResponse = await apiClient.get<DesktopEnvironment>('/daily-desktop-environments/yesterdays-target');
+          setYesterdaysTarget(yesterdayResponse.data);
+          cacheYesterday('des', yesterdayResponse.data);
+        } catch (error) {
+          // Yesterday's target might not exist
+          console.log('No yesterday\'s target available');
+        }
       }
     } catch (error) {
       console.error('Error:', error);

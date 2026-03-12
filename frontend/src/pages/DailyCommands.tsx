@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { MatchResult, YearDirection } from '../types/game';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
+import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
 
@@ -79,13 +80,19 @@ const DailyCommands: React.FC = () => {
           }
         }
 
-        // Fetch yesterday's target
-        try {
-          const yesterdayResponse = await apiClient.get<YesterdaysCommand>('/daily-commands/yesterdays-target');
-          setYesterdaysTarget(yesterdayResponse.data);
-        } catch (error) {
-          // Yesterday's target might not exist (e.g., first day)
-          console.log('No yesterday\'s target available');
+        // Fetch yesterday's target (check cache first)
+        const cachedYesterday = getCachedYesterday<YesterdaysCommand>('commands');
+        if (cachedYesterday) {
+          setYesterdaysTarget(cachedYesterday);
+        } else {
+          try {
+            const yesterdayResponse = await apiClient.get<YesterdaysCommand>('/daily-commands/yesterdays-target');
+            setYesterdaysTarget(yesterdayResponse.data);
+            cacheYesterday('commands', yesterdayResponse.data);
+          } catch (error) {
+            // Yesterday's target might not exist (e.g., first day)
+            console.log('No yesterday\'s target available');
+          }
         }
       } catch (error) {
         console.error('Error:', error);

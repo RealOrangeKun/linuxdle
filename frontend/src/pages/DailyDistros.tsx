@@ -7,6 +7,7 @@ import { ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
+import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
 
@@ -45,13 +46,19 @@ const DailyDistros: React.FC = () => {
       const response = await apiClient.get<Distro[]>('/daily-distros');
       setDistros(response.data);
 
-      // Fetch yesterday's target
-      try {
-        const yesterdayResponse = await apiClient.get<Distro>('/daily-distros/yesterdays-target');
-        setYesterdaysTarget(yesterdayResponse.data);
-      } catch (error) {
-        // Yesterday's target might not exist
-        console.log('No yesterday\'s target available');
+      // Fetch yesterday's target (check cache first)
+      const cachedYesterday = getCachedYesterday<Distro>('distros');
+      if (cachedYesterday) {
+        setYesterdaysTarget(cachedYesterday);
+      } else {
+        try {
+          const yesterdayResponse = await apiClient.get<Distro>('/daily-distros/yesterdays-target');
+          setYesterdaysTarget(yesterdayResponse.data);
+          cacheYesterday('distros', yesterdayResponse.data);
+        } catch (error) {
+          // Yesterday's target might not exist
+          console.log('No yesterday\'s target available');
+        }
       }
     } catch (error) {
       console.error('Error:', error);
