@@ -58,6 +58,8 @@ jobs:
       - name: Deploy Local
         run: |
           cd /home/yousseftarek/Projects/linuxdle
+          # Pull latest code (compose files, configs, etc.)
+          git pull origin master
           # Authenticate to GHCR using the temporary GITHUB_TOKEN
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           # Pull latest images
