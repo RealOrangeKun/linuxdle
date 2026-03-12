@@ -19,7 +19,7 @@ internal sealed class ConfigureCleanUsersJob(IOptions<CleanUsersJobOptions> opti
                 builder
                     .ForJob(jobKey)
                     .WithIdentity($"{jobKey.Name}-trigger")
-                    // .WithCronSchedule(_cleanUsersJobOptions.CronSchedule)
+                    .WithCronSchedule(_cleanUsersJobOptions.CronSchedule)
                     .WithSimpleSchedule(s => s.WithIntervalInSeconds(10).RepeatForever()));
     }
 }
