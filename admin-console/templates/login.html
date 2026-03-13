@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linuxdle Admin Login</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d1117;
+      --panel: #151b23;
+      --panel-border: #2b3440;
+      --text: #d5deeb;
+      --muted: #95a3b8;
+      --accent: #1793d1;
+      --accent-hover: #20a5ea;
+      --error: #ff7f7f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top, #131b25, var(--bg) 45%);
+      color: var(--text);
+      margin: 0;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .card {
+      width: min(460px, 100%);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 24px;
+      background: linear-gradient(180deg, #1a2230, var(--panel));
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: 0.02em;
+      color: #e9f4ff;
+    }
+
+    .subtitle {
+      margin: 8px 0 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      color: #c7d3e4;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      background: #0f141d;
+      color: var(--text);
+      border: 1px solid #3b4657;
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(23, 147, 209, 0.22);
+    }
+
+    button {
+      margin-top: 16px;
+      width: 100%;
+      background: var(--accent);
+      border: 0;
+      border-radius: 10px;
+      color: #061520;
+      padding: 11px 14px;
+      font-size: 0.94rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--accent-hover); }
+    button:active { transform: translateY(1px); }
+
+    .error {
+      color: var(--error);
+      margin-top: 12px;
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <form class="card" method="post" action="/login">
+    <h1>Linuxdle Admin Console</h1>
+    <p class="subtitle">Sign in to manage data and run SQL queries safely on your internal instance.</p>
+    <label>USERNAME</label>
+    <input name="username" autocomplete="username" required />
+
+    <label>PASSWORD</label>
+    <input type="password" name="password" autocomplete="current-password" required />
+
+    <button type="submit">AUTHENTICATE</button>
+    {% if error_message %}
+      <div class="error">[FAIL] {{ error_message }}</div>
+    {% endif %}
+  </form>
+</body>
+</html>

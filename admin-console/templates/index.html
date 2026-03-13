@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linuxdle Admin</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d1117;
+      --panel: #151b23;
+      --panel-border: #2b3440;
+      --text: #d5deeb;
+      --muted: #95a3b8;
+      --accent: #1793d1;
+      --accent-hover: #20a5ea;
+      --danger: #ff7f7f;
+      --ok: #4fd28a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top, #131b25, var(--bg) 50%);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 1.28rem;
+      letter-spacing: 0.01em;
+      color: #edf5ff;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .logout {
+      background: #182131;
+      color: #d9e6f8;
+      border: 1px solid #3f4a5d;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .logout:hover { border-color: #5a6b84; }
+
+    .panel {
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: linear-gradient(180deg, #1a2230, var(--panel));
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .notice {
+      margin: 0 0 10px;
+      color: #cad9ea;
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .suggestion-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 8px 0 12px;
+    }
+
+    .suggestion-block {
+      border: 1px solid #344052;
+      border-radius: 10px;
+      padding: 10px;
+      background: #0f141d;
+    }
+
+    .suggestion-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      border: 1px solid #3d4b61;
+      border-radius: 999px;
+      background: #121a25;
+      color: #d8e6f8;
+      padding: 6px 9px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .chip:hover { border-color: #5e7392; }
+
+    .table-input {
+      width: 100%;
+      max-width: 380px;
+      background: #0f141d;
+      color: var(--text);
+      border: 1px solid #3b4657;
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .table-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(23, 147, 209, 0.22);
+    }
+
+    #sql-editor {
+      width: 100%;
+      min-height: 300px;
+      height: 360px;
+      border: 1px solid #3b4657;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #sql-editor:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(23, 147, 209, 0.22);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 250px;
+      background: #0f141d;
+      color: var(--text);
+      border: 1px solid #3b4657;
+      border-radius: 10px;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      padding: 12px;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus,
+    select:focus,
+    button:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(23, 147, 209, 0.22);
+      outline: none;
+    }
+
+    select,
+    button {
+      background: #0f141d;
+      color: var(--text);
+      border: 1px solid #3b4657;
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .run {
+      background: var(--accent);
+      color: #061520;
+      border: 0;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+
+    .run:hover { background: var(--accent-hover); }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .ok {
+      color: var(--ok);
+      font-weight: 600;
+    }
+
+    .error {
+      color: var(--danger);
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.87rem;
+      min-width: 650px;
+    }
+
+    th,
+    td {
+      border: 1px solid #303948;
+      padding: 8px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #10161f;
+      color: #dbe7f6;
+      position: sticky;
+      top: 0;
+    }
+
+    tbody tr:nth-child(odd) { background: #141b26; }
+    tbody tr:hover { background: #1a2433; }
+  </style>
+  <script id="presets-data" type="application/json">{{ presets | tojson }}</script>
+  <script id="snippets-data" type="application/json">{{ snippets | tojson }}</script>
+  <script id="keywords-data" type="application/json">{{ keywords | tojson }}</script>
+  <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.37.2/src-min-noconflict/ace.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.37.2/src-min-noconflict/ext-language_tools.js"></script>
+
+  <script>
+    const PRESETS = Object.freeze(JSON.parse(document.getElementById('presets-data').textContent || '{}'));
+    const DEFAULT_SNIPPETS = JSON.parse(document.getElementById('snippets-data').textContent || '{}');
+    const DEFAULT_KEYWORDS = JSON.parse(document.getElementById('keywords-data').textContent || '[]');
+
+    let sqlEditor = null;
+    let tableSuggestions = [];
+
+    function getSqlValue() {
+      if (sqlEditor) {
+        return sqlEditor.getValue();
+      }
+      return document.getElementById('sql').value;
+    }
+
+    function setSqlValue(value) {
+      if (sqlEditor) {
+        sqlEditor.setValue(value ?? '', -1);
+      }
+      document.getElementById('sql').value = value ?? '';
+    }
+
+    function syncSqlToForm() {
+      document.getElementById('sql').value = getSqlValue();
+    }
+
+    function initSqlEditor() {
+      const target = document.getElementById('sql-editor');
+      if (!target || typeof ace === 'undefined') {
+        return;
+      }
+
+      ace.config.set('basePath', 'https://cdn.jsdelivr.net/npm/ace-builds@1.37.2/src-min-noconflict');
+
+      sqlEditor = ace.edit('sql-editor');
+      sqlEditor.setTheme('ace/theme/github_dark');
+      sqlEditor.session.setMode('ace/mode/sql');
+      sqlEditor.setValue(document.getElementById('sql').value || '', -1);
+      sqlEditor.setOptions({
+        fontSize: '14px',
+        showPrintMargin: false,
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true,
+      });
+
+      sqlEditor.session.on('change', () => {
+        syncSqlToForm();
+        const preset = document.getElementById('preset');
+        const currentPreset = preset.value;
+        if (currentPreset && PRESETS[currentPreset] && PRESETS[currentPreset] !== getSqlValue()) {
+          preset.value = 'custom';
+        }
+      });
+    }
+
+    function loadPreset() {
+      const presetKey = document.getElementById('preset').value;
+      const sql = PRESETS[presetKey] || '';
+      if (!sql) {
+        return;
+      }
+      setSqlValue(sql);
+    }
+
+    function insertAtCursor(text) {
+      if (sqlEditor) {
+        sqlEditor.insert(text);
+        syncSqlToForm();
+        return;
+      }
+
+      const sqlBox = document.getElementById('sql');
+      const start = sqlBox.selectionStart ?? sqlBox.value.length;
+      const end = sqlBox.selectionEnd ?? sqlBox.value.length;
+      const before = sqlBox.value.substring(0, start);
+      const after = sqlBox.value.substring(end);
+      sqlBox.value = `${before}${text}${after}`;
+      const newPos = start + text.length;
+      sqlBox.focus();
+      sqlBox.setSelectionRange(newPos, newPos);
+    }
+
+    function loadSnippet() {
+      const snippetKey = document.getElementById('snippet').value;
+      const snippet = window.SQL_SNIPPETS?.[snippetKey] ?? DEFAULT_SNIPPETS[snippetKey] ?? '';
+      if (snippet) {
+        insertAtCursor(`\n${snippet}\n`);
+      }
+    }
+
+    function renderKeywords(keywords) {
+      const container = document.getElementById('keywordChips');
+      container.innerHTML = '';
+
+      keywords.forEach((keyword) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'chip';
+        button.textContent = keyword;
+        button.onclick = () => insertAtCursor(`${keyword} `);
+        container.appendChild(button);
+      });
+    }
+
+    function renderTableSuggestions(tableNames) {
+      tableSuggestions = tableNames;
+      const list = document.getElementById('tableSuggestions');
+      list.innerHTML = '';
+
+      tableNames.forEach((tableName) => {
+        const option = document.createElement('option');
+        option.value = tableName;
+        list.appendChild(option);
+      });
+    }
+
+    function registerSqlCompleter() {
+      if (!sqlEditor || typeof ace === 'undefined') {
+        return;
+      }
+
+      const langTools = ace.require('ace/ext/language_tools');
+      const completer = {
+        getCompletions(_editor, _session, _pos, _prefix, callback) {
+          const keywordCompletions = DEFAULT_KEYWORDS.map((keyword) => ({
+            caption: keyword,
+            value: `${keyword} `,
+            meta: 'keyword',
+            score: 900,
+          }));
+
+          const tableCompletions = tableSuggestions.map((tableName) => ({
+            caption: tableName,
+            value: tableName,
+            meta: 'table',
+            score: 1000,
+          }));
+
+          const snippetCompletions = Object.entries(window.SQL_SNIPPETS || DEFAULT_SNIPPETS).map(([name, sql]) => ({
+            caption: `snippet:${name}`,
+            value: sql,
+            meta: 'snippet',
+            score: 800,
+          }));
+
+          callback(null, [...tableCompletions, ...keywordCompletions, ...snippetCompletions]);
+        },
+      };
+
+      langTools.setCompleters([completer]);
+    }
+
+    async function hydrateSuggestions() {
+      window.SQL_SNIPPETS = DEFAULT_SNIPPETS;
+      renderKeywords(DEFAULT_KEYWORDS);
+
+      try {
+        const response = await fetch('/api/suggestions', { credentials: 'same-origin' });
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        if (Array.isArray(data.tables)) {
+          renderTableSuggestions(data.tables);
+        }
+        if (Array.isArray(data.keywords) && data.keywords.length > 0) {
+          renderKeywords(data.keywords);
+        }
+        if (data.snippets && typeof data.snippets === 'object') {
+          window.SQL_SNIPPETS = data.snippets;
+        }
+        registerSqlCompleter();
+      } catch {
+        registerSqlCompleter();
+      }
+    }
+
+    function insertSelectedTable() {
+      const tableName = document.getElementById('tableNameInput').value.trim();
+      if (!tableName) {
+        return;
+      }
+      insertAtCursor(`${tableName} `);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initSqlEditor();
+      hydrateSuggestions();
+
+      const form = document.getElementById('sql-form');
+      form.addEventListener('submit', () => {
+        syncSqlToForm();
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1 class="title">Linuxdle Admin Console</h1>
+        <p class="subtitle">Internal SQL workspace for data checks, fixes, and puzzle operations.</p>
+      </div>
+      <form method="post" action="/logout"><button class="logout" type="submit">LOGOUT</button></form>
+    </div>
+
+    <div class="panel">
+      <p class="notice">⚠ This console executes raw SQL directly against your database. Double-check write queries before running.</p>
+      <form id="sql-form" method="post" action="/">
+        <label for="sql">SQL</label>
+
+        <div class="suggestion-row">
+          <div class="suggestion-block">
+            <div class="suggestion-label">TABLE NAME SUGGESTIONS</div>
+            <input id="tableNameInput" class="table-input" list="tableSuggestions" placeholder="Start typing table name..." />
+            <datalist id="tableSuggestions"></datalist>
+            <div class="controls" style="margin-top: 8px;">
+              <button type="button" onclick="insertSelectedTable()">INSERT TABLE NAME</button>
+            </div>
+          </div>
+
+          <div class="suggestion-block">
+            <div class="suggestion-label">SQL SYNTAX HELP</div>
+            <div class="controls" style="margin-top: 0; margin-bottom: 8px;">
+              <select id="snippet">
+                <option value="select_all">Template: SELECT all</option>
+                <option value="select_where">Template: SELECT with WHERE</option>
+                <option value="insert">Template: INSERT</option>
+                <option value="update">Template: UPDATE</option>
+                <option value="delete">Template: DELETE</option>
+                <option value="join">Template: JOIN</option>
+                <option value="create_index">Template: CREATE INDEX</option>
+              </select>
+              <button type="button" onclick="loadSnippet()">INSERT TEMPLATE</button>
+            </div>
+            <div id="keywordChips" class="chips"></div>
+          </div>
+        </div>
+
+        <div id="sql-editor" aria-label="SQL Editor"></div>
+        <textarea id="sql" name="sql" class="sr-only" required>{{ sql_text }}</textarea>
+
+        <div class="controls">
+          <select id="preset" name="selected_preset" onchange="loadPreset()">
+            <option value="custom" {% if selected_preset == 'custom' %}selected{% endif %}>Preset: custom query</option>
+            <option value="today_answers" {% if selected_preset == 'today_answers' %}selected{% endif %}>Preset: today's answers</option>
+            <option value="tomorrow_answers" {% if selected_preset == 'tomorrow_answers' %}selected{% endif %}>Preset: tomorrow's answers</option>
+            <option value="recent_user_guesses" {% if selected_preset == 'recent_user_guesses' %}selected{% endif %}>Preset: latest guesses</option>
+          </select>
+          <button type="button" onclick="loadPreset()">LOAD PRESET</button>
+          <button class="run" type="submit">RUN QUERY</button>
+        </div>
+      </form>
+    </div>
+
+    {% if error_message %}
+      <div class="panel error">[FAIL] {{ error_message }}</div>
+    {% endif %}
+
+    {% if result %}
+      <div class="panel">
+        <div class="ok">[OK] {{ result.message }}</div>
+      </div>
+
+      {% if result.mode == 'result' %}
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  {% for column in result.columns %}
+                    <th>{{ column }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in result.rows %}
+                  <tr>
+                    {% for value in row %}
+                      <td>{{ value }}</td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -70,6 +70,28 @@ services:
     networks:
       - linuxdle-network
 
+  admin-console:
+    container_name: linuxdle-admin-console
+    build:
+      context: ./admin-console
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=linuxdle
+      - DB_USER=linuxdle
+      - DB_PASSWORD=${DB_PASSWORD}
+      - ADMIN_USERNAME=${ADMIN_CONSOLE_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_CONSOLE_PASSWORD}
+      - ADMIN_SECRET_KEY=${ADMIN_CONSOLE_SECRET_KEY}
+    ports:
+      - "5055:8000"
+    depends_on:
+      - postgres
+    networks:
+      - linuxdle-network
+
   monitor:
     container_name: linuxdle-monitor
     image: alpine:latest
