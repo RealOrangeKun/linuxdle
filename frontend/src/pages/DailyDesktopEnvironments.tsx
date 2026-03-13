@@ -52,6 +52,8 @@ const DailyDesktopEnvironments: React.FC = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const isDragging = useRef(false);
   const lastMousePos = useRef({ x: 0, y: 0 });
+  const lastTouchDistance = useRef<number | null>(null);
+  const zoomContainerRef = useRef<HTMLDivElement>(null);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -171,6 +173,54 @@ const DailyDesktopEnvironments: React.FC = () => {
   const handleMouseUp = () => {
     isDragging.current = false;
   };
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      isDragging.current = true;
+      lastMousePos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      lastTouchDistance.current = null;
+    } else if (e.touches.length === 2) {
+      isDragging.current = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastTouchDistance.current = Math.hypot(dx, dy);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1 && isDragging.current) {
+      const dx = e.touches[0].clientX - lastMousePos.current.x;
+      const dy = e.touches[0].clientY - lastMousePos.current.y;
+      setPosition(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+      lastMousePos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    } else if (e.touches.length === 2 && lastTouchDistance.current !== null) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const newDistance = Math.hypot(dx, dy);
+      const delta = (newDistance - lastTouchDistance.current) * 0.01;
+      setScale(prev => Math.min(Math.max(1, prev + delta), 5));
+      lastTouchDistance.current = newDistance;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    isDragging.current = false;
+    lastTouchDistance.current = null;
+  };
+
+  // Attach non-passive native touchmove to allow e.preventDefault() (React passive by default)
+  useEffect(() => {
+    const el = zoomContainerRef.current;
+    if (!el) return;
+    const nativeTouchMove = (e: TouchEvent) => {
+      if (isDragging.current || (e.touches.length === 2 && lastTouchDistance.current !== null)) {
+        e.preventDefault();
+      }
+    };
+    el.addEventListener('touchmove', nativeTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', nativeTouchMove);
+  }, [isZoomed]);
 
   const resetZoom = () => {
     setScale(1);
@@ -399,7 +449,8 @@ const DailyDesktopEnvironments: React.FC = () => {
         </Box>
 
         <Box sx={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 10, bgcolor: 'rgba(0,0,0,0.6)', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 2, color: 'white' }}>
-          <Typography variant="caption">SCROLL TO ZOOM | DRAG TO PAN</Typography>
+          <Typography variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>SCROLL TO ZOOM | DRAG TO PAN</Typography>
+          <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' } }}>PINCH TO ZOOM | DRAG TO PAN</Typography>
           <Divider orientation="vertical" flexItem sx={{ bgcolor: 'white' }} />
           <Box display="flex" alignItems="center">
             <ZoomOut fontSize="small" />
@@ -411,11 +462,15 @@ const DailyDesktopEnvironments: React.FC = () => {
         </Box>
 
         <Box
+          ref={zoomContainerRef}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           sx={{
             width: '100vw',
             height: '100vh',
