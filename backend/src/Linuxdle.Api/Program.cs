@@ -77,8 +77,6 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseRateLimiter();
-
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
