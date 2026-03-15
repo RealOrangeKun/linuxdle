@@ -11,7 +11,6 @@ internal sealed class RegisterUserEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/users", HandleAsync)
-            .RequireRateLimiting("registerUser")
             .WithTags(Tags.Users);
     }
 
