@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Production config overrides (contain real secrets)
+appsettings.Production.json
+
 # User-specific files
 *.rsuser
 *.suo
