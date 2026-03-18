@@ -31,7 +31,7 @@ If you agree to these terms, we would love your help!
 4. **Commit and Push**
    ```bash
    git add .
-   git commit -m "Add new feature/distro"
+   git commit -m "feat(data): add new feature or distro"
    git push origin feature/your-feature-name
    ```
 
