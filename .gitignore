@@ -23,6 +23,3 @@ __pycache__/
 .venv/
 
 # Build artifacts are handled by sub-directory gitignores
-
-
-docker-compose.prod.yml
