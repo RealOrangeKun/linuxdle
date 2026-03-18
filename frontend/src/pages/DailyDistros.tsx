@@ -62,6 +62,7 @@ const DailyDistros: React.FC = () => {
       }
     } catch (error) {
       console.error('Error:', error);
+      setDistros([]); // Ensure distros is an array even if fetch fails
     }
   }, []);
 

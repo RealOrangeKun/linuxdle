@@ -52,8 +52,8 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         // Refresh token failed or expired, clear everything
         setAuthToken(null);
-        // We could also redirect to home or force a re-registration
-        // For now, useAuth hook will handle the empty token by re-registering
+        // Dispatch event so useAuth hook can re-register
+        window.dispatchEvent(new Event('auth:token-cleared'));
         return Promise.reject(refreshError);
       }
     }

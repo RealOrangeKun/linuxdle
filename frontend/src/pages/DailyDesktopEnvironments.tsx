@@ -78,6 +78,7 @@ const DailyDesktopEnvironments: React.FC = () => {
       }
     } catch (error) {
       console.error('Error:', error);
+      setDes([]); // Ensure des is an array even if fetch fails
     }
   }, []);
 

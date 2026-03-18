@@ -96,6 +96,7 @@ const DailyCommands: React.FC = () => {
         }
       } catch (error) {
         console.error('Error:', error);
+        setCommands([]); // Ensure commands is an array even if fetch fails
       } finally {
         setLoading(false);
       }

@@ -30,5 +30,15 @@ export const useAuth = () => {
     registerUser();
   }, [token]);
 
+  useEffect(() => {
+    // Listen for token clearing events from the interceptor
+    const handleTokenCleared = () => {
+      setToken(null); // This will trigger the registerUser effect above
+    };
+
+    window.addEventListener('auth:token-cleared', handleTokenCleared);
+    return () => window.removeEventListener('auth:token-cleared', handleTokenCleared);
+  }, []);
+
   return { token, loading };
 };
