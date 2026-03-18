@@ -104,6 +104,8 @@ jobs:
         run: sleep 15 # Allow services to start up completely 
       - name: Run System Tests
         run: cd e2e && npm run test
+        env:
+          BASE_URL: http://localhost:8081
 
   deploy:
     needs: test-e2e

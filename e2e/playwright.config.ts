@@ -10,11 +10,11 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'http://localhost:5173',
     trace: 'on-first-retry',
   },
-  webServer: {
+  webServer: process.env.CI ? undefined : {
     command: 'npm run dev',
     cwd: '../frontend',
     port: 5173,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
   },
   projects: [
     {
