@@ -74,9 +74,9 @@ const DailyCommands: React.FC = () => {
         if (saved) {
           const state = JSON.parse(saved);
           if (state.date === today) {
-            setResults(state.results);
-            setIsGameOver(state.isGameOver);
-            setShowSuccess(state.showSuccess);
+            setResults(state.results || []);
+            setIsGameOver(state.isGameOver || false);
+            setShowSuccess(state.showSuccess || false);
           }
         }
 

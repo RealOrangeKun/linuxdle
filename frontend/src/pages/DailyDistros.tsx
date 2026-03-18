@@ -79,9 +79,9 @@ const DailyDistros: React.FC = () => {
         const state = JSON.parse(saved);
         if (state.date === today) {
           const loadedHardMode = state.hardMode ?? true;
-          setGuesses(state.guesses);
-          setIsGameOver(state.isGameOver);
-          setShowSuccess(state.showSuccess);
+          setGuesses(state.guesses || []);
+          setIsGameOver(state.isGameOver || false);
+          setShowSuccess(state.showSuccess || false);
           setHardMode(loadedHardMode);
           updateLogoUrl(state.isGameOver ? 12 : state.guesses.length + 1, state.isGameOver ? false : loadedHardMode);
           setLoading(false);

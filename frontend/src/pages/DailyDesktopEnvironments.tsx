@@ -90,9 +90,9 @@ const DailyDesktopEnvironments: React.FC = () => {
       if (saved) {
         const state = JSON.parse(saved);
         if (state.date === today) {
-          setGuesses(state.guesses);
-          setIsGameOver(state.isGameOver);
-          setShowSuccess(state.showSuccess);
+          setGuesses(state.guesses || []);
+          setIsGameOver(state.isGameOver || false);
+          setShowSuccess(state.showSuccess || false);
         }
       }
       setLoading(false);
