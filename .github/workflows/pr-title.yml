@@ -1,0 +1,29 @@
+name: "PR Title Check"
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+
+jobs:
+  main:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # This action checks that the PR title matches the Conventional Commits spec.
+          # Example: "feat(ui): add new dark mode toggle"
+          # Example: "fix(api): resolve missing database index"
+          # The PR title serves as the final merge commit message.
+          
+          # Optional: require a specific scope. (e.g. feat(scope): message)
+          # requireScope: false 
+          
+          # Optional: validate that ALL commit messages match the specification, 
+          # not just the PR title. We set this to false because PRs are usually 
+          # squash merged and the PR title is what matters for the changelog.
+          validateSingleCommit: false
