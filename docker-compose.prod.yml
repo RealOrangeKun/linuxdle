@@ -97,6 +97,12 @@ services:
     container_name: linuxdle-monitor
     image: alpine:latest
     restart: always
+    environment:
+      - CF_ZONE_ID=${CF_ZONE_ID}
+      - CF_AUTH_EMAIL=${CF_AUTH_EMAIL}
+      - CF_API_TOKEN=${CF_API_TOKEN}
+      - CF_RULE_ID=${CF_RULE_ID}
+      - CF_RULESET_ID=${CF_RULESET_ID}
     volumes:
       - ./infrastructure/cloudflare/monitor.sh:/app/monitor.sh
       - ./infrastructure/cloudflare/maintenance-mode.sh:/app/maintenance-mode.sh
