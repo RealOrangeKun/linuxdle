@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# Configuration
-ZONE_ID="68b8593a494353ec7fc0e21691d8d0fa"
-AUTH_EMAIL="yousseftarekali04@gmail.com"
-API_TOKEN="8rpNIN6hNCnI-zYrsIu1QNFwPa1gaJJM7lw8W_Ce"
-RULE_ID="e9c72d398a5d4679a99636f55e92344a"
-RULESET_ID="c3cad28aab954861810f3a42645e08b3"
+# Configuration — set these in your environment or .env file:
+# CF_ZONE_ID, CF_AUTH_EMAIL, CF_API_TOKEN, CF_RULE_ID, CF_RULESET_ID
+ZONE_ID="${CF_ZONE_ID:?CF_ZONE_ID is not set}"
+AUTH_EMAIL="${CF_AUTH_EMAIL:?CF_AUTH_EMAIL is not set}"
+API_TOKEN="${CF_API_TOKEN:?CF_API_TOKEN is not set}"
+RULE_ID="${CF_RULE_ID:?CF_RULE_ID is not set}"
+RULESET_ID="${CF_RULESET_ID:?CF_RULESET_ID is not set}"
 
 # Usage check
 if [ "$#" -ne 1 ]; then
