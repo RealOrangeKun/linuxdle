@@ -85,3 +85,5 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 app.MapGroup("/api").MapAllEndpoints();
 
 await app.RunAsync();
+
+public partial class Program { }

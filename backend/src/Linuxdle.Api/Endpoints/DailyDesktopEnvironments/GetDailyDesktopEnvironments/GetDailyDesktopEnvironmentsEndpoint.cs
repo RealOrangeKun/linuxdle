@@ -16,7 +16,8 @@ internal sealed class GetDailyDesktopEnvironmentsEndpoint : IEndpoint
             var timeUntilMidnight = tomorrow - now;
             policy.Expire(timeUntilMidnight);
         })
-        .WithTags(Tags.DailyDesktopEnvironments);
+        .WithTags(Tags.DailyDesktopEnvironments)
+        .RequireAuthorization();
     }
 
     private async Task<IResult> HandleAsync(

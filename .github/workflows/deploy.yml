@@ -10,7 +10,34 @@ env:
   OWNER: ${{ github.repository_owner }}
 
 jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run Backend Unit Tests
+        run: dotnet test backend/tests/Linuxdle.UnitTests/Linuxdle.UnitTests.csproj
+      - name: Run Backend Integration Tests
+        run: dotnet test backend/tests/Linuxdle.IntegrationTests/Linuxdle.IntegrationTests.csproj
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: cd frontend && npm ci
+      - name: Run Frontend Tests
+        run: cd frontend && npm run test
+
   build-and-push:
+    needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -51,16 +78,41 @@ jobs:
           # Resulting tag: ghcr.io/realorangekun/linuxdle-backend:latest
           tags: ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ matrix.image_name }}:latest
 
-  deploy:
+  test-e2e:
     needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Playwright
+        run: cd e2e && npm ci && npx playwright install --with-deps chromium
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Start Environment
+        # Spin up compose pointing to the images just pushed
+        run: |
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d
+      - name: Wait for Environment
+        run: sleep 15 # Allow services to start up completely 
+      - name: Run System Tests
+        run: cd e2e && npm run test
+
+  deploy:
+    needs: test-e2e
     runs-on: self-hosted
     steps:
       - name: Deploy Local
         run: |
           cd /home/yousseftarek/Projects/linuxdle
-          # Pull latest code (compose files, configs, etc.)
           git pull origin master
-          # Authenticate to GHCR using the temporary GITHUB_TOKEN
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           # Pull latest images
           docker compose -f docker-compose.prod.yml pull

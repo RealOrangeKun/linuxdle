@@ -5,4 +5,8 @@
     <Project Path="src/Linuxdle.Infrastructure/Linuxdle.Infrastructure.csproj" />
     <Project Path="src/Linuxdle.Services/Linuxdle.Services.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Linuxdle.UnitTests/Linuxdle.UnitTests.csproj" />
+    <Project Path="tests/Linuxdle.IntegrationTests/Linuxdle.IntegrationTests.csproj" />
+  </Folder>
 </Solution>
