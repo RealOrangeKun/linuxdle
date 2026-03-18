@@ -49,7 +49,7 @@ The easiest way to run Linuxdle locally is using Docker Compose.
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/linuxdle.git
+git clone https://github.com/RealOrangeKun/linuxdle.git
 cd linuxdle
 ```
 
