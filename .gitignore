@@ -1,3 +1,8 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
 # Docker
 *override*
 *.sql
@@ -12,6 +17,9 @@
 .DS_Store
 Thumbs.db
 
-__pycache__
+# Python
+__pycache__/
+*.pyc
+.venv/
 
 # Build artifacts are handled by sub-directory gitignores
