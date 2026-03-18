@@ -7,6 +7,7 @@ COPY Linuxdle.slnx ./
 COPY Directory.Packages.props ./
 COPY global.json ./
 COPY src/ ./src/
+COPY tests/ ./tests/
 
 # Restore dependencies
 RUN dotnet restore Linuxdle.slnx
