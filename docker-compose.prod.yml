@@ -32,6 +32,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__Database=Host=postgres;Database=linuxdle;Username=linuxdle;Password=${DB_PASSWORD}
       - ConnectionStrings__Redis=redis:6379,password=${REDIS_PASSWORD}
+      - AccessTokenOptions__SecretKey=${JWT_SECRET}
     volumes:
       - ./backend/src/Linuxdle.Api/wwwroot:/app/wwwroot
     depends_on:

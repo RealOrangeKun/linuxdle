@@ -8,6 +8,7 @@
 
 # Production config overrides (contain real secrets)
 appsettings.Production.json
+appsettings.Development.json
 
 # User-specific files
 *.rsuser
