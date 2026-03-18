@@ -44,7 +44,7 @@ const DailyDistros: React.FC = () => {
   const fetchDistros = useCallback(async () => {
     try {
       const response = await apiClient.get<Distro[]>('/daily-distros');
-      setDistros(response.data);
+      setDistros(Array.isArray(response.data) ? response.data : []);
 
       // Fetch yesterday's target (check cache first)
       const cachedYesterday = getCachedYesterday<Distro>('distros');
@@ -76,16 +76,24 @@ const DailyDistros: React.FC = () => {
       await fetchDistros();
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const state = JSON.parse(saved);
-        if (state.date === today) {
-          const loadedHardMode = state.hardMode ?? true;
-          setGuesses(state.guesses || []);
-          setIsGameOver(state.isGameOver || false);
-          setShowSuccess(state.showSuccess || false);
-          setHardMode(loadedHardMode);
-          updateLogoUrl(state.isGameOver ? 12 : state.guesses.length + 1, state.isGameOver ? false : loadedHardMode);
-          setLoading(false);
-          return;
+        try {
+          const state = JSON.parse(saved);
+          if (state.date === today) {
+            const parsedGuesses = Array.isArray(state.guesses) ? state.guesses : [];
+            const parsedIsGameOver = typeof state.isGameOver === 'boolean' ? state.isGameOver : false;
+            const parsedShowSuccess = typeof state.showSuccess === 'boolean' ? state.showSuccess : false;
+            const loadedHardMode = typeof state.hardMode === 'boolean' ? state.hardMode : true;
+
+            setGuesses(parsedGuesses);
+            setIsGameOver(parsedIsGameOver);
+            setShowSuccess(parsedShowSuccess);
+            setHardMode(loadedHardMode);
+            updateLogoUrl(parsedIsGameOver ? 12 : parsedGuesses.length + 1, parsedIsGameOver ? false : loadedHardMode);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
         }
       }
       updateLogoUrl(1, true);

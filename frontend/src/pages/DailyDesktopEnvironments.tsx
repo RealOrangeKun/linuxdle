@@ -60,7 +60,7 @@ const DailyDesktopEnvironments: React.FC = () => {
   const fetchDes = useCallback(async () => {
     try {
       const response = await apiClient.get<DesktopEnvironment[]>('/daily-desktop-environments');
-      setDes(response.data);
+      setDes(Array.isArray(response.data) ? response.data : []);
 
       // Fetch yesterday's target (check cache first)
       const cachedYesterday = getCachedYesterday<DesktopEnvironment>('des');
@@ -88,11 +88,15 @@ const DailyDesktopEnvironments: React.FC = () => {
       setScreenshotUrl(`${apiClient.defaults.baseURL}/daily-desktop-environments/daily-desktop-environment.png?v=${today}`);
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const state = JSON.parse(saved);
-        if (state.date === today) {
-          setGuesses(state.guesses || []);
-          setIsGameOver(state.isGameOver || false);
-          setShowSuccess(state.showSuccess || false);
+        try {
+          const state = JSON.parse(saved);
+          if (state.date === today) {
+            setGuesses(Array.isArray(state.guesses) ? state.guesses : []);
+            setIsGameOver(typeof state.isGameOver === 'boolean' ? state.isGameOver : false);
+            setShowSuccess(typeof state.showSuccess === 'boolean' ? state.showSuccess : false);
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
         }
       }
       setLoading(false);

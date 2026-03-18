@@ -68,15 +68,20 @@ const DailyCommands: React.FC = () => {
     const fetchCommands = async () => {
       try {
         const response = await apiClient.get<string[]>('/daily-commands');
-        setCommands(response.data);
+        setCommands(Array.isArray(response.data) ? response.data : []);
 
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
-          const state = JSON.parse(saved);
-          if (state.date === today) {
-            setResults(state.results || []);
-            setIsGameOver(state.isGameOver || false);
-            setShowSuccess(state.showSuccess || false);
+          try {
+            const state = JSON.parse(saved);
+            if (state.date === today) {
+              const parsedResults = Array.isArray(state.results) ? state.results : [];
+              setResults(parsedResults);
+              setIsGameOver(typeof state.isGameOver === 'boolean' ? state.isGameOver : false);
+              setShowSuccess(typeof state.showSuccess === 'boolean' ? state.showSuccess : false);
+            }
+          } catch {
+            localStorage.removeItem(STORAGE_KEY);
           }
         }
 
@@ -285,7 +290,7 @@ const DailyCommands: React.FC = () => {
             Section: {yesterdaysTarget.manSection} | Built-in: {yesterdaysTarget.isBuiltIn ? 'Yes' : 'No'} | 
             POSIX: {yesterdaysTarget.isPosix ? 'Yes' : 'No'}
           </Typography>
-          {yesterdaysTarget.categoryNames.length > 0 && (
+          {Array.isArray(yesterdaysTarget.categoryNames) && yesterdaysTarget.categoryNames.length > 0 && (
             <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.7 }}>
               Categories: {yesterdaysTarget.categoryNames.join(', ')}
             </Typography>
