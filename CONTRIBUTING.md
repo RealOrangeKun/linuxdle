@@ -27,6 +27,7 @@ If you agree to these terms, we would love your help!
 3. **Make Your Changes**
    - If you are adding new Daily Distros, Commands, or Desktop Environments, please edit the appropriate JSON files in `seed_data/data/` as outlined in the `seed_data/README.md`.
    - If you are contributing code, ensure you run the local development stack (`docker-compose.dev.yml`) to verify everything works properly.
+   - **Important:** Make sure to run the full test suite (Backend, Frontend, and E2E) to verify your changes haven't introduced any regressions. You can find instructions on how to run tests in the `README.md`.
 
 4. **Commit and Push**
    ```bash

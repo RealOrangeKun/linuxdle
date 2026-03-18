@@ -28,4 +28,5 @@
 - [ ] My change requires a change to the documentation.
 - [ ] I have updated the documentation accordingly.
 - [ ] My commit messages follow the `feat(...)`, `fix(...)` format.
+- [ ] I have successfully run the test suite locally and all tests pass (Backend, Frontend, E2E).
 - [ ] I have read and agree to the `CONTRIBUTING.md` and the `LICENSE` (PolyForm Project).

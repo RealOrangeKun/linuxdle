@@ -80,6 +80,33 @@ python seed_db.py
 ```
 *(Alternatively, you can run `./seed_db.sh` to execute it directly against the Docker container).*
 
+### 5. Running Tests
+Linuxdle is thoroughly tested to prevent regressions. Before contributing, please ensure all sets of tests are passing.
+
+- **Backend Unit & Integration Tests (.NET/xUnit):**
+  Requires Docker to be running (uses Testcontainers to create isolated temporary database instances).
+  ```bash
+  # Run all backend tests
+  dotnet test backend/tests/Linuxdle.UnitTests/Linuxdle.UnitTests.csproj
+  dotnet test backend/tests/Linuxdle.IntegrationTests/Linuxdle.IntegrationTests.csproj
+  ```
+
+- **Frontend Component Tests (Vitest/RTL):**
+  ```bash
+  cd frontend
+  npm ci
+  npm run test
+  ```
+
+- **End-to-End System Tests (Playwright):**
+  Playwright requires the Vite dev server to be running.
+  ```bash
+  cd e2e
+  npm ci
+  npx playwright install --with-deps chromium
+  npx playwright test
+  ```
+
 ## 📂 Project Structure
 
 - `/frontend` - React SPA user interface.
