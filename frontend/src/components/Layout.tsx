@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Container, Button, Box, IconButton, useTheme } from '@mui/material';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { Brightness4, Brightness7, Terminal } from '@mui/icons-material';
+import { Brightness4, Brightness7, Terminal, GitHub } from '@mui/icons-material';
 import { ColorModeContext } from '../App';
 
 const Layout: React.FC = () => {
@@ -51,6 +51,16 @@ const Layout: React.FC = () => {
                 ./des
               </Button>
               
+              <IconButton 
+                component="a" 
+                href="https://github.com/RealOrangeKun/linuxdle" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                color="inherit" 
+                sx={{ ml: 1 }}
+              >
+                <GitHub />
+              </IconButton>
               <IconButton onClick={colorMode.toggleColorMode} color="inherit" sx={{ ml: 1 }}>
                 {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
               </IconButton>
