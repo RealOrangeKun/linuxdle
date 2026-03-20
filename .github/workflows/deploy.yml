@@ -38,81 +38,63 @@ jobs:
       - name: Run Frontend Tests
         run: cd frontend && npm run test
 
-  build-and-push:
-    if: github.event_name == 'push' && github.repository == 'RealOrangeKun/linuxdle'
+  build-test-push:
     needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
-    strategy:
-      matrix:
-        include:
-          - context: ./backend
-            image_name: linuxdle-backend
-          - context: ./frontend
-            image_name: linuxdle-frontend
-            target: production
-          - context: ./gateway
-            image_name: linuxdle-gateway
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Lowercase the repo owner name
-        run: |
-          echo "OWNER_LOWER=$(echo ${{ env.OWNER }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        run: echo "OWNER_LOWER=$(echo ${{ env.OWNER }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-      - name: Log in to the Container registry
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: cd e2e && npm ci && npx playwright install --with-deps chromium
+
+      - name: Build Docker images locally
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-backend:latest ./backend
+          docker build -t ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-frontend:latest --target production ./frontend
+          docker build -t ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-gateway:latest ./gateway
+
+      - name: Start Environment
+        # Spin up compose. It will automatically use the images we just built locally.
+        run: docker compose -f docker-compose.prod.yml up -d
+
+      - name: Wait for Environment
+        run: sleep 15 # Allow services to start up completely 
+
+      - name: Run System Tests
+        run: cd e2e && npm run test
+        env:
+          BASE_URL: http://localhost:8081
+
+      - name: Log in to the Container registry (Push only)
+        if: github.event_name == 'push' && github.repository == 'RealOrangeKun/linuxdle'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ${{ matrix.context }}
-          target: ${{ matrix.target }}
-          push: true
-          # Resulting tag: ghcr.io/realorangekun/linuxdle-backend:latest
-          tags: ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ matrix.image_name }}:latest
-
-  test-e2e:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install Playwright
-        run: cd e2e && npm ci && npx playwright install --with-deps chromium
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Start Environment
-        # Spin up compose pointing to the images just pushed
+      - name: Push Docker images
+        if: github.event_name == 'push' && github.repository == 'RealOrangeKun/linuxdle'
         run: |
-          docker compose -f docker-compose.prod.yml pull
-          docker compose -f docker-compose.prod.yml up -d
-      - name: Wait for Environment
-        run: sleep 15 # Allow services to start up completely 
-      - name: Run System Tests
-        run: cd e2e && npm run test
-        env:
-          BASE_URL: http://localhost:8081
+          docker push ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-backend:latest
+          docker push ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-frontend:latest
+          docker push ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-gateway:latest
 
   deploy:
     if: github.repository == 'RealOrangeKun/linuxdle'
-    needs: test-e2e
+    needs: build-test-push
     runs-on: self-hosted
     steps:
       - name: Deploy Local
