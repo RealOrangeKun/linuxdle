@@ -111,6 +111,26 @@ const Home: React.FC = () => {
           );
         })}
       </Grid>
+
+      <Box mt={6} pt={4} borderTop={1} borderColor="divider">
+        <Typography variant="h5" component="h2" fontWeight="bold" sx={{ color: 'secondary.main', mb: 2 }}>
+          {`[?] WHAT_IS_LINUXDLE`}
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Linuxdle is a suite of daily puzzle games designed specifically for Linux users and open-source enthusiasts. 
+          It tests your knowledge of the essential building blocks of the Linux ecosystem: command line utilities, 
+          distributions, and desktop environments.
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Every day at midnight, a new set of puzzles is generated. Whether you are a seasoned system administrator 
+          or a beginner exploring the terminal for the first time, Linuxdle offers a fun and educational way to 
+          discover new tools and test your existing knowledge. You can track your daily streaks and challenge your 
+          friends to see who truly knows their Linux trivia.
+        </Typography>
+        <Typography variant="body1">
+          Explore the modules above to start guessing. Good luck!
+        </Typography>
+      </Box>
     </Container>
     </>
   );

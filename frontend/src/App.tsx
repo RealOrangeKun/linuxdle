@@ -6,6 +6,9 @@ import Home from './pages/Home';
 import DailyDistros from './pages/DailyDistros';
 import DailyCommands from './pages/DailyCommands';
 import DailyDesktopEnvironments from './pages/DailyDesktopEnvironments';
+import About from './pages/About';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import { useAuth } from './hooks/useAuth';
 
 
@@ -127,6 +130,9 @@ function App() {
               <Route path="distros" element={<DailyDistros />} />
               <Route path="commands" element={<DailyCommands />} />
               <Route path="des" element={<DailyDesktopEnvironments />} />
+              <Route path="about" element={<About />} />
+              <Route path="privacy" element={<PrivacyPolicy />} />
+              <Route path="terms" element={<TermsOfService />} />
             </Route>
           </Routes>
         </Router>

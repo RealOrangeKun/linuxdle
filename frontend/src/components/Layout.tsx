@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Container, Button, Box, IconButton, useTheme } from '@mui/material';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Brightness4, Brightness7, Terminal, GitHub } from '@mui/icons-material';
 import { ColorModeContext } from '../App';
 
@@ -75,9 +75,22 @@ const Layout: React.FC = () => {
 
       <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
-          <Typography variant="body2" align="center" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>
-            $ user@linuxdle: ~ {new Date().getFullYear()}
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', gap: 3, mb: { xs: 2, md: 0 } }}>
+              <Typography component={RouterLink} to="/about" variant="body2" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
+                About
+              </Typography>
+              <Typography component={RouterLink} to="/privacy" variant="body2" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
+                Privacy Policy
+              </Typography>
+              <Typography component={RouterLink} to="/terms" variant="body2" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
+                Terms of Service
+              </Typography>
+            </Box>
+            <Typography variant="body2" align="center" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>
+              $ user@linuxdle: ~ {new Date().getFullYear()}
+            </Typography>
+          </Box>
         </Container>
       </Box>
     </Box>
