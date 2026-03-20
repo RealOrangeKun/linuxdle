@@ -39,7 +39,7 @@ jobs:
         run: cd frontend && npm run test
 
   build-and-push:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.repository == 'RealOrangeKun/linuxdle'
     needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
     permissions:
@@ -111,6 +111,7 @@ jobs:
           BASE_URL: http://localhost:8081
 
   deploy:
+    if: github.repository == 'RealOrangeKun/linuxdle'
     needs: test-e2e
     runs-on: self-hosted
     steps:
