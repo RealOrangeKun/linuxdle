@@ -10,7 +10,7 @@ const TermsOfService: React.FC = () => {
         description="Terms of Service and legal agreements for using Linuxdle." 
       />
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-        <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
+        <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.paper', border: 1, borderColor: 'divider', wordBreak: 'break-word' }}>
           <Box mb={4}>
             <Typography variant="h4" component="h1" fontWeight="bold" sx={{ color: 'primary.main', mb: 2 }}>
               {`_ > TERMS_OF_SERVICE`}
