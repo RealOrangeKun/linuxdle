@@ -1,3 +1,4 @@
+using Linuxdle.Domain.Exceptions;
 using Linuxdle.Domain.Games;
 using Linuxdle.Domain.UserGiveUps;
 using Linuxdle.Domain.UserGuesses;
@@ -46,12 +47,14 @@ internal sealed class DailyDesktopEnvironmentService(
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var (puzzleId, target) = await GetDailyTargetAsync(today, cancellationToken);
-        
+
         bool hasGivenUp = await dbContext.UserGiveUps
             .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId && ug.Date == today, cancellationToken);
-            
+
         if (hasGivenUp)
-            throw new Domain.Exceptions.BadRequestException("You have already given up today.");
+        {
+            throw new BadRequestException("You have already given up today.");
+        }
 
         var guess = await hybridCache.GetOrCreateAsync(
             CacheKeys.DesktopEnvironmentBySlug(userGuess),
@@ -156,7 +159,7 @@ internal sealed class DailyDesktopEnvironmentService(
             options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DailyContent },
             cancellationToken: cancellationToken);
     }
-    
+
     public async Task<DailyDesktopEnvironmentDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -166,18 +169,27 @@ internal sealed class DailyDesktopEnvironmentService(
             .CountAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId && ug.Date == today, cancellationToken);
 
         if (guessesCount < gameSettings.Value.MinGuessesToGiveUp)
-            throw new Domain.Exceptions.BadRequestException($"You must make at least {gameSettings.Value.MinGuessesToGiveUp} guesses before you can give up.");
+        {
+            throw new BadRequestException($"You must make at least {gameSettings.Value.MinGuessesToGiveUp} guesses before you can give up.");
+        }
 
         var hasGivenUp = await dbContext.UserGiveUps
             .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId && ug.Date == today, cancellationToken);
 
         if (hasGivenUp)
-            throw new Domain.Exceptions.BadRequestException("You have already given up today.");
+        {
+            throw new BadRequestException("You have already given up today.");
+        }
 
         dbContext.UserGiveUps.Add(UserGiveUp.Create(userId, puzzleId, GameIds.DailyDesktopEnvironments, today));
-        await dbContext.SaveChangesAsync(cancellationToken);
 
-        var dde = await dbContext.DailyDesktopEnvironments.Where(d => d.Id == target.Id).FirstOrDefaultAsync(cancellationToken);
-        return new DailyDesktopEnvironmentDto(dde!.Name, dde.Slug);
+        var dde = await dbContext.DailyDesktopEnvironments
+            .Where(d => d.Id == target.Id)
+            .Select(dde => new DailyDesktopEnvironmentDto(dde.Name, dde.Slug))
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("Daily desktop environment target not found");
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return dde;
     }
 }
