@@ -8,5 +8,6 @@ public interface IDailyDesktopEnvironmentService
     Task<byte[]> GetDailyDesktopEnvironmentScreenshot(CancellationToken cancellationToken = default);
     Task<IEnumerable<DailyDesktopEnvironmentDto>> GetDailyDesktopEnvironmentsAsync(CancellationToken cancellationToken = default);
     Task<DailyDesktopEnvironmentDto?> GetYesterdaysTargetAsync(CancellationToken cancellationToken = default);
+    Task<DailyDesktopEnvironmentDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
-  CircularProgress, Divider, FormControlLabel, Switch
+  CircularProgress, Divider, FormControlLabel, Switch,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Snackbar, Alert
 } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +11,7 @@ import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '..
 import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
+import { useGameSettings } from '../hooks/useGameSettings';
 
 interface Distro {
   name: string;
@@ -36,8 +38,14 @@ const DailyDistros: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [hasGivenUp, setHasGivenUp] = useState(false);
   const [hardMode, setHardMode] = useState(true);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<Distro | null>(null);
+
+  const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
+  const [giveUpDialogOpen, setGiveUpDialogOpen] = useState(false);
+  const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -75,16 +83,26 @@ const DailyDistros: React.FC = () => {
       await fetchDistros();
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const state = JSON.parse(saved);
-        if (state.date === today) {
-          const loadedHardMode = state.hardMode ?? true;
-          setGuesses(state.guesses);
-          setIsGameOver(state.isGameOver);
-          setShowSuccess(state.showSuccess);
-          setHardMode(loadedHardMode);
-          updateLogoUrl(state.isGameOver ? 12 : state.guesses.length + 1, state.isGameOver ? false : loadedHardMode);
-          setLoading(false);
-          return;
+        try {
+          const state = JSON.parse(saved);
+          if (state.date === today) {
+            const parsedGuesses = Array.isArray(state.guesses) ? state.guesses : [];
+            const parsedIsGameOver = typeof state.isGameOver === 'boolean' ? state.isGameOver : false;
+            const parsedShowSuccess = typeof state.showSuccess === 'boolean' ? state.showSuccess : false;
+            const parsedHasGivenUp = typeof state.hasGivenUp === 'boolean' ? state.hasGivenUp : false;
+            const loadedHardMode = typeof state.hardMode === 'boolean' ? state.hardMode : true;
+
+            setGuesses(parsedGuesses);
+            setIsGameOver(parsedIsGameOver);
+            setShowSuccess(parsedShowSuccess);
+            setHasGivenUp(parsedHasGivenUp);
+            setHardMode(loadedHardMode);
+            updateLogoUrl(parsedIsGameOver ? 12 : parsedGuesses.length + 1, parsedIsGameOver ? false : loadedHardMode);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
         }
       }
       updateLogoUrl(1, true);
@@ -100,10 +118,11 @@ const DailyDistros: React.FC = () => {
         guesses,
         isGameOver,
         showSuccess,
+        hasGivenUp,
         hardMode
       }));
     }
-  }, [guesses, isGameOver, showSuccess, today, loading, hardMode]);
+  }, [guesses, isGameOver, showSuccess, hasGivenUp, today, loading, hardMode]);
 
   useEffect(() => {
     if (isGameOver && !loading) {
@@ -124,6 +143,7 @@ const DailyDistros: React.FC = () => {
 
   const handleSubmitGuess = async () => {
     if (!selectedGuess || isGameOver) return;
+
     try {
       const response = await apiClient.post<GuessResult>('/daily-distros/guesses', {
         userGuess: selectedGuess.slug
@@ -139,12 +159,57 @@ const DailyDistros: React.FC = () => {
         updateLogoUrl(Math.min(newGuesses.length + 1, 12), hardMode);
       }
       setSelectedGuess(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      if (error.response?.data?.message) {
+        const msg = error.response.data.message;
+        if (msg.includes('given up')) {
+          setIsGameOver(true);
+          setHasGivenUp(true);
+          setShowSuccess(false);
+          updateLogoUrl(12, false);
+        } else if (msg.includes('won')) {
+          setIsGameOver(true);
+          setShowSuccess(true);
+          updateLogoUrl(12, false);
+        }
+        setErrorMessage(msg);
+        setErrorSnackbarOpen(true);
+      }
     }
   };
 
-  if (loading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
+  const handleGiveUpConfirm = async () => {
+    setGiveUpDialogOpen(false);
+    try {
+      const response = await apiClient.post<Distro>('/daily-distros/give-up');
+      setIsGameOver(true);
+      setShowSuccess(false);
+      setHasGivenUp(true);
+      setGuesses([{ name: `Gave up -> Answer: ${response.data.name}`, isCorrect: false }, ...guesses]);
+      updateLogoUrl(12, false);
+      setSelectedGuess(null);
+    } catch (error: any) {
+      console.error('Error giving up:', error);
+      if (error.response?.data?.message) {
+        const msg = error.response.data.message;
+        if (msg.includes('given up')) {
+          setIsGameOver(true);
+          setHasGivenUp(true);
+          setShowSuccess(false);
+          updateLogoUrl(12, false);
+        } else if (msg.includes('won')) {
+          setIsGameOver(true);
+          setShowSuccess(true);
+          updateLogoUrl(12, false);
+        }
+        setErrorMessage(msg);
+        setErrorSnackbarOpen(true);
+      }
+    }
+  };
+
+  if (loading || settingsLoading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
     <>
@@ -223,14 +288,25 @@ const DailyDistros: React.FC = () => {
               onKeyDown={(e) => { if (e.key === 'Enter' && selectedGuess) handleSubmitGuess(); }}
               renderInput={(params) => <TextField {...params} label="select_distro" variant="outlined" />}
             />
+            {guesses.length >= minGuessesToGiveUp && (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => setGiveUpDialogOpen(true)}
+                sx={{ px: 2 }}
+                title="Give Up"
+              >
+                SIGKILL
+              </Button>
+            )}
             <Button variant="contained" color="primary" onClick={handleSubmitGuess} disabled={!selectedGuess}>
               EXEC
             </Button>
           </Box>
         ) : (
           <Box textAlign="center" mb={4}>
-            <Typography variant="h6" color="success.main" fontWeight="bold">
-              {`[OK] DISTRO_MATCHED`}
+            <Typography variant="h6" color={hasGivenUp ? "error.main" : "success.main"} fontWeight="bold">
+              {hasGivenUp ? `[SIGKILL] DISTRO_MISMATCH` : `[OK] DISTRO_MATCHED`}
             </Typography>
             <Button 
               variant="outlined" 
@@ -276,6 +352,30 @@ const DailyDistros: React.FC = () => {
           </Typography>
         </Paper>
       )}
+      
+      <Dialog open={giveUpDialogOpen} onClose={() => setGiveUpDialogOpen(false)}>
+        <DialogTitle>Confirm Give Up</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to give up? The answer will be revealed and you will not be able to guess again today.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGiveUpDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleGiveUpConfirm} color="error" variant="contained">Give Up</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={errorSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setErrorSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setErrorSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </Container>
     </>
   );

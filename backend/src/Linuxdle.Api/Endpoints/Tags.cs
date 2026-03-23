@@ -7,4 +7,5 @@ internal static class Tags
     public static string DailyPuzzles => nameof(DailyPuzzles);
     public static string Users => nameof(Users);
     public static string DailyDesktopEnvironments => nameof(DailyDesktopEnvironments);
+    public static string Settings => nameof(Settings);
 }
