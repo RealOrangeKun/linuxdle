@@ -7,13 +7,14 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:5173',
+    baseURL: process.env.BASE_URL || 'http://127.0.0.1:5173',
     trace: 'on-first-retry',
   },
   webServer: process.env.CI ? undefined : {
-    command: 'npm run dev',
+    command: 'npm run dev -- --host 127.0.0.1 --port 5173',
     cwd: '../frontend',
-    port: 5173,
+    url: 'http://127.0.0.1:5173',
+    timeout: 120 * 1000,
     reuseExistingServer: true,
   },
   projects: [
