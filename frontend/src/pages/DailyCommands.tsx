@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
   CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Alert, Snackbar, Divider
+  Alert, Snackbar, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
 } from '@mui/material';
 import { ArrowUpward, ArrowDownward, ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '..
 import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
+import { useGameSettings } from '../hooks/useGameSettings';
 
 interface CommandResult {
   matchResults: {
@@ -60,7 +61,13 @@ const DailyCommands: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [hasGivenUp, setHasGivenUp] = useState(false);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<YesterdaysCommand | null>(null);
+
+  const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
+  const [giveUpDialogOpen, setGiveUpDialogOpen] = useState(false);
+  const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -79,6 +86,7 @@ const DailyCommands: React.FC = () => {
               setResults(parsedResults);
               setIsGameOver(typeof state.isGameOver === 'boolean' ? state.isGameOver : false);
               setShowSuccess(typeof state.showSuccess === 'boolean' ? state.showSuccess : false);
+              setHasGivenUp(typeof state.hasGivenUp === 'boolean' ? state.hasGivenUp : false);
             }
           } catch {
             localStorage.removeItem(STORAGE_KEY);
@@ -115,10 +123,11 @@ const DailyCommands: React.FC = () => {
         date: today,
         results,
         isGameOver,
-        showSuccess
+        showSuccess,
+        hasGivenUp
       }));
     }
-  }, [results, isGameOver, showSuccess, today, loading]);
+  }, [results, isGameOver, showSuccess, hasGivenUp, today, loading]);
 
   useEffect(() => {
     if (isGameOver && !loading) {
@@ -146,8 +155,73 @@ const DailyCommands: React.FC = () => {
         setShowSuccess(true);
       }
       setSelectedGuess(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      if (error.response?.data?.message) {
+        const msg = error.response.data.message;
+        if (msg.includes('given up')) {
+          setIsGameOver(true);
+          setHasGivenUp(true);
+          setShowSuccess(false);
+        } else if (msg.includes('won')) {
+          setIsGameOver(true);
+          setShowSuccess(true);
+        }
+        setErrorMessage(msg);
+        setErrorSnackbarOpen(true);
+      }
+    }
+  };
+
+  const handleGiveUpConfirm = async () => {
+    setGiveUpDialogOpen(false);
+    try {
+      const response = await apiClient.post<{name: string}>('/daily-commands/give-up');
+      setIsGameOver(true);
+      setShowSuccess(false);
+      setHasGivenUp(true);
+
+      const fakeResult: CommandResult = {
+        matchResults: {
+          isCorrect: false,
+          name: MatchResult.Red,
+          package: MatchResult.Red,
+          year: MatchResult.Red,
+          yearHint: YearDirection.Higher, // Using Higher just as fallback since None might not exist
+          section: MatchResult.Red,
+          builtIn: MatchResult.Red,
+          posix: MatchResult.Red,
+          categories: MatchResult.Red
+        },
+        guessCommandDetails: {
+          name: `Gave up -> Answer: ${response.data.name}`,
+          package: '-',
+          originYear: 0,
+          manSection: 0,
+          isBuiltIn: false,
+          requiresArgs: false,
+          isPosix: false,
+          categories: []
+        }
+      };
+
+      setResults([fakeResult, ...results]);
+      setSelectedGuess(null);
+    } catch (error: any) {
+      console.error('Error giving up:', error);
+      if (error.response?.data?.message) {
+        const msg = error.response.data.message;
+        if (msg.includes('given up')) {
+          setIsGameOver(true);
+          setHasGivenUp(true);
+          setShowSuccess(false);
+        } else if (msg.includes('won')) {
+          setIsGameOver(true);
+          setShowSuccess(true);
+        }
+        setErrorMessage(msg);
+        setErrorSnackbarOpen(true);
+      }
     }
   };
 
@@ -160,7 +234,7 @@ const DailyCommands: React.FC = () => {
     }
   };
 
-  if (loading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
+  if (loading || settingsLoading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
     <>
@@ -197,6 +271,17 @@ const DailyCommands: React.FC = () => {
               onKeyDown={(e) => { if (e.key === 'Enter' && selectedGuess) handleSubmitGuess(); }}
               renderInput={(params) => <TextField {...params} label="input_command" variant="outlined" />}
             />
+            {results.length >= minGuessesToGiveUp && (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => setGiveUpDialogOpen(true)}
+                sx={{ px: 2 }}
+                title="Give Up"
+              >
+                SIGKILL
+              </Button>
+            )}
             <Button
               variant="contained"
               color="primary"
@@ -209,8 +294,8 @@ const DailyCommands: React.FC = () => {
           </Box>
         ) : (
           <Box mb={4}>
-            <Typography variant="h6" color="success.main" fontWeight="bold">
-              {`[OK] COMMAND_IDENTIFIED`}
+            <Typography variant="h6" color={hasGivenUp ? "error.main" : "success.main"} fontWeight="bold">
+              {hasGivenUp ? `[SIGKILL] PROCESS_TERMINATED` : `[OK] COMMAND_IDENTIFIED`}
             </Typography>
             <Button 
               variant="outlined" 
@@ -300,6 +385,30 @@ const DailyCommands: React.FC = () => {
 
       <Snackbar open={showSuccess} autoHideDuration={3000} onClose={() => setShowSuccess(false)}>
         <Alert severity="success" variant="filled">STATUS_OK: Command recognized.</Alert>
+      </Snackbar>
+
+      <Dialog open={giveUpDialogOpen} onClose={() => setGiveUpDialogOpen(false)}>
+        <DialogTitle>Confirm Give Up</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to give up? The answer will be revealed and you will not be able to guess again today.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGiveUpDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleGiveUpConfirm} color="error" variant="contained">Give Up</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={errorSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setErrorSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setErrorSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
       </Snackbar>
     </Container>
     </>

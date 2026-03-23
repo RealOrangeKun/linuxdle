@@ -75,9 +75,12 @@ const Home: React.FC = () => {
           // Check if individual game is played to show status
           const saved = localStorage.getItem(game.storageKey);
           let isPlayed = false;
+          let hasGivenUp = false;
           if (saved) {
             const state = JSON.parse(saved);
-            isPlayed = state.date === new Date().toISOString().split('T')[0] && state.isGameOver;
+            const isToday = state.date === new Date().toISOString().split('T')[0];
+            isPlayed = isToday && state.isGameOver;
+            hasGivenUp = isToday && state.hasGivenUp;
           }
 
           return (
@@ -86,20 +89,24 @@ const Home: React.FC = () => {
                 variant="outlined" 
                 sx={{ 
                   bgcolor: 'background.paper',
-                  borderColor: isPlayed ? 'success.main' : 'divider',
+                  borderColor: isPlayed ? (hasGivenUp ? 'error.main' : 'success.main') : 'divider',
                   opacity: isPlayed ? 0.7 : 1
                 }}
               >
                 <CardActionArea onClick={() => navigate(game.path)} sx={{ p: 1 }}>
                   <CardContent>
                     <Typography gutterBottom variant="h6" component="h2" sx={{ 
-                      color: isPlayed ? 'success.main' : 'primary.main', 
+                      color: isPlayed ? (hasGivenUp ? 'error.main' : 'success.main') : 'primary.main', 
                       display: 'flex', 
                       alignItems: 'center',
                       justifyContent: 'space-between'
                     }}>
                       <span>{`[+] ./${game.title}`}</span>
-                      {isPlayed && <Typography variant="caption" sx={{ fontWeight: 'bold' }}>[STATUS_OK]</Typography>}
+                      {isPlayed && (
+                        <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                          {hasGivenUp ? '[TERMINATED]' : '[STATUS_OK]'}
+                        </Typography>
+                      )}
                     </Typography>
                     <Typography variant="body2" sx={{ ml: 4 }}>
                       {game.description}

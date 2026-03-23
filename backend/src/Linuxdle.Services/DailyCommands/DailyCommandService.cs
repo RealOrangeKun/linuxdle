@@ -1,17 +1,21 @@
 using Linuxdle.Domain.Exceptions;
 using Linuxdle.Domain.Games;
 using Linuxdle.Domain.UserGuesses;
+using Linuxdle.Domain.UserGiveUps;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Common.Constants;
+using Linuxdle.Services.Configurations;
 using Linuxdle.Services.Dtos.Records;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Options;
 
 namespace Linuxdle.Services.DailyCommands;
 
 internal sealed class DailyCommandService(
     LinuxdleDbContext dbContext,
-    HybridCache hybridCache)
+    HybridCache hybridCache,
+    IOptions<GameSettings> gameSettings)
     : IDailyCommandService
 {
     public async Task<DailyCommandGuessResultDto> HandleUserGuessAsync(Guid userId, string userGuess, CancellationToken cancellationToken = default)
@@ -19,6 +23,12 @@ internal sealed class DailyCommandService(
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var (puzzleId, target) = await GetDailyTargetAsync(today, cancellationToken);
+        
+        bool hasGivenUp = await dbContext.UserGiveUps
+            .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId && ug.Date == today, cancellationToken);
+            
+        if (hasGivenUp)
+            throw new BadRequestException("You have already given up today.");
 
         var guess = await hybridCache.GetOrCreateAsync(
             CacheKeys.CommandByName(userGuess),
@@ -141,5 +151,28 @@ internal sealed class DailyCommandService(
             },
             options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DailyContent },
             cancellationToken: cancellationToken);
+    }
+    
+    public async Task<DailyCommandDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var (puzzleId, target) = await GetDailyTargetAsync(today, cancellationToken);
+
+        var guessesCount = await dbContext.UserGuesses
+            .CountAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId && ug.Date == today, cancellationToken);
+
+        if (guessesCount < gameSettings.Value.MinGuessesToGiveUp)
+            throw new BadRequestException($"You must make at least {gameSettings.Value.MinGuessesToGiveUp} guesses before you can give up.");
+
+        var hasGivenUp = await dbContext.UserGiveUps
+            .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId && ug.Date == today, cancellationToken);
+
+        if (hasGivenUp)
+            throw new BadRequestException("You have already given up today.");
+
+        dbContext.UserGiveUps.Add(UserGiveUp.Create(userId, puzzleId, GameIds.DailyCommands, today));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return target;
     }
 }

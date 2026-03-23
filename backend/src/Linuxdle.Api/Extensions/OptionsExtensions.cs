@@ -1,5 +1,6 @@
 using Linuxdle.Api.BackgroundJobs;
 using Linuxdle.Api.Configurations;
+using Linuxdle.Services.Configurations;
 using Linuxdle.Services.DailyDistros;
 using Linuxdle.Services.DailyPuzzles;
 using Linuxdle.Services.Users;
@@ -38,6 +39,9 @@ internal static class OptionsExtensions
 
             services.Configure<CleanUsersJobOptions>(
                 configuration.GetSection(nameof(CleanUsersJobOptions)));
+
+            services.Configure<GameSettings>(
+                configuration.GetSection(nameof(GameSettings)));
 
             services.ConfigureOptions<ConfigureDailyPuzzleJob>();
 

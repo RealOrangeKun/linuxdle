@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
-  CircularProgress, Divider, Backdrop, IconButton, Tooltip
+  CircularProgress, Divider, Backdrop, IconButton, Tooltip,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Snackbar, Alert
 } from '@mui/material';
 import { Home, Close, ZoomIn, ZoomOut, RestartAlt } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +11,7 @@ import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '..
 import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
+import { useGameSettings } from '../hooks/useGameSettings';
 
 interface DesktopEnvironment {
   name: string;
@@ -44,7 +46,13 @@ const DailyDesktopEnvironments: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [hasGivenUp, setHasGivenUp] = useState(false);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<DesktopEnvironment | null>(null);
+
+  const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
+  const [giveUpDialogOpen, setGiveUpDialogOpen] = useState(false);
+  const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Zoom state
   const [isZoomed, setIsZoomed] = useState(false);
@@ -94,6 +102,7 @@ const DailyDesktopEnvironments: React.FC = () => {
             setGuesses(Array.isArray(state.guesses) ? state.guesses : []);
             setIsGameOver(typeof state.isGameOver === 'boolean' ? state.isGameOver : false);
             setShowSuccess(typeof state.showSuccess === 'boolean' ? state.showSuccess : false);
+            setHasGivenUp(typeof state.hasGivenUp === 'boolean' ? state.hasGivenUp : false);
           }
         } catch {
           localStorage.removeItem(STORAGE_KEY);
@@ -110,10 +119,11 @@ const DailyDesktopEnvironments: React.FC = () => {
         date: today,
         guesses,
         isGameOver,
-        showSuccess
+        showSuccess,
+        hasGivenUp
       }));
     }
-  }, [guesses, isGameOver, showSuccess, today, loading]);
+  }, [guesses, isGameOver, showSuccess, hasGivenUp, today, loading]);
 
   useEffect(() => {
     if (isGameOver && !loading) {
@@ -127,6 +137,7 @@ const DailyDesktopEnvironments: React.FC = () => {
 
   const handleSubmitGuess = async () => {
     if (!selectedGuess || isGameOver) return;
+
     try {
       const response = await apiClient.post<GuessResult>('/daily-desktop-environments/guesses', {
         userGuess: selectedGuess.slug,
@@ -149,8 +160,49 @@ const DailyDesktopEnvironments: React.FC = () => {
         setShowSuccess(true);
       }
       setSelectedGuess(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      if (error.response?.data?.message) {
+        const msg = error.response.data.message;
+        if (msg.includes('given up')) {
+          setIsGameOver(true);
+          setHasGivenUp(true);
+          setShowSuccess(false);
+        } else if (msg.includes('won')) {
+          setIsGameOver(true);
+          setShowSuccess(true);
+        }
+        setErrorMessage(msg);
+        setErrorSnackbarOpen(true);
+      }
+    }
+  };
+
+  const handleGiveUpConfirm = async () => {
+    setGiveUpDialogOpen(false);
+    try {
+      const response = await apiClient.post<DesktopEnvironment>('/daily-desktop-environments/give-up');
+      setIsGameOver(true);
+      setShowSuccess(false);
+      setHasGivenUp(true);
+      const newGuess: Guess = { name: `Gave up -> Answer: ${response.data.name}`, isCorrect: false };
+      setGuesses([newGuess, ...guesses]);
+      setSelectedGuess(null);
+    } catch (error: any) {
+      console.error('Error giving up:', error);
+      if (error.response?.data?.message) {
+        const msg = error.response.data.message;
+        if (msg.includes('given up')) {
+          setIsGameOver(true);
+          setHasGivenUp(true);
+          setShowSuccess(false);
+        } else if (msg.includes('won')) {
+          setIsGameOver(true);
+          setShowSuccess(true);
+        }
+        setErrorMessage(msg);
+        setErrorSnackbarOpen(true);
+      }
     }
   };
 
@@ -242,7 +294,7 @@ const DailyDesktopEnvironments: React.FC = () => {
   const nextThreshold = nextHintThresholds.find(t => t > guesses.length);
   const guessesUntilNextHint = nextThreshold ? nextThreshold - guesses.length : 0;
 
-  if (loading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
+  if (loading || settingsLoading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
     <>
@@ -379,14 +431,25 @@ const DailyDesktopEnvironments: React.FC = () => {
               onKeyDown={(e) => { if (e.key === 'Enter' && selectedGuess) handleSubmitGuess(); }}
               renderInput={(params) => <TextField {...params} label="select_env" variant="outlined" />}
             />
+            {guesses.length >= minGuessesToGiveUp && (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => setGiveUpDialogOpen(true)}
+                sx={{ px: 2 }}
+                title="Give Up"
+              >
+                SIGKILL
+              </Button>
+            )}
             <Button variant="contained" color="primary" onClick={handleSubmitGuess} disabled={!selectedGuess}>
               EXEC
             </Button>
           </Box>
         ) : (
           <Box textAlign="center" mb={4}>
-            <Typography variant="h6" color="success.main" fontWeight="bold">
-              {`[OK] SYSTEM_IDENTIFIED`}
+            <Typography variant="h6" color={hasGivenUp ? "error.main" : "success.main"} fontWeight="bold">
+              {hasGivenUp ? `[SIGKILL] SYSTEM_ABORTED` : `[OK] SYSTEM_IDENTIFIED`}
             </Typography>
             <Button 
               variant="outlined" 
@@ -502,6 +565,30 @@ const DailyDesktopEnvironments: React.FC = () => {
           />
         </Box>
       </Backdrop>
+      
+      <Dialog open={giveUpDialogOpen} onClose={() => setGiveUpDialogOpen(false)}>
+        <DialogTitle>Confirm Give Up</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to give up? The answer will be revealed and you will not be able to guess again today.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGiveUpDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleGiveUpConfirm} color="error" variant="contained">Give Up</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={errorSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setErrorSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setErrorSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </Container>
     </>
   );

@@ -20,6 +20,8 @@ public sealed class LinuxdleDbContext(DbContextOptions<LinuxdleDbContext> option
     public DbSet<DailyDesktopEnvironment> DailyDesktopEnvironments { get; set; }
     public DbSet<DesktopEnvironmentScreenshot> DesktopEnvironmentScreenshots { get; set; }
     public DbSet<UserGuess> UserGuesses { get; set; }
+    public DbSet<Linuxdle.Domain.UserGiveUps.UserGiveUp> UserGiveUps { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

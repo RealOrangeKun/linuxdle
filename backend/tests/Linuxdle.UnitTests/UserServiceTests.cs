@@ -1,10 +1,8 @@
-using Linuxdle.Domain.Users;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace Linuxdle.UnitTests;
 
@@ -23,16 +21,16 @@ public class UserServiceTests
     {
         // Arrange
         var dbContext = GetInMemoryDbContext();
-        
+
         var accessTokenOptions = new Mock<IOptions<AccessTokenOptions>>();
-        accessTokenOptions.Setup(o => o.Value).Returns(new AccessTokenOptions 
-        { 
-            SecretKey = "a_very_long_super_secret_key_for_testing_purposes_1234567890", 
-            ExpirationMinutes = 15, 
-            Issuer = "test", 
-            Audience = "test" 
+        accessTokenOptions.Setup(o => o.Value).Returns(new AccessTokenOptions
+        {
+            SecretKey = "a_very_long_super_secret_key_for_testing_purposes_1234567890",
+            ExpirationMinutes = 15,
+            Issuer = "test",
+            Audience = "test"
         });
-        
+
         var refreshTokenOptions = new Mock<IOptions<RefreshTokenOptions>>();
         refreshTokenOptions.Setup(o => o.Value).Returns(new RefreshTokenOptions { MaxAgeDays = 30 });
 

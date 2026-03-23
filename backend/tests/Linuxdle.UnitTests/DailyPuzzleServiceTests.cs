@@ -2,10 +2,8 @@ using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.DailyPuzzles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace Linuxdle.UnitTests;
 

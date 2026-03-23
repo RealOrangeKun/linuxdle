@@ -8,4 +8,5 @@ public interface IDailyDistroService
     Task<byte[]> GenerateDailyDistroLogoAsync(int numberOfTries, bool hardMode, CancellationToken cancellationToken = default);
     Task<IEnumerable<DailyDistroDto>> GetDailyDistrosAsync(CancellationToken cancellationToken = default);
     Task<DailyDistroDto?> GetYesterdaysTargetAsync(CancellationToken cancellationToken = default);
+    Task<DailyDistroDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default);
 }

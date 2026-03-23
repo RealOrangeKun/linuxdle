@@ -319,6 +319,46 @@ namespace Linuxdle.Infrastructure.Data.Migrations
                     b.ToTable("games", (string)null);
                 });
 
+            modelBuilder.Entity("Linuxdle.Domain.UserGiveUps.UserGiveUp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer")
+                        .HasColumnName("game_id");
+
+                    b.Property<int>("PuzzleId")
+                        .HasColumnType("integer")
+                        .HasColumnName("puzzle_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_give_ups");
+
+                    b.HasIndex("GameId", "Date")
+                        .HasDatabaseName("ix_user_give_ups_game_id_date");
+
+                    b.HasIndex("PuzzleId", "Date")
+                        .HasDatabaseName("ix_user_give_ups_puzzle_id_date");
+
+                    b.HasIndex("UserId", "Date")
+                        .HasDatabaseName("ix_user_give_ups_user_id_date");
+
+                    b.ToTable("user_give_ups", (string)null);
+                });
+
             modelBuilder.Entity("Linuxdle.Domain.UserGuesses.UserGuess", b =>
                 {
                     b.Property<int>("Id")
@@ -438,6 +478,36 @@ namespace Linuxdle.Infrastructure.Data.Migrations
                         .HasConstraintName("fk_daily_puzzles_games_game_id");
 
                     b.Navigation("Game");
+                });
+
+            modelBuilder.Entity("Linuxdle.Domain.UserGiveUps.UserGiveUp", b =>
+                {
+                    b.HasOne("Linuxdle.Domain.Games.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_give_ups_games_game_id");
+
+                    b.HasOne("Linuxdle.Domain.DailyPuzzles.DailyPuzzle", "Puzzle")
+                        .WithMany()
+                        .HasForeignKey("PuzzleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_give_ups_daily_puzzles_puzzle_id");
+
+                    b.HasOne("Linuxdle.Domain.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_give_ups_users_user_id");
+
+                    b.Navigation("Game");
+
+                    b.Navigation("Puzzle");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Linuxdle.Domain.UserGuesses.UserGuess", b =>
