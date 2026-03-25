@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
-import TermsOfService from './TermsOfService';
+import TermsOfService from '../pages/TermsOfService';
 
 describe('Terms of Service Page', () => {
     it('renders the main terms of service title', () => {

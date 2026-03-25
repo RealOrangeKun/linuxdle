@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
-import DailyDistros from './DailyDistros';
+import DailyDistros from '../pages/DailyDistros';
 
 describe('Daily Distros Page', () => {
     it('renders loading state initially', () => {

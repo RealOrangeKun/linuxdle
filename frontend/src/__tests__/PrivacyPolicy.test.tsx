@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
-import PrivacyPolicy from './PrivacyPolicy';
+import PrivacyPolicy from '../pages/PrivacyPolicy';
 
 describe('Privacy Policy Page', () => {
     it('renders the main privacy policy title', () => {

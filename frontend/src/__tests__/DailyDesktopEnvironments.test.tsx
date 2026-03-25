@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
-import DailyDesktopEnvironments from './DailyDesktopEnvironments';
+import DailyDesktopEnvironments from '../pages/DailyDesktopEnvironments';
 
 describe('Daily Desktop Environments Page', () => {
     it('renders loading state initially', () => {

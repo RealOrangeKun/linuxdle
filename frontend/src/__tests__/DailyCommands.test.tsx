@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
-import DailyCommands from './DailyCommands';
+import DailyCommands from '../pages/DailyCommands';
 
 describe('Daily Commands Page', () => {
     it('renders the main title', () => {
