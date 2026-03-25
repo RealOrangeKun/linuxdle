@@ -241,5 +241,140 @@
     "base_distro": "Independent",
     "default_de": "None",
     "release_year": 2003
+  },
+  {
+    "id": 28,
+    "name": "Rocky Linux",
+    "slug": "rocky",
+    "logo_path": "assets/distros/rocky.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 2021
+  },
+  {
+    "id": 29,
+    "name": "AlmaLinux",
+    "slug": "almalinux",
+    "logo_path": "assets/distros/almalinux.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 2021
+  },
+  {
+    "id": 30,
+    "name": "Parrot OS",
+    "slug": "parrot",
+    "logo_path": "assets/distros/parrot.png",
+    "base_distro": "Debian",
+    "default_de": "MATE",
+    "release_year": 2013
+  },
+  {
+    "id": 31,
+    "name": "Tails",
+    "slug": "tails",
+    "logo_path": "assets/distros/tails.png",
+    "base_distro": "Debian",
+    "default_de": "GNOME",
+    "release_year": 2009
+  },
+  {
+    "id": 32,
+    "name": "Solus",
+    "slug": "solus",
+    "logo_path": "assets/distros/solus.png",
+    "base_distro": "Independent",
+    "default_de": "Budgie",
+    "release_year": 2015
+  },
+  {
+    "id": 33,
+    "name": "Deepin",
+    "slug": "deepin",
+    "logo_path": "assets/distros/deepin.png",
+    "base_distro": "Debian",
+    "default_de": "DDE",
+    "release_year": 2004
+  },
+  {
+    "id": 34,
+    "name": "Linux Lite",
+    "slug": "linux-lite",
+    "logo_path": "assets/distros/linux-lite.png",
+    "base_distro": "Ubuntu",
+    "default_de": "Xfce",
+    "release_year": 2012
+  },
+  {
+    "id": 35,
+    "name": "Raspberry Pi OS",
+    "slug": "raspios",
+    "logo_path": "assets/distros/raspios.png",
+    "base_distro": "Debian",
+    "default_de": "LXDE",
+    "release_year": 2012
+  },
+  {
+    "id": 36,
+    "name": "Qubes OS",
+    "slug": "qubes",
+    "logo_path": "assets/distros/qubes.png",
+    "base_distro": "Independent",
+    "default_de": "Xfce",
+    "release_year": 2012
+  },
+  {
+    "id": 37,
+    "name": "Artix Linux",
+    "slug": "artix",
+    "logo_path": "assets/distros/artix.png",
+    "base_distro": "Arch Linux",
+    "default_de": "None",
+    "release_year": 2017
+  },
+  {
+    "id": 38,
+    "name": "BlackArch Linux",
+    "slug": "blackarch",
+    "logo_path": "assets/distros/blackarch.png",
+    "base_distro": "Arch Linux",
+    "default_de": "None",
+    "release_year": 2012
+  },
+  {
+    "id": 39,
+    "name": "Puppy Linux",
+    "slug": "puppy",
+    "logo_path": "assets/distros/puppy.png",
+    "base_distro": "Independent",
+    "default_de": "JWM",
+    "release_year": 2003
+  },
+  {
+    "id": 40,
+    "name": "antiX",
+    "slug": "antix",
+    "logo_path": "assets/distros/antix.png",
+    "base_distro": "Debian",
+    "default_de": "IceWM",
+    "release_year": 2007
+  },
+  {
+    "id": 41,
+    "name": "KNOPPIX",
+    "slug": "knoppix",
+    "logo_path": "assets/distros/knoppix.png",
+    "base_distro": "Debian",
+    "default_de": "KDE Plasma",
+    "release_year": 2000
+  },
+  {
+    "id": 42,
+    "name": "Tiny Core Linux",
+    "slug": "tinycore",
+    "logo_path": "assets/distros/tinycore.png",
+    "base_distro": "Independent",
+    "default_de": "None",
+    "release_year": 2009
   }
 ]
