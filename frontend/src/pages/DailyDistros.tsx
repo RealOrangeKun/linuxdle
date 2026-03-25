@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
   CircularProgress, Divider, FormControlLabel, Switch,
@@ -33,6 +33,9 @@ const DailyDistros: React.FC = () => {
   const navigate = useNavigate();
   const [distros, setDistros] = useState<Distro[]>([]);
   const [selectedGuess, setSelectedGuess] = useState<Distro | null>(null);
+  const [inputValue, setInputValue] = useState('');
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [logoUrl, setLogoUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -142,14 +145,15 @@ const DailyDistros: React.FC = () => {
     updateLogoUrl(guesses.length + 1, newMode);
   };
 
-  const handleSubmitGuess = async () => {
-    if (!selectedGuess || isGameOver) return;
+  const handleSubmitGuess = async (overrideGuess?: Distro | null) => {
+    const guess = overrideGuess !== undefined ? overrideGuess : selectedGuess;
+    if (!guess || isGameOver) return;
 
     try {
       const response = await apiClient.post<GuessResult>('/daily-distros/guesses', {
-        userGuess: selectedGuess.slug
+        userGuess: guess.slug
       });
-      const newGuess = { name: selectedGuess.name, isCorrect: response.data.isCorrect };
+      const newGuess = { name: guess.name, isCorrect: response.data.isCorrect };
       const newGuesses = [newGuess, ...guesses];
       setGuesses(newGuesses);
       if (response.data.isCorrect) {
@@ -160,6 +164,9 @@ const DailyDistros: React.FC = () => {
         updateLogoUrl(Math.min(newGuesses.length + 1, 12), hardMode);
       }
       setSelectedGuess(null);
+      setInputValue('');
+      setAutocompleteOpen(false);
+      setTimeout(() => inputRef.current?.focus(), 50);
     } catch (error: any) {
       console.error('Error:', error);
       if (error.response?.data?.message) {
@@ -282,12 +289,50 @@ const DailyDistros: React.FC = () => {
             <Autocomplete
               fullWidth
               size="small"
+              open={autocompleteOpen}
+              onOpen={() => setAutocompleteOpen(true)}
+              onClose={() => setAutocompleteOpen(false)}
               options={distros.filter(d => !guesses.some(g => g.name === d.name))}
               getOptionLabel={(option) => option?.name || ''}
               value={selectedGuess}
+              inputValue={inputValue}
+              onInputChange={(_, newInputValue) => {
+                setInputValue(newInputValue);
+                if (newInputValue) setAutocompleteOpen(true);
+              }}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && selectedGuess) handleSubmitGuess(); }}
-              renderInput={(params) => <TextField {...params} label="select_distro" variant="outlined" />}
+              onKeyDown={(e) => {
+                const availableOptions = distros.filter(d => !guesses.some(g => g.name === d.name));
+                const filteredOptions = availableOptions.filter(d =>
+                  d.name.toLowerCase().includes(inputValue.toLowerCase())
+                );
+                const firstOption = filteredOptions[0] ?? null;
+
+                if (e.key === 'Tab' || e.key === 'ArrowRight') {
+                  if (!selectedGuess && firstOption) {
+                    e.preventDefault();
+                    setSelectedGuess(firstOption);
+                    setInputValue(firstOption.name);
+                  }
+                } else if (e.key === 'Enter') {
+                  if (selectedGuess) {
+                    e.preventDefault();
+                    handleSubmitGuess(selectedGuess);
+                  } else if (firstOption) {
+                    e.preventDefault();
+                    handleSubmitGuess(firstOption);
+                  }
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="select_distro"
+                  variant="outlined"
+                  inputRef={inputRef}
+                  autoFocus
+                />
+              )}
             />
             {guesses.length >= minGuessesToGiveUp && (
               <Button
@@ -300,7 +345,7 @@ const DailyDistros: React.FC = () => {
                 SIGKILL
               </Button>
             )}
-            <Button variant="contained" color="primary" onClick={handleSubmitGuess} disabled={!selectedGuess}>
+            <Button variant="contained" color="primary" onClick={() => handleSubmitGuess()} disabled={!selectedGuess}>
               EXEC
             </Button>
           </Box>

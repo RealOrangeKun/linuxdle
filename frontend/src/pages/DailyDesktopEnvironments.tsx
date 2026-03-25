@@ -41,6 +41,9 @@ const DailyDesktopEnvironments: React.FC = () => {
   const navigate = useNavigate();
   const [des, setDes] = useState<DesktopEnvironment[]>([]);
   const [selectedGuess, setSelectedGuess] = useState<DesktopEnvironment | null>(null);
+  const [inputValue, setInputValue] = useState('');
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [screenshotUrl, setScreenshotUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -135,17 +138,18 @@ const DailyDesktopEnvironments: React.FC = () => {
     }
   }, [isGameOver, loading, navigate]);
 
-  const handleSubmitGuess = async () => {
-    if (!selectedGuess || isGameOver) return;
+  const handleSubmitGuess = async (overrideGuess?: DesktopEnvironment | null) => {
+    const guess = overrideGuess !== undefined ? overrideGuess : selectedGuess;
+    if (!guess || isGameOver) return;
 
     try {
       const response = await apiClient.post<GuessResult>('/daily-desktop-environments/guesses', {
-        userGuess: selectedGuess.slug,
+        userGuess: guess.slug,
         numberOfGuesses: guesses.length + 1
       });
 
       const newGuess: Guess = { 
-        name: selectedGuess.name, 
+        name: guess.name, 
         isCorrect: response.data.isCorrect,
         family: response.data.family,
         configurationLanguage: response.data.configurationLanguage,
@@ -160,6 +164,9 @@ const DailyDesktopEnvironments: React.FC = () => {
         setShowSuccess(true);
       }
       setSelectedGuess(null);
+      setInputValue('');
+      setAutocompleteOpen(false);
+      setTimeout(() => inputRef.current?.focus(), 50);
     } catch (error: any) {
       console.error('Error:', error);
       if (error.response?.data?.message) {
@@ -424,12 +431,50 @@ const DailyDesktopEnvironments: React.FC = () => {
             <Autocomplete
               fullWidth
               size="small"
+              open={autocompleteOpen}
+              onOpen={() => setAutocompleteOpen(true)}
+              onClose={() => setAutocompleteOpen(false)}
               options={des.filter(de => !guesses.some(g => g.name === de.name))}
               getOptionLabel={(option) => option?.name || ''}
               value={selectedGuess}
+              inputValue={inputValue}
+              onInputChange={(_, newInputValue) => {
+                setInputValue(newInputValue);
+                if (newInputValue) setAutocompleteOpen(true);
+              }}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && selectedGuess) handleSubmitGuess(); }}
-              renderInput={(params) => <TextField {...params} label="select_env" variant="outlined" />}
+              onKeyDown={(e) => {
+                const availableOptions = des.filter(de => !guesses.some(g => g.name === de.name));
+                const filteredOptions = availableOptions.filter(de =>
+                  de.name.toLowerCase().includes(inputValue.toLowerCase())
+                );
+                const firstOption = filteredOptions[0] ?? null;
+
+                if (e.key === 'Tab' || e.key === 'ArrowRight') {
+                  if (!selectedGuess && firstOption) {
+                    e.preventDefault();
+                    setSelectedGuess(firstOption);
+                    setInputValue(firstOption.name);
+                  }
+                } else if (e.key === 'Enter') {
+                  if (selectedGuess) {
+                    e.preventDefault();
+                    handleSubmitGuess(selectedGuess);
+                  } else if (firstOption) {
+                    e.preventDefault();
+                    handleSubmitGuess(firstOption);
+                  }
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="select_env"
+                  variant="outlined"
+                  inputRef={inputRef}
+                  autoFocus
+                />
+              )}
             />
             {guesses.length >= minGuessesToGiveUp && (
               <Button
@@ -442,7 +487,7 @@ const DailyDesktopEnvironments: React.FC = () => {
                 SIGKILL
               </Button>
             )}
-            <Button variant="contained" color="primary" onClick={handleSubmitGuess} disabled={!selectedGuess}>
+            <Button variant="contained" color="primary" onClick={() => handleSubmitGuess()} disabled={!selectedGuess}>
               EXEC
             </Button>
           </Box>

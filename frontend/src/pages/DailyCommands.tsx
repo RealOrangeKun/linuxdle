@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
   CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -57,6 +57,9 @@ const DailyCommands: React.FC = () => {
   const navigate = useNavigate();
   const [commands, setCommands] = useState<string[]>([]);
   const [selectedGuess, setSelectedGuess] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState('');
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [results, setResults] = useState<CommandResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -139,12 +142,13 @@ const DailyCommands: React.FC = () => {
     }
   }, [isGameOver, loading, navigate]);
 
-  const handleSubmitGuess = async () => {
-    if (!selectedGuess || isGameOver) return;
+  const handleSubmitGuess = async (overrideGuess?: string | null) => {
+    const guess = overrideGuess !== undefined ? overrideGuess : selectedGuess;
+    if (!guess || isGameOver) return;
 
     try {
       const response = await apiClient.post<CommandResult>('/daily-commands/guesses', {
-        userGuess: selectedGuess
+        userGuess: guess
       });
 
       const newResults = [response.data, ...results];
@@ -155,6 +159,9 @@ const DailyCommands: React.FC = () => {
         setShowSuccess(true);
       }
       setSelectedGuess(null);
+      setInputValue('');
+      setAutocompleteOpen(false);
+      setTimeout(() => inputRef.current?.focus(), 50);
     } catch (error: any) {
       console.error('Error:', error);
       if (error.response?.data?.message) {
@@ -265,11 +272,50 @@ const DailyCommands: React.FC = () => {
             <Autocomplete
               fullWidth
               size="small"
+              open={autocompleteOpen}
+              onOpen={() => setAutocompleteOpen(true)}
+              onClose={() => setAutocompleteOpen(false)}
               options={commands.filter(cmd => !results.some(r => r.guessCommandDetails.name === cmd))}
               value={selectedGuess}
+              inputValue={inputValue}
+              onInputChange={(_, newInputValue) => {
+                setInputValue(newInputValue);
+                if (newInputValue) setAutocompleteOpen(true);
+              }}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && selectedGuess) handleSubmitGuess(); }}
-              renderInput={(params) => <TextField {...params} label="input_command" variant="outlined" />}
+              onKeyDown={(e) => {
+                const availableOptions = commands.filter(cmd => !results.some(r => r.guessCommandDetails.name === cmd));
+                const filteredOptions = availableOptions.filter(cmd =>
+                  cmd.toLowerCase().includes(inputValue.toLowerCase())
+                );
+                const firstOption = filteredOptions[0] ?? null;
+
+                if (e.key === 'Tab' || e.key === 'ArrowRight') {
+                  // Autocomplete the first match without submitting
+                  if (!selectedGuess && firstOption) {
+                    e.preventDefault();
+                    setSelectedGuess(firstOption);
+                    setInputValue(firstOption);
+                  }
+                } else if (e.key === 'Enter') {
+                  if (selectedGuess) {
+                    e.preventDefault();
+                    handleSubmitGuess(selectedGuess);
+                  } else if (firstOption) {
+                    e.preventDefault();
+                    handleSubmitGuess(firstOption);
+                  }
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="input_command"
+                  variant="outlined"
+                  inputRef={inputRef}
+                  autoFocus
+                />
+              )}
             />
             {results.length >= minGuessesToGiveUp && (
               <Button
@@ -286,7 +332,7 @@ const DailyCommands: React.FC = () => {
               variant="contained"
               color="primary"
               disabled={!selectedGuess}
-              onClick={handleSubmitGuess}
+              onClick={() => handleSubmitGuess()}
               sx={{ px: 4 }}
             >
               EXEC
