@@ -22,10 +22,9 @@ def get_connection():
 
 
 def clear_tables(cur):
-    """Clear all tables before seeding."""
+    """Clear all tables before seeding (excludes daily_puzzles to preserve schedule)."""
     print("Clearing existing data...")
     tables_to_truncate = [
-        "daily_puzzles",
         "daily_command_daily_command_category",
         "daily_commands",
         "daily_command_categories",
