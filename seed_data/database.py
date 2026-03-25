@@ -22,7 +22,7 @@ def get_connection():
 
 
 def clear_tables(cur):
-    """Clear all tables before seeding (excludes daily_puzzles to preserve schedule)."""
+    """Clear all tables before seeding. Preserves yesterday and today in daily_puzzles."""
     print("Clearing existing data...")
     tables_to_truncate = [
         "daily_command_daily_command_category",
@@ -34,6 +34,11 @@ def clear_tables(cur):
         "games"
     ]
     cur.execute(f"TRUNCATE TABLE {', '.join(tables_to_truncate)} CASCADE;")
+    # Remove old puzzle entries but keep yesterday and today so the game keeps working
+    cur.execute("""
+        DELETE FROM daily_puzzles
+        WHERE scheduled_date < CURRENT_DATE - INTERVAL '1 day'
+    """)
 
 
 def fix_sequences(cur):
