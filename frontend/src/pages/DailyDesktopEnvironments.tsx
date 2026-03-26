@@ -12,6 +12,7 @@ import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
 import { useGameSettings } from '../hooks/useGameSettings';
+import { useMidnightReload } from '../hooks/useMidnightReload';
 
 interface DesktopEnvironment {
   name: string;
@@ -53,6 +54,7 @@ const DailyDesktopEnvironments: React.FC = () => {
   const [yesterdaysTarget, setYesterdaysTarget] = useState<DesktopEnvironment | null>(null);
 
   const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
+  useMidnightReload();
   const [giveUpDialogOpen, setGiveUpDialogOpen] = useState(false);
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');

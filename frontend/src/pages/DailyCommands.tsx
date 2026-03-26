@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Container, Typography, TextField, Button, Box, Paper, Autocomplete,
   CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Alert, Snackbar, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
+  Alert, Snackbar, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
+  Tooltip
 } from '@mui/material';
 import { ArrowUpward, ArrowDownward, ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +14,7 @@ import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
 import { useGameSettings } from '../hooks/useGameSettings';
+import { useMidnightReload } from '../hooks/useMidnightReload';
 
 interface CommandResult {
   matchResults: {
@@ -68,6 +70,7 @@ const DailyCommands: React.FC = () => {
   const [yesterdaysTarget, setYesterdaysTarget] = useState<YesterdaysCommand | null>(null);
 
   const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
+  useMidnightReload();
   const [giveUpDialogOpen, setGiveUpDialogOpen] = useState(false);
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -356,17 +359,57 @@ const DailyCommands: React.FC = () => {
         )}
 
         {results.length > 0 && (
-          <TableContainer>
+          <Box>
+            <TableContainer sx={{
+              overflowX: 'auto',
+              // Bigger, easier-to-hit scrollbar with breathing room on mobile
+              pb: { xs: 1, sm: 0 },
+              mt: { xs: 1, sm: 0 },
+              '&::-webkit-scrollbar': { height: 8 },
+              '&::-webkit-scrollbar-track': { bgcolor: 'divider' },
+              '&::-webkit-scrollbar-thumb': { bgcolor: 'primary.main' },
+            }}>
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>NAME</TableCell>
-                  <TableCell>PKG</TableCell>
-                  <TableCell>YEAR</TableCell>
-                  <TableCell>SEC</TableCell>
-                  <TableCell>B-IN</TableCell>
-                  <TableCell>POSIX</TableCell>
-                  <TableCell>CATEGORIES</TableCell>
+                  <TableCell><Tooltip title="The command name" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>NAME</span></Tooltip></TableCell>
+                  <TableCell><Tooltip title="The package that provides this command (e.g. coreutils, util-linux)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>PKG</span></Tooltip></TableCell>
+                  <TableCell><Tooltip title="The year this command was first introduced" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>YEAR</span></Tooltip></TableCell>
+                  <TableCell>
+                    <Tooltip
+                      arrow
+                      placement="top"
+                      title={
+                        <Box sx={{ fontSize: '0.75rem' }}>
+                          <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Man Page Sections</Box>
+                          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                            <tbody>
+                              {[
+                                ['1', 'User commands'],
+                                ['2', 'System calls'],
+                                ['3', 'Library functions'],
+                                ['4', 'Special files / devices'],
+                                ['5', 'File formats & conventions'],
+                                ['6', 'Games'],
+                                ['7', 'Miscellaneous'],
+                                ['8', 'System admin commands'],
+                              ].map(([num, desc]) => (
+                                <tr key={num}>
+                                  <td style={{ paddingRight: 8, fontWeight: 'bold', opacity: 0.7 }}>{num}</td>
+                                  <td>{desc}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </Box>
+                      }
+                    >
+                      <span style={{ cursor: 'help', borderBottom: '1px dashed' }}>SEC</span>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell><Tooltip title="Built-in: whether the command is built into the shell (e.g. cd, echo in bash) rather than an external binary" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>B-IN</span></Tooltip></TableCell>
+                  <TableCell><Tooltip title="POSIX: whether the command is part of the POSIX standard, meaning it should be available on all POSIX-compliant systems (Linux, macOS, BSD...)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>POSIX</span></Tooltip></TableCell>
+                  <TableCell><Tooltip title="The functional categories this command belongs to (e.g. File Management, Networking, Text Processing)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>CATEGORIES</span></Tooltip></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -404,6 +447,20 @@ const DailyCommands: React.FC = () => {
               </TableBody>
             </Table>
           </TableContainer>
+            {/* Mobile-only scroll hint */}
+            <Typography
+              variant="caption"
+              sx={{
+                display: { xs: 'flex', sm: 'none' },
+                justifyContent: 'center',
+                mt: 0.5,
+                opacity: 0.6,
+                fontFamily: 'monospace',
+              }}
+            >
+              ← scroll to see all columns →
+            </Typography>
+          </Box>
         )}
       </Paper>
 
