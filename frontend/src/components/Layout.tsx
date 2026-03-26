@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Container, Button, Box, IconButton, useTheme } from '@mui/material';
 import { Outlet, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Brightness4, Brightness7, Terminal, GitHub } from '@mui/icons-material';
+import { Brightness4, Brightness7, Terminal, GitHub, LocalCafe } from '@mui/icons-material';
 import { ColorModeContext } from '../App';
 
 const Layout: React.FC = () => {
@@ -60,6 +60,17 @@ const Layout: React.FC = () => {
                 sx={{ ml: 1 }}
               >
                 <GitHub />
+              </IconButton>
+              <IconButton
+                component="a"
+                href="https://ko-fi.com/orangekun"
+                target="_blank"
+                rel="noopener noreferrer"
+                color="inherit"
+                title="Support on Ko-fi"
+                sx={{ ml: 1 }}
+              >
+                <LocalCafe />
               </IconButton>
               <IconButton onClick={colorMode.toggleColorMode} color="inherit" sx={{ ml: 1 }}>
                 {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}

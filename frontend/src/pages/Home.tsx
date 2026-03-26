@@ -66,6 +66,29 @@ const Home: React.FC = () => {
               [OK] ALL_MODULES_COMPLETE
             </Typography>
             <CountdownTimer />
+            <Typography
+              variant="body2"
+              sx={{ mt: 3, opacity: 0.7, fontFamily: 'monospace' }}
+            >
+              $ echo "Enjoying Linuxdle? Support the project:"
+            </Typography>
+            <Typography
+              component="a"
+              href="https://ko-fi.com/orangekun"
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="body2"
+              sx={{
+                display: 'inline-block',
+                mt: 0.5,
+                fontFamily: 'monospace',
+                color: 'primary.main',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+            >
+              ☕ ko-fi.com/orangekun
+            </Typography>
           </Box>
         )}
       </Box>
