@@ -438,6 +438,11 @@ const DailyDesktopEnvironments: React.FC = () => {
               onClose={() => setAutocompleteOpen(false)}
               options={des.filter(de => !guesses.some(g => g.name === de.name))}
               getOptionLabel={(option) => option?.name || ''}
+              filterOptions={(options, { inputValue }) =>
+                inputValue
+                  ? options.filter(o => o.name.toLowerCase().startsWith(inputValue.toLowerCase()))
+                  : options
+              }
               value={selectedGuess}
               inputValue={inputValue}
               onInputChange={(_, newInputValue) => {
@@ -448,7 +453,7 @@ const DailyDesktopEnvironments: React.FC = () => {
               onKeyDown={(e) => {
                 const availableOptions = des.filter(de => !guesses.some(g => g.name === de.name));
                 const filteredOptions = availableOptions.filter(de =>
-                  de.name.toLowerCase().includes(inputValue.toLowerCase())
+                  de.name.toLowerCase().startsWith(inputValue.toLowerCase())
                 );
                 const firstOption = filteredOptions[0] ?? null;
 
@@ -459,6 +464,7 @@ const DailyDesktopEnvironments: React.FC = () => {
                     setInputValue(firstOption.name);
                   }
                 } else if (e.key === 'Enter') {
+                  if (!autocompleteOpen) return;
                   if (selectedGuess) {
                     e.preventDefault();
                     handleSubmitGuess(selectedGuess);

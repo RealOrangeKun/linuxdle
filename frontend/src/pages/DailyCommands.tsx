@@ -279,6 +279,11 @@ const DailyCommands: React.FC = () => {
               onOpen={() => setAutocompleteOpen(true)}
               onClose={() => setAutocompleteOpen(false)}
               options={commands.filter(cmd => !results.some(r => r.guessCommandDetails.name === cmd))}
+              filterOptions={(options, { inputValue }) =>
+                inputValue
+                  ? options.filter(o => o.toLowerCase().startsWith(inputValue.toLowerCase()))
+                  : options
+              }
               value={selectedGuess}
               inputValue={inputValue}
               onInputChange={(_, newInputValue) => {
@@ -289,7 +294,7 @@ const DailyCommands: React.FC = () => {
               onKeyDown={(e) => {
                 const availableOptions = commands.filter(cmd => !results.some(r => r.guessCommandDetails.name === cmd));
                 const filteredOptions = availableOptions.filter(cmd =>
-                  cmd.toLowerCase().includes(inputValue.toLowerCase())
+                  cmd.toLowerCase().startsWith(inputValue.toLowerCase())
                 );
                 const firstOption = filteredOptions[0] ?? null;
 
@@ -301,6 +306,7 @@ const DailyCommands: React.FC = () => {
                     setInputValue(firstOption);
                   }
                 } else if (e.key === 'Enter') {
+                  if (!autocompleteOpen) return;
                   if (selectedGuess) {
                     e.preventDefault();
                     handleSubmitGuess(selectedGuess);

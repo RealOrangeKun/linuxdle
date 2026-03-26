@@ -296,6 +296,11 @@ const DailyDistros: React.FC = () => {
               onClose={() => setAutocompleteOpen(false)}
               options={distros.filter(d => !guesses.some(g => g.name === d.name))}
               getOptionLabel={(option) => option?.name || ''}
+              filterOptions={(options, { inputValue }) =>
+                inputValue
+                  ? options.filter(o => o.name.toLowerCase().startsWith(inputValue.toLowerCase()))
+                  : options
+              }
               value={selectedGuess}
               inputValue={inputValue}
               onInputChange={(_, newInputValue) => {
@@ -306,7 +311,7 @@ const DailyDistros: React.FC = () => {
               onKeyDown={(e) => {
                 const availableOptions = distros.filter(d => !guesses.some(g => g.name === d.name));
                 const filteredOptions = availableOptions.filter(d =>
-                  d.name.toLowerCase().includes(inputValue.toLowerCase())
+                  d.name.toLowerCase().startsWith(inputValue.toLowerCase())
                 );
                 const firstOption = filteredOptions[0] ?? null;
 
@@ -317,6 +322,7 @@ const DailyDistros: React.FC = () => {
                     setInputValue(firstOption.name);
                   }
                 } else if (e.key === 'Enter') {
+                  if (!autocompleteOpen) return;
                   if (selectedGuess) {
                     e.preventDefault();
                     handleSubmitGuess(selectedGuess);
