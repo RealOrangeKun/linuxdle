@@ -8,13 +8,6 @@ internal sealed class CleanUsersJob(IUserService userService) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
-        try
-        {
-            await userService.CleanUnactiveUsers();
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        await userService.CleanUnactiveUsers();
     }
 }

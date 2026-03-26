@@ -148,7 +148,7 @@ internal sealed class DailyDesktopEnvironmentService(
                     .Select(p => p.TargetId)
                     .FirstOrDefaultAsync(cancel);
 
-                if (targetId == default) return null;
+                if (targetId == 0) return null;
 
                 return await dbContext.DailyDesktopEnvironments
                     .AsNoTracking()

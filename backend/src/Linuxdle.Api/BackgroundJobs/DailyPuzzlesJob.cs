@@ -9,13 +9,6 @@ internal sealed class DailyPuzzlesJob(
 {
     public async Task Execute(IJobExecutionContext context)
     {
-        try
-        {
-            await dailyPuzzleService.PrepareDailyPuzzle(context.CancellationToken);
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        await dailyPuzzleService.PrepareDailyPuzzle(context.CancellationToken);
     }
 }

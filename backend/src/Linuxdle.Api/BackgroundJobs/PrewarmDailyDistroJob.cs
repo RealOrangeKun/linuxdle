@@ -17,17 +17,10 @@ internal sealed class PrewarmDailyDistroJob(
         {
             for (int tries = 1; tries <= _distroImageOptions.MaxRetries; tries++)
             {
-                try
-                {
-                    await dailyDistroService.GenerateDailyDistroLogoAsync(
-                        tries,
-                        hardMode,
-                        context.CancellationToken);
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
+                await dailyDistroService.GenerateDailyDistroLogoAsync(
+                    tries,
+                    hardMode,
+                    context.CancellationToken);
             }
         }
     }

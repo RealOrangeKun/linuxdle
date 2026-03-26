@@ -9,13 +9,6 @@ internal sealed class PrewarmDailyDesktopEnvironmentJob(
 {
     public async Task Execute(IJobExecutionContext context)
     {
-        try
-        {
-            await dailyDesktopEnvironmentService.GetDailyDesktopEnvironmentScreenshot(context.CancellationToken);
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        await dailyDesktopEnvironmentService.GetDailyDesktopEnvironmentScreenshot(context.CancellationToken);
     }
 }
