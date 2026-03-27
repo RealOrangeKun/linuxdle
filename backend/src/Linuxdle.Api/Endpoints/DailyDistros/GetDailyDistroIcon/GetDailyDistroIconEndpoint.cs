@@ -28,15 +28,15 @@ internal sealed class GetDailyDistroIconEndpoint : IEndpoint
             cancellationToken);
 
         var now = DateTime.UtcNow;
-        var secondsUntilMidnight = (int)(now.Date.AddDays(1) - now).TotalSeconds;
+        var secondsUntilMidnight = now.Date.AddDays(1) - now;
 
         httpContext.Response.GetTypedHeaders().CacheControl =
             new CacheControlHeaderValue()
             {
                 Public = true,
-                MaxAge = TimeSpan.FromSeconds(secondsUntilMidnight)
+                MaxAge = secondsUntilMidnight
             };
 
-        return Results.File(imageBytes, MediaTypeNames.Image.Png, lastModified: now.Date);
+        return Results.File(imageBytes, MediaTypeNames.Image.Png, lastModified: now.Date, enableRangeProcessing: true);
     }
 }
