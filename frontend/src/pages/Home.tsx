@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, Grid, Card, CardContent, CardActionArea, Box, Divider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CountdownTimer from '../components/CountdownTimer';
+import { dispatchSupportDialog } from '../components/SupportDialog';
 import { SEO, pageSEO } from '../components/SEO';
 
 const Home: React.FC = () => {
@@ -41,7 +42,11 @@ const Home: React.FC = () => {
       return false;
     });
 
-    setAllGamesPlayed(playedStatus.every(status => status === true));
+    const allPlayed = playedStatus.every(status => status === true);
+    setAllGamesPlayed(allPlayed);
+    // Fallback: if user lands on home with all games already done,
+    // fire the popup via the global event (Layout handles dedup via sessionStorage).
+    if (allPlayed) dispatchSupportDialog();
   }, []);
 
   return (
@@ -66,29 +71,6 @@ const Home: React.FC = () => {
               [OK] ALL_MODULES_COMPLETE
             </Typography>
             <CountdownTimer />
-            <Typography
-              variant="body2"
-              sx={{ mt: 3, opacity: 0.7, fontFamily: 'monospace' }}
-            >
-              $ echo "Enjoying Linuxdle? Support the project:"
-            </Typography>
-            <Typography
-              component="a"
-              href="https://ko-fi.com/orangekun"
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="body2"
-              sx={{
-                display: 'inline-block',
-                mt: 0.5,
-                fontFamily: 'monospace',
-                color: 'primary.main',
-                textDecoration: 'none',
-                '&:hover': { textDecoration: 'underline' },
-              }}
-            >
-              ☕ ko-fi.com/orangekun
-            </Typography>
           </Box>
         )}
       </Box>

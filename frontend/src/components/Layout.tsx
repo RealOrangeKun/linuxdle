@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppBar, Toolbar, Typography, Container, Button, Box, IconButton, useTheme } from '@mui/material';
 import { Outlet, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Brightness4, Brightness7, Terminal, GitHub, LocalCafe } from '@mui/icons-material';
 import { ColorModeContext } from '../App';
+import SupportDialog, { EVENT_NAME, markSupportDialogShown, shouldShowSupportDialog } from './SupportDialog';
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const colorMode = React.useContext(ColorModeContext);
+  const [supportOpen, setSupportOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = () => {
+      if (shouldShowSupportDialog()) {
+        markSupportDialogShown();
+        setSupportOpen(true);
+      }
+    };
+    window.addEventListener(EVENT_NAME, handler);
+    return () => window.removeEventListener(EVENT_NAME, handler);
+  }, []);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -104,6 +117,7 @@ const Layout: React.FC = () => {
           </Box>
         </Container>
       </Box>
+      <SupportDialog open={supportOpen} onClose={() => setSupportOpen(false)} />
     </Box>
   );
 };
