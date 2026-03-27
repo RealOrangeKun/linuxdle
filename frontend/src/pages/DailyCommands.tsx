@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { MatchResult, YearDirection } from '../types/game';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
+import { dispatchSupportDialog } from '../components/SupportDialog';
 import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
@@ -137,10 +138,13 @@ const DailyCommands: React.FC = () => {
 
   useEffect(() => {
     if (isGameOver && !loading) {
-      if (checkAllGamesCompleted() && !hasRedirectedToday()) {
-        markAsRedirected();
-        const timer = setTimeout(() => navigate('/'), 2000);
-        return () => clearTimeout(timer);
+      if (checkAllGamesCompleted()) {
+        dispatchSupportDialog();
+        if (!hasRedirectedToday()) {
+          markAsRedirected();
+          const timer = setTimeout(() => navigate('/'), 2000);
+          return () => clearTimeout(timer);
+        }
       }
     }
   }, [isGameOver, loading, navigate]);

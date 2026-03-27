@@ -8,6 +8,7 @@ import { Home, Close, ZoomIn, ZoomOut, RestartAlt } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
+import { dispatchSupportDialog } from '../components/SupportDialog';
 import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
@@ -132,10 +133,13 @@ const DailyDesktopEnvironments: React.FC = () => {
 
   useEffect(() => {
     if (isGameOver && !loading) {
-      if (checkAllGamesCompleted() && !hasRedirectedToday()) {
-        markAsRedirected();
-        const timer = setTimeout(() => navigate('/'), 2000);
-        return () => clearTimeout(timer);
+      if (checkAllGamesCompleted()) {
+        dispatchSupportDialog();
+        if (!hasRedirectedToday()) {
+          markAsRedirected();
+          const timer = setTimeout(() => navigate('/'), 2000);
+          return () => clearTimeout(timer);
+        }
       }
     }
   }, [isGameOver, loading, navigate]);
@@ -286,6 +290,17 @@ const DailyDesktopEnvironments: React.FC = () => {
     };
     el.addEventListener('touchmove', nativeTouchMove, { passive: false });
     return () => el.removeEventListener('touchmove', nativeTouchMove);
+  }, [isZoomed]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isZoomed) {
+        resetZoom();
+        setIsZoomed(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isZoomed]);
 
   const resetZoom = () => {
