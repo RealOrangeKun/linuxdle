@@ -29,6 +29,14 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired();
 
         builder
+            .Property(u => u.CurrentStreak)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder
+            .Property(u => u.LastCompletedDate);
+
+        builder
             .ToTable(t => t
                 .HasCheckConstraint(
                     "ck_user_expiration_valid",

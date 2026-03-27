@@ -11,6 +11,8 @@ public sealed class User
     public DateTime CreatedAt { get; private set; }
     public DateTime LastRefreshAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
+    public int CurrentStreak { get; private set; }
+    public DateOnly? LastCompletedDate { get; private set; }
 
     public static User Create(int daysToExpiration)
     {
@@ -21,7 +23,9 @@ public sealed class User
             RefreshToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)),
             CreatedAt = now,
             LastRefreshAt = now,
-            ExpiresAt = now.AddDays(daysToExpiration)
+            ExpiresAt = now.AddDays(daysToExpiration),
+            CurrentStreak = 0,
+            LastCompletedDate = null
         };
     }
 
@@ -35,6 +39,33 @@ public sealed class User
         RefreshToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         LastRefreshAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddDays(daysToExpiration);
+    }
+
+    public void UpdateStreak(DateOnly completedDate)
+    {
+        if (LastCompletedDate.HasValue && completedDate == LastCompletedDate.Value.AddDays(1))
+        {
+            CurrentStreak++;
+        }
+        else if (!LastCompletedDate.HasValue || completedDate != LastCompletedDate.Value)
+        {
+            CurrentStreak = 1;
+        }
+
+        LastCompletedDate = completedDate;
+    }
+
+    public void ResetStreakIfNeeded(DateOnly today)
+    {
+        if (LastCompletedDate.HasValue && today > LastCompletedDate.Value.AddDays(1))
+        {
+            CurrentStreak = 0;
+        }
+    }
+
+    public void ResetStreakForGiveUp()
+    {
+        CurrentStreak = 0;
     }
 
     public bool IsRefreshExpired => ExpiresAt < DateTime.UtcNow;

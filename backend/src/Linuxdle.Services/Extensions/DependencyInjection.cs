@@ -21,6 +21,8 @@ public static class DependencyInjection
 
             services.AddScoped<IUserService, UserService>();
 
+            services.AddScoped<IUserStreakService, UserStreakService>();
+
             services.AddScoped<IDailyDesktopEnvironmentService, DailyDesktopEnvironmentService>();
 
             return services;

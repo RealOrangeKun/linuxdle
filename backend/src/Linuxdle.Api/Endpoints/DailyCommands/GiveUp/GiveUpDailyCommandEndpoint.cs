@@ -1,6 +1,7 @@
 using Linuxdle.Api.Extensions;
 using Linuxdle.Services.DailyCommands;
 using Linuxdle.Services.Dtos.Records;
+using Linuxdle.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -18,12 +19,15 @@ internal sealed partial class GiveUpDailyCommandEndpoint
 
     public static async Task<IResult> HandleAsync(
         [FromServices] IDailyCommandService dailyCommandService,
+        [FromServices] IUserStreakService userStreakService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
         var userId = user.GetUserId();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         DailyCommandDto response = await dailyCommandService.HandleUserGiveUpAsync(userId, cancellationToken);
+        await userStreakService.UpdateStreakIfAllGamesCompletedAsync(userId, today, cancellationToken);
 
         return Results.Ok(response);
     }

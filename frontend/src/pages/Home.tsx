@@ -46,7 +46,7 @@ const Home: React.FC = () => {
     setAllGamesPlayed(allPlayed);
     // Fallback: if user lands on home with all games already done,
     // fire the popup via the global event (Layout handles dedup via sessionStorage).
-    if (allPlayed) dispatchSupportDialog();
+    if (allPlayed) dispatchSupportDialog('all-complete');
   }, []);
 
   return (

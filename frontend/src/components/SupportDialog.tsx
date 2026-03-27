@@ -8,6 +8,8 @@ import { Close, GitHub, LocalCafe } from '@mui/icons-material';
 const STORAGE_KEY = 'linuxdle_support_dialog_shown';
 const EVENT_NAME = 'linuxdle:show-support';
 
+export type SupportDialogReason = 'all-complete' | 'give-up';
+
 interface SupportDialogProps {
   open: boolean;
   onClose: () => void;
@@ -81,8 +83,8 @@ const SupportDialog: React.FC<SupportDialogProps> = ({ open, onClose }) => (
 );
 
 /** Dispatches the support dialog event — call this right after all games complete. */
-export function dispatchSupportDialog(): void {
-  window.dispatchEvent(new Event(EVENT_NAME));
+export function dispatchSupportDialog(reason: SupportDialogReason = 'all-complete'): void {
+  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: { reason } }));
 }
 
 export { EVENT_NAME };

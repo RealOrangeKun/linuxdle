@@ -134,7 +134,7 @@ const DailyDesktopEnvironments: React.FC = () => {
   useEffect(() => {
     if (isGameOver && !loading) {
       if (checkAllGamesCompleted()) {
-        dispatchSupportDialog();
+        dispatchSupportDialog('all-complete');
         if (!hasRedirectedToday()) {
           markAsRedirected();
           const timer = setTimeout(() => navigate('/'), 2000);
@@ -639,6 +639,9 @@ const DailyDesktopEnvironments: React.FC = () => {
         <DialogContent>
           <DialogContentText>
             Are you sure you want to give up? The answer will be revealed and you will not be able to guess again today.
+          </DialogContentText>
+          <DialogContentText sx={{ color: 'error.main', mt: 1, fontWeight: 'bold' }}>
+            [WARNING] Giving up resets your streak to 0.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

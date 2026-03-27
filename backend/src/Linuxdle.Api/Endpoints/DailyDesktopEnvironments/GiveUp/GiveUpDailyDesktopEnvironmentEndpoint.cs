@@ -1,6 +1,7 @@
 using Linuxdle.Api.Extensions;
 using Linuxdle.Services.DailyDesktopEnvironments;
 using Linuxdle.Services.Dtos.Records;
+using Linuxdle.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -18,12 +19,15 @@ internal sealed partial class GiveUpDailyDesktopEnvironmentEndpoint
 
     public static async Task<IResult> HandleAsync(
         [FromServices] IDailyDesktopEnvironmentService service,
+        [FromServices] IUserStreakService userStreakService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
         var userId = user.GetUserId();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         DailyDesktopEnvironmentDto response = await service.HandleUserGiveUpAsync(userId, cancellationToken);
+        await userStreakService.UpdateStreakIfAllGamesCompletedAsync(userId, today, cancellationToken);
 
         return Results.Ok(response);
     }

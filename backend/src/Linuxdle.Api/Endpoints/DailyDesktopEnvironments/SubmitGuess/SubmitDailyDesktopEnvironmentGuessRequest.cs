@@ -1,6 +1,7 @@
 using Linuxdle.Api.Extensions;
 using Linuxdle.Api.Filters;
 using Linuxdle.Services.DailyDesktopEnvironments;
+using Linuxdle.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -20,13 +21,17 @@ internal sealed class SubmitDailyDesktopEnvironmentGuessEndpoint
     }
     private async Task<IResult> HandleAsync(
         [FromServices] IDailyDesktopEnvironmentService dailyDesktopEnvironmentService,
+        [FromServices] IUserStreakService userStreakService,
         [FromBody] SubmitDailyDesktopEnvironmentGuessRequest request,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
         var userId = user.GetUserId();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var result = await dailyDesktopEnvironmentService.HandleUserGuessAsync(userId, request.UserGuess, request.NumberOfGuesses, cancellationToken);
+
+        await userStreakService.UpdateStreakIfAllGamesCompletedAsync(userId, today, cancellationToken);
 
         return Results.Ok(result);
     }
