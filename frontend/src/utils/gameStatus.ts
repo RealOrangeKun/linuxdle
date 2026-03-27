@@ -38,11 +38,10 @@ export const checkAllGamesCompleted = (): boolean => {
 
 export const hasRedirectedToday = (): boolean => {
   const today = new Date().toISOString().split('T')[0];
-  const redirectFlag = sessionStorage.getItem(REDIRECT_FLAG_KEY);
-  return redirectFlag === today;
+  return localStorage.getItem(REDIRECT_FLAG_KEY) === today;
 };
 
 export const markAsRedirected = (): void => {
   const today = new Date().toISOString().split('T')[0];
-  sessionStorage.setItem(REDIRECT_FLAG_KEY, today);
+  localStorage.setItem(REDIRECT_FLAG_KEY, today);
 };
