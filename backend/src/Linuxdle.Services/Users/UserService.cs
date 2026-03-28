@@ -28,11 +28,11 @@ internal sealed class UserService(
         User? user = await dbContext.Users
             .Where(u => u.RefreshToken == refreshToken)
             .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new InvalidOperationException("User with the provided refresh token does not exist.");
+            ?? throw new UnauthorizedAccessException("User with the provided refresh token does not exist.");
 
         if (user.IsRefreshExpired)
         {
-            throw new InvalidOperationException("Refresh token is already expired");
+            throw new UnauthorizedAccessException("Refresh token is already expired");
         }
 
         user.Refresh(refreshTokenOptions.Value.MaxAgeDays);

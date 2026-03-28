@@ -8,6 +8,31 @@ const apiClient = axios.create({
   },
 });
 
+let refreshInFlight: Promise<string> | null = null;
+
+const isUnauthorizedStatus = (status?: number): boolean => status === 401 || status === 403;
+
+const refreshAccessToken = async (): Promise<string> => {
+  if (!refreshInFlight) {
+    refreshInFlight = axios
+      .post<string>(
+        `${import.meta.env.VITE_API_URL}/users/refresh-token`,
+        {},
+        { withCredentials: true }
+      )
+      .then((response) => {
+        const accessToken = response.data;
+        setAuthToken(accessToken);
+        return accessToken;
+      })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+
+  return refreshInFlight;
+};
+
 // Initialize token from localStorage immediately to avoid race conditions
 const savedToken = localStorage.getItem('linuxdle_token');
 if (savedToken) {
@@ -28,32 +53,34 @@ export const setAuthToken = (token: string | null) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as {
+      _retry?: boolean;
+      headers?: Record<string, string>;
+    };
 
     // If the error is 401 and we haven't tried to refresh yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const response = await axios.post<string>(
-          `${import.meta.env.VITE_API_URL}/users/refresh-token`,
-          {},
-          { withCredentials: true }
-        );
-
-        const newAccessToken = response.data;
-        setAuthToken(newAccessToken);
+        const newAccessToken = await refreshAccessToken();
 
         // Update the original request's authorization header
+        originalRequest.headers ??= {};
         originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
         
         // Retry the original request with the new token
         return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Refresh token failed or expired, clear everything
-        setAuthToken(null);
-        // Dispatch event so useAuth hook can re-register
-        window.dispatchEvent(new Event('auth:token-cleared'));
+      } catch (refreshError: unknown) {
+        const refreshStatus = (refreshError as { response?: { status?: number } }).response?.status;
+
+        // Only clear auth when refresh credentials are actually invalid.
+        if (isUnauthorizedStatus(refreshStatus)) {
+          setAuthToken(null);
+          // Dispatch event so useAuth hook can re-register
+          window.dispatchEvent(new Event('auth:token-cleared'));
+        }
+
         return Promise.reject(refreshError);
       }
     }

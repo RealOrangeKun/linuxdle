@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import apiClient, { setAuthToken } from '../api/apiClient';
 
 export const useAuth = () => {
@@ -12,6 +13,29 @@ export const useAuth = () => {
       if (token) {
         setLoading(false);
         return;
+      }
+
+      try {
+        // Recover an existing session from refresh cookie before creating a new user.
+        const refreshResponse = await axios.post<string>(
+          `${import.meta.env.VITE_API_URL}/users/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+        const refreshedToken = refreshResponse.data;
+
+        setAuthToken(refreshedToken);
+        setToken(refreshedToken);
+        return;
+      } catch (refreshError: unknown) {
+        const status = (refreshError as { response?: { status?: number } }).response?.status;
+
+        // Only register a new user when there is no valid refresh session.
+        if (status !== 401 && status !== 403) {
+          console.error('Failed to restore session from refresh token:', refreshError);
+          setLoading(false);
+          return;
+        }
       }
 
       try {
