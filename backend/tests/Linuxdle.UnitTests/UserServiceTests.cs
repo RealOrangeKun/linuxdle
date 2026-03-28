@@ -55,6 +55,6 @@ public class UserServiceTests
         var userService = new UserService(dbContext, accessTokenOptions.Object, refreshTokenOptions.Object);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => userService.RefreshUserToken("invalid-token"));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => userService.RefreshUserToken("invalid-token"));
     }
 }
