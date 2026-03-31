@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AppBar, Toolbar, Typography, Container, Button, Box, IconButton, useTheme } from '@mui/material';
 import { Outlet, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Brightness4, Brightness7, Terminal, GitHub, LocalCafe, Whatshot } from '@mui/icons-material';
+import { Brightness4, Brightness7, Terminal, GitHub, LocalCafe, Whatshot, MenuBook } from '@mui/icons-material';
 import { ColorModeContext } from '../App';
 import apiClient from '../api/apiClient';
 import SupportDialog, { EVENT_NAME, markSupportDialogShown, shouldShowSupportDialog } from './SupportDialog';
@@ -222,12 +222,21 @@ const Layout: React.FC = () => {
                 ./des
               </Button>
               
+              <IconButton
+                onClick={() => navigate('/man')}
+                color="inherit"
+                title="Manual (man page)"
+                sx={{ ml: 1, color: 'primary.main' }}
+              >
+                <MenuBook />
+              </IconButton>
               <IconButton 
                 component="a" 
                 href="https://github.com/RealOrangeKun/linuxdle" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 color="inherit" 
+                title="GitHub Repository"
                 sx={{ ml: 1 }}
               >
                 <GitHub />

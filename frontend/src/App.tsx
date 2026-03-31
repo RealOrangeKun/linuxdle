@@ -9,6 +9,7 @@ import DailyDesktopEnvironments from './pages/DailyDesktopEnvironments';
 import About from './pages/About';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import ManPage from './pages/ManPage';
 import { useAuth } from './hooks/useAuth';
 
 
@@ -133,6 +134,7 @@ function App() {
               <Route path="about" element={<About />} />
               <Route path="privacy" element={<PrivacyPolicy />} />
               <Route path="terms" element={<TermsOfService />} />
+              <Route path="man" element={<ManPage />} />
             </Route>
           </Routes>
         </Router>
