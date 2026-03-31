@@ -526,6 +526,23 @@ const DailyCommands: React.FC = () => {
           {errorMessage}
         </Alert>
       </Snackbar>
+
+      <Box mt={8} pt={4} borderTop={1} borderColor="divider" pb={6}>
+        <Typography variant="h5" component="h2" fontWeight="bold" sx={{ color: 'secondary.main', mb: 2 }}>
+          {`[?] ABOUT_LINUX_COMMANDS`}
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Welcome to the <strong>Daily Commands</strong> module of Linuxdle. In this game, your goal is to identify a specific Linux command-line utility based on a series of progressive hints. When you enter a guess, the system will evaluate your input against several criteria: the package it belongs to, its original release year, its manual (man) section, whether it is a shell built-in, its POSIX compliance, and its functional categories.
+        </Typography>
+        <Typography variant="body1" paragraph>
+          <strong>What are Linux Commands?</strong><br />
+          A Linux command is a program or utility that runs on the command line interface (CLI). The command line allows users to interact directly with the operating system by typing instructions instead of using a graphical user interface (GUI). Mastering Linux commands is essential for system administrators, developers, and power users, as it provides unparalleled control, speed, and automation capabilities over a Linux or Unix-like system.
+        </Typography>
+        <Typography variant="body1" paragraph>
+          <strong>How to Play:</strong><br />
+          Start by typing any valid Linux command. Pay attention to the color-coded feedback. Green means an exact match, yellow indicates a partial match, and red means incorrect. Use the directional arrows in the "Year" column to determine if the target command is older or newer than your guess. Familiarizing yourself with command categories (like text processing, networking, or file management) and their standard manual sections (Section 1 for user commands, Section 8 for admin tools) will greatly improve your guessing strategy.
+        </Typography>
+      </Box>
     </Container>
     </>
   );

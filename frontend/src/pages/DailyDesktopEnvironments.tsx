@@ -660,6 +660,23 @@ const DailyDesktopEnvironments: React.FC = () => {
           {errorMessage}
         </Alert>
       </Snackbar>
+
+      <Box mt={8} pt={4} borderTop={1} borderColor="divider" pb={6}>
+        <Typography variant="h5" component="h2" fontWeight="bold" sx={{ color: 'secondary.main', mb: 2 }}>
+          {`[?] ABOUT_DESKTOP_ENVIRONMENTS`}
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Welcome to the <strong>Daily Desktop Environments</strong> module of Linuxdle. In this visual challenge, you must correctly identify a Linux graphical interface from a heavily blurred screenshot. It requires a keen eye for window decorations, taskbar layouts, default applications, and overall system aesthetics. As you guess, you will gradually receive text-based clues such as the environment's base family (like GTK or Qt), its configuration language, its original release year, and the primary programming language it's built in.
+        </Typography>
+        <Typography variant="body1" paragraph>
+          <strong>What is a Desktop Environment?</strong><br />
+          In Linux, the graphical user interface (GUI) is completely separated from the core operating system. A Desktop Environment (DE) is a bundled suite of software that provides the graphical interface, including window managers, panels, desktop icons, and essential applications like file managers and terminal emulators. This modularity allows users to completely change how their computer looks and behaves without reinstalling the operating system.
+        </Typography>
+        <Typography variant="body1" paragraph>
+          <strong>Common Desktop Environments:</strong><br />
+          Some of the most popular desktop environments include GNOME (known for its modern, workflow-centric design), KDE Plasma (famous for its extreme customizability and Windows-like traditional layout), XFCE (a lightweight, highly efficient environment for older hardware), and Cinnamon (a traditional, user-friendly interface developed by Linux Mint). Recognizing these environments by their distinct visual language is a hallmark of a seasoned Linux enthusiast.
+        </Typography>
+      </Box>
     </Container>
     </>
   );

@@ -437,6 +437,23 @@ const DailyDistros: React.FC = () => {
           {errorMessage}
         </Alert>
       </Snackbar>
+
+      <Box mt={8} pt={4} borderTop={1} borderColor="divider" pb={6}>
+        <Typography variant="h5" component="h2" fontWeight="bold" sx={{ color: 'secondary.main', mb: 2 }}>
+          {`[?] ABOUT_LINUX_DISTRIBUTIONS`}
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Welcome to the <strong>Daily Distros</strong> module of Linuxdle. In this visual puzzle, your objective is to identify a specific Linux distribution based entirely on its logo. Initially, the logo will be heavily pixelated or obscured. With each incorrect guess you make, the image will progressively clear up, revealing more details of the distribution's branding. 
+        </Typography>
+        <Typography variant="body1" paragraph>
+          <strong>What is a Linux Distribution?</strong><br />
+          A Linux distribution (often abbreviated as "distro") is an operating system made from a software collection that is based upon the Linux kernel and, often, a package management system. Because Linux is open-source, anyone can take the core kernel, add their preferred desktop environment, system utilities, and default applications, and release it as a custom distribution. Famous examples include Ubuntu, Debian, Arch Linux, Fedora, and Linux Mint, but there are hundreds of specialized distros catering to everything from cybersecurity (like Kali Linux) to older hardware (like Puppy Linux).
+        </Typography>
+        <Typography variant="body1" paragraph>
+          <strong>Linus Torvalds Mode:</strong><br />
+          If you find the standard game too easy, you can toggle "Linus Torvalds Mode" before making your first guess. This mode significantly increases the difficulty by applying high-contrast filters and altering the pixelation algorithm, forcing you to rely on color palettes and general shapes rather than obvious icon outlines.
+        </Typography>
+      </Box>
     </Container>
     </>
   );
