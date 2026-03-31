@@ -68,31 +68,9 @@ services:
     networks:
       - linuxdle-network
 
-  admin-console:
-    container_name: linuxdle-admin-console
-    build:
-      context: ./admin-console
-      dockerfile: Dockerfile
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=linuxdle
-      - DB_USER=linuxdle
-      - DB_PASSWORD=linuxdle
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=admin
-      - ADMIN_SECRET_KEY=linuxdle_admin_dev_secret
-    ports:
-      - "5055:8000"
-    depends_on:
-      - postgres
-    networks:
-      - linuxdle-network
-
-
-
 volumes:
   postgres-data:
+
 
 networks:
   linuxdle-network:
