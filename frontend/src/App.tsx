@@ -10,6 +10,7 @@ import About from './pages/About';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import ManPage from './pages/ManPage';
+import ContactUs from './pages/ContactUs';
 import { useAuth } from './hooks/useAuth';
 
 
@@ -78,6 +79,11 @@ function App() {
                   background: mode === 'dark' ? '#30363D' : '#CCCCCC',
                 },
               },
+              'input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active': {
+                WebkitBoxShadow: `0 0 0 30px ${mode === 'dark' ? '#161B22' : '#FFFFFF'} inset !important`,
+                WebkitTextFillColor: `${mode === 'dark' ? '#C9D1D9' : '#1C2128'} !important`,
+                transition: 'background-color 5000s ease-in-out 0s',
+              },
             },
           },
           MuiPaper: {
@@ -135,6 +141,7 @@ function App() {
               <Route path="privacy" element={<PrivacyPolicy />} />
               <Route path="terms" element={<TermsOfService />} />
               <Route path="man" element={<ManPage />} />
+              <Route path="contact" element={<ContactUs />} />
             </Route>
           </Routes>
         </Router>
