@@ -38,6 +38,7 @@ const DailyDistros: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const highlightedOptionRef = useRef<Distro | null>(null);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [logoUrl, setLogoUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -170,6 +171,7 @@ const DailyDistros: React.FC = () => {
         updateLogoUrl(Math.min(newGuesses.length + 1, 12), hardMode);
       }
       setSelectedGuess(null);
+      highlightedOptionRef.current = null;
       setInputValue('');
       setAutocompleteOpen(false);
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -312,6 +314,9 @@ const DailyDistros: React.FC = () => {
                 if (newInputValue) setAutocompleteOpen(true);
               }}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
+              onHighlightChange={(_, option) => {
+                highlightedOptionRef.current = option ?? null;
+              }}
               onKeyDown={(e) => {
                 const availableOptions = distros.filter(d => !guesses.some(g => g.name === d.name));
                 const filteredOptions = availableOptions.filter(d =>
@@ -327,12 +332,10 @@ const DailyDistros: React.FC = () => {
                   }
                 } else if (e.key === 'Enter') {
                   if (!autocompleteOpen) return;
-                  if (selectedGuess) {
+                  const toSubmit = highlightedOptionRef.current ?? firstOption;
+                  if (toSubmit) {
                     e.preventDefault();
-                    handleSubmitGuess(selectedGuess);
-                  } else if (firstOption) {
-                    e.preventDefault();
-                    handleSubmitGuess(firstOption);
+                    handleSubmitGuess(toSubmit);
                   }
                 }
               }}

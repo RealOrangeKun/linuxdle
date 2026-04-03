@@ -63,6 +63,7 @@ const DailyCommands: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const highlightedOptionRef = useRef<string | null>(null);
   const [results, setResults] = useState<CommandResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -166,6 +167,7 @@ const DailyCommands: React.FC = () => {
         setShowSuccess(true);
       }
       setSelectedGuess(null);
+      highlightedOptionRef.current = null;
       setInputValue('');
       setAutocompleteOpen(false);
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -295,6 +297,9 @@ const DailyCommands: React.FC = () => {
                 if (newInputValue) setAutocompleteOpen(true);
               }}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
+              onHighlightChange={(_, option) => {
+                highlightedOptionRef.current = option ?? null;
+              }}
               onKeyDown={(e) => {
                 const availableOptions = commands.filter(cmd => !results.some(r => r.guessCommandDetails.name === cmd));
                 const filteredOptions = availableOptions.filter(cmd =>
@@ -311,12 +316,11 @@ const DailyCommands: React.FC = () => {
                   }
                 } else if (e.key === 'Enter') {
                   if (!autocompleteOpen) return;
-                  if (selectedGuess) {
+                  // Prefer highlighted option (arrow key nav), fall back to first match
+                  const toSubmit = highlightedOptionRef.current ?? firstOption;
+                  if (toSubmit) {
                     e.preventDefault();
-                    handleSubmitGuess(selectedGuess);
-                  } else if (firstOption) {
-                    e.preventDefault();
-                    handleSubmitGuess(firstOption);
+                    handleSubmitGuess(toSubmit);
                   }
                 }
               }}

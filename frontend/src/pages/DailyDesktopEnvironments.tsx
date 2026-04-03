@@ -46,6 +46,7 @@ const DailyDesktopEnvironments: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const highlightedOptionRef = useRef<DesktopEnvironment | null>(null);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [screenshotUrl, setScreenshotUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -170,6 +171,7 @@ const DailyDesktopEnvironments: React.FC = () => {
         setShowSuccess(true);
       }
       setSelectedGuess(null);
+      highlightedOptionRef.current = null;
       setInputValue('');
       setAutocompleteOpen(false);
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -465,6 +467,9 @@ const DailyDesktopEnvironments: React.FC = () => {
                 if (newInputValue) setAutocompleteOpen(true);
               }}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
+              onHighlightChange={(_, option) => {
+                highlightedOptionRef.current = option ?? null;
+              }}
               onKeyDown={(e) => {
                 const availableOptions = des.filter(de => !guesses.some(g => g.name === de.name));
                 const filteredOptions = availableOptions.filter(de =>
@@ -480,12 +485,10 @@ const DailyDesktopEnvironments: React.FC = () => {
                   }
                 } else if (e.key === 'Enter') {
                   if (!autocompleteOpen) return;
-                  if (selectedGuess) {
+                  const toSubmit = highlightedOptionRef.current ?? firstOption;
+                  if (toSubmit) {
                     e.preventDefault();
-                    handleSubmitGuess(selectedGuess);
-                  } else if (firstOption) {
-                    e.preventDefault();
-                    handleSubmitGuess(firstOption);
+                    handleSubmitGuess(toSubmit);
                   }
                 }
               }}
