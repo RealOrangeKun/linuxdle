@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AppBar, Toolbar, Typography, Container, Button, Box, IconButton, useTheme } from '@mui/material';
 import { Outlet, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Brightness4, Brightness7, Terminal, GitHub, LocalCafe, Whatshot, MenuBook } from '@mui/icons-material';
+import { DarkMode, LightMode, Terminal, GitHub, LocalCafe, Whatshot, MenuBook } from '@mui/icons-material';
 import { ColorModeContext } from '../App';
 import apiClient from '../api/apiClient';
 import SupportDialog, { EVENT_NAME, markSupportDialogShown, shouldShowSupportDialog } from './SupportDialog';
@@ -167,7 +167,7 @@ const Layout: React.FC = () => {
             </Box>
             
             <Box sx={{ display: 'flex', gap: { xs: 1, md: 2 }, alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'warning.main', mr: { xs: 0.5, md: 1 }, position: 'relative' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'warning.main', mr: { xs: 0.5, md: 1 }, position: 'relative' }}>
                 <Whatshot fontSize="small" />
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
                   {`[${streak}]`}
@@ -177,13 +177,16 @@ const Layout: React.FC = () => {
                     variant="caption"
                     sx={{
                       position: 'absolute',
-                      right: -40,
+                      right: { xs: 'unset', sm: -40 },
+                      left: { xs: '50%', sm: 'unset' },
+                      transform: { xs: 'translateX(-50%)', sm: 'none' },
                       top: -12,
                       fontFamily: 'monospace',
                       fontWeight: 'bold',
                       fontSize: '1.4rem',
+                      whiteSpace: 'nowrap',
                       color: streakDeltaFlash.startsWith('+') ? '#00ff00' : '#ff4444',
-                      textShadow: streakDeltaFlash.startsWith('+') 
+                      textShadow: streakDeltaFlash.startsWith('+')
                         ? '0 0 8px rgba(0, 255, 0, 0.8), 0 0 16px rgba(0, 255, 0, 0.5)'
                         : '0 0 8px rgba(255, 68, 68, 0.8), 0 0 16px rgba(255, 68, 68, 0.5)',
                       animation: 'streak-pop 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
@@ -226,7 +229,7 @@ const Layout: React.FC = () => {
                 onClick={() => navigate('/man')}
                 color="inherit"
                 title="Manual (man page)"
-                sx={{ ml: 1, color: 'primary.main' }}
+                sx={{ ml: { xs: 0, md: 1 }, color: 'primary.main', display: { xs: 'none', sm: 'inline-flex' } }}
               >
                 <MenuBook />
               </IconButton>
@@ -237,7 +240,7 @@ const Layout: React.FC = () => {
                 rel="noopener noreferrer" 
                 color="inherit" 
                 title="GitHub Repository"
-                sx={{ ml: 1 }}
+                sx={{ ml: { xs: 0, md: 1 }, display: { xs: 'none', sm: 'inline-flex' } }}
               >
                 <GitHub />
               </IconButton>
@@ -248,12 +251,12 @@ const Layout: React.FC = () => {
                 rel="noopener noreferrer"
                 color="inherit"
                 title="Support on Ko-fi"
-                sx={{ ml: 1 }}
+                sx={{ ml: { xs: 0, md: 1 }, display: { xs: 'none', sm: 'inline-flex' } }}
               >
                 <LocalCafe />
               </IconButton>
-              <IconButton onClick={colorMode.toggleColorMode} color="inherit" sx={{ ml: 1 }}>
-                {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+              <IconButton onClick={colorMode.toggleColorMode} color="inherit" sx={{ ml: { xs: 0, md: 1 } }}>
+                {theme.palette.mode === 'dark' ? <LightMode /> : <DarkMode />}
               </IconButton>
             </Box>
           </Toolbar>
@@ -279,6 +282,26 @@ const Layout: React.FC = () => {
               </Typography>
               <Typography component={RouterLink} to="/contact" variant="body2" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
                 Contact Us
+              </Typography>
+              <Typography
+                component="a"
+                href="https://github.com/RealOrangeKun/linuxdle"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="body2"
+                sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+              >
+                GitHub
+              </Typography>
+              <Typography
+                component="a"
+                href="https://ko-fi.com/orangekun"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="body2"
+                sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+              >
+                Ko-fi
               </Typography>
             </Box>
             <Typography variant="body2" align="center" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>
