@@ -20,7 +20,7 @@ public sealed class User
         return new()
         {
             Id = Guid.CreateVersion7(),
-            RefreshToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)),
+            RefreshToken = CreateRefreshToken(),
             CreatedAt = now,
             LastRefreshAt = now,
             ExpiresAt = now.AddDays(daysToExpiration),
@@ -36,7 +36,7 @@ public sealed class User
             return;
         }
 
-        RefreshToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+        RefreshToken = CreateRefreshToken();
         LastRefreshAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddDays(daysToExpiration);
     }
@@ -67,6 +67,8 @@ public sealed class User
     {
         CurrentStreak = 0;
     }
+
+    public static string CreateRefreshToken() => Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
 
     public bool IsRefreshExpired => ExpiresAt < DateTime.UtcNow;
 }

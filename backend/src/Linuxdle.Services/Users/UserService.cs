@@ -25,23 +25,44 @@ internal sealed class UserService(
 
     public async Task<UserTokensDto> RefreshUserToken(string refreshToken, CancellationToken cancellationToken = default)
     {
-        User? user = await dbContext.Users
+        var now = DateTime.UtcNow;
+
+        var user = await dbContext.Users
+            .AsNoTracking()
             .Where(u => u.RefreshToken == refreshToken)
+            .Select(u => new { u.Id, u.ExpiresAt })
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new UnauthorizedAccessException("User with the provided refresh token does not exist.");
 
-        if (user.IsRefreshExpired)
+        if (user.ExpiresAt < now)
         {
             throw new UnauthorizedAccessException("Refresh token is already expired");
         }
 
-        user.Refresh(refreshTokenOptions.Value.MaxAgeDays);
+        var newRefreshToken = User.CreateRefreshToken();
+        var newExpiration = now.AddDays(refreshTokenOptions.Value.MaxAgeDays);
+
+        var matchedUsers = await dbContext.Users
+            .Where(u => u.RefreshToken == refreshToken && u.ExpiresAt >= now)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(u => u.RefreshToken, newRefreshToken)
+                .SetProperty(u => u.LastRefreshAt, now)
+                .SetProperty(u => u.ExpiresAt, newExpiration), cancellationToken);
+
+        if (matchedUsers == 0)
+        {
+            var expiredUserExists = await dbContext.Users
+                .AnyAsync(u => u.RefreshToken == refreshToken, cancellationToken);
+
+            throw new UnauthorizedAccessException(
+                expiredUserExists
+                    ? "Refresh token is already expired"
+                    : "User with the provided refresh token does not exist.");
+        }
 
         var accessToken = JwtTokenGenerator.GenerateJwtToken(user.Id, accessTokenOptions.Value);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        return new(accessToken, user.RefreshToken);
+        return new(accessToken, newRefreshToken);
     }
 
     public async Task CleanUnactiveUsers(CancellationToken cancellationToken = default)

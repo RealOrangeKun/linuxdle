@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import apiClient, { setAuthToken } from '../api/apiClient';
+import apiClient, { refreshAccessToken, setAuthToken } from '../api/apiClient';
 
 export const useAuth = () => {
   const [token, setToken] = useState<string | null>(() => {
@@ -17,12 +16,7 @@ export const useAuth = () => {
 
       try {
         // Recover an existing session from refresh cookie before creating a new user.
-        const refreshResponse = await axios.post<string>(
-          `${import.meta.env.VITE_API_URL}/users/refresh-token`,
-          {},
-          { withCredentials: true }
-        );
-        const refreshedToken = refreshResponse.data;
+        const refreshedToken = await refreshAccessToken();
 
         setAuthToken(refreshedToken);
         setToken(refreshedToken);

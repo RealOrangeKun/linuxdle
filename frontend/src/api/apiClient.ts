@@ -12,7 +12,7 @@ let refreshInFlight: Promise<string> | null = null;
 
 const isUnauthorizedStatus = (status?: number): boolean => status === 401 || status === 403;
 
-const refreshAccessToken = async (): Promise<string> => {
+export const refreshAccessToken = async (): Promise<string> => {
   if (!refreshInFlight) {
     refreshInFlight = axios
       .post<string>(
