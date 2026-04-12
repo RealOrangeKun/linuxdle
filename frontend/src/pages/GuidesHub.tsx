@@ -20,6 +20,16 @@ const guides = [
     path: '/guides/desktop-tuning',
     summary: 'Practical desktop environment tuning for battery, RAM, startup speed, and focus while preserving usability.',
   },
+  {
+    title: 'journalctl guide for real incident response',
+    path: '/guides/journalctl',
+    summary: 'Filter systemd journal logs by service, boot, and priority to find root causes faster with less noise.',
+  },
+  {
+    title: 'systemctl service management playbook',
+    path: '/guides/systemctl',
+    summary: 'Operate Linux services safely with clear startup policy, restart discipline, and reliable rollback habits.',
+  },
 ];
 
 const GuidesHub: React.FC = () => {

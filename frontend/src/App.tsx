@@ -15,6 +15,8 @@ import GuidesHub from './pages/GuidesHub';
 import GuideCommandPipelines from './pages/GuideCommandPipelines';
 import GuideDistroReleaseModels from './pages/GuideDistroReleaseModels';
 import GuideDesktopTuning from './pages/GuideDesktopTuning';
+import GuideJournalctl from './pages/GuideJournalctl';
+import GuideSystemctl from './pages/GuideSystemctl';
 import GuideReleaseNotes from './pages/GuideReleaseNotes';
 import { useAuth } from './hooks/useAuth';
 import CountryNotSupported from './pages/CountryNotSupported';
@@ -193,6 +195,8 @@ function App() {
               <Route path="guides/command-pipelines" element={<GuideCommandPipelines />} />
               <Route path="guides/distro-release-models" element={<GuideDistroReleaseModels />} />
               <Route path="guides/desktop-tuning" element={<GuideDesktopTuning />} />
+              <Route path="guides/journalctl" element={<GuideJournalctl />} />
+              <Route path="guides/systemctl" element={<GuideSystemctl />} />
               <Route path="releases" element={<GuideReleaseNotes />} />
             </Route>
           </Routes>
