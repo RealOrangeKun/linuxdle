@@ -244,5 +244,17 @@
     "daily_desktop_environment_id": 20,
     "file_path": "wwwroot/assets/des/enlightenment/enlightenment2.png",
     "credit": "u/Lovethecreeper"
+  },
+  {
+    "id": 106,
+    "daily_desktop_environment_id": 11,
+    "file_path": "wwwroot/assets/des/cinnamon/cinnamon3.png",
+    "credit": "u/srafckz"
+  },
+  {
+    "id": 107,
+    "daily_desktop_environment_id": 2,
+    "file_path": "wwwroot/assets/des/kde-plasma/kde-plasma3.png",
+    "credit": "u/jom4d4"
   }
 ]
