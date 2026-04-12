@@ -32,7 +32,7 @@ def seed_desktop_environments(cur):
     de_data = get_desktop_environments_data()
     execute_values(
         cur,
-        "INSERT INTO daily_desktop_environments (id, name, slug, type, compositor, configuration_language, family, primary_language, release_year) VALUES %s",
+        "INSERT INTO daily_desktop_environments (id, name, slug, type, compositor, configuration_language, family, primary_language, release_year) VALUES %s ON CONFLICT DO NOTHING",
         de_data
     )
 
@@ -43,6 +43,6 @@ def seed_screenshots(cur):
     screenshots_data = get_screenshots_data()
     execute_values(
         cur,
-        "INSERT INTO desktop_environment_screenshots (id, daily_desktop_environment_id, file_path, credit) VALUES %s",
+        "INSERT INTO desktop_environment_screenshots (id, daily_desktop_environment_id, file_path, credit) VALUES %s ON CONFLICT DO NOTHING",
         screenshots_data
     )

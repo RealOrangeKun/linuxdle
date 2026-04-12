@@ -35,7 +35,11 @@ def seed_categories(cur):
     """Seed the daily_command_categories table."""
     print("Seeding 'daily_command_categories'...")
     categories_data = get_categories_data()
-    execute_values(cur, "INSERT INTO daily_command_categories (id, name) VALUES %s", categories_data)
+    execute_values(
+        cur,
+        "INSERT INTO daily_command_categories (id, name) VALUES %s ON CONFLICT DO NOTHING",
+        categories_data,
+    )
 
 
 def seed_commands(cur):
@@ -44,7 +48,7 @@ def seed_commands(cur):
     commands_data = get_commands_data()
     execute_values(
         cur,
-        "INSERT INTO daily_commands (id, name, package, origin_year, man_section, is_built_in, requires_args, is_posix) VALUES %s",
+        "INSERT INTO daily_commands (id, name, package, origin_year, man_section, is_built_in, requires_args, is_posix) VALUES %s ON CONFLICT DO NOTHING",
         commands_data
     )
 
@@ -55,6 +59,6 @@ def seed_command_categories_mapping(cur):
     cmd_cat_data = get_command_categories_mapping()
     execute_values(
         cur,
-        "INSERT INTO daily_command_daily_command_category (categories_id, commands_id) VALUES %s",
+        "INSERT INTO daily_command_daily_command_category (categories_id, commands_id) VALUES %s ON CONFLICT DO NOTHING",
         cmd_cat_data
     )

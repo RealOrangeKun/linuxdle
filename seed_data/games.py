@@ -16,4 +16,8 @@ def seed_games(cur):
     """Seed the games table."""
     print("Seeding 'games'...")
     games_data = get_games_data()
-    execute_values(cur, "INSERT INTO games (id, name) VALUES %s", games_data)
+    execute_values(
+        cur,
+        "INSERT INTO games (id, name) VALUES %s ON CONFLICT DO NOTHING",
+        games_data,
+    )

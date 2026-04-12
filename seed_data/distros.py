@@ -21,6 +21,6 @@ def seed_distros(cur):
     distros_data = get_distros_data()
     execute_values(
         cur,
-        "INSERT INTO daily_distros (id, name, slug, logo_path, base_distro, default_de, release_year) VALUES %s",
+        "INSERT INTO daily_distros (id, name, slug, logo_path, base_distro, default_de, release_year) VALUES %s ON CONFLICT DO NOTHING",
         distros_data
     )
