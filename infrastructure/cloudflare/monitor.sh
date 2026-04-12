@@ -3,7 +3,7 @@
 # This script monitors the backend and toggles Cloudflare Maintenance Mode
 # if the backend becomes unreachable.
 
-BACKEND_URL="http://backend:8080/health" # Or any public endpoint
+BACKEND_URL="http://gateway/health" # Or any public endpoint
 MAINTENANCE_SCRIPT="/app/maintenance-mode.sh"
 CHECK_INTERVAL=30
 MAX_RETRIES=3

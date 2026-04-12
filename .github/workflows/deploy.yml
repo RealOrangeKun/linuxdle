@@ -67,7 +67,10 @@ jobs:
 
       - name: Start Environment
         # Spin up compose. It will automatically use the images we just built locally.
-        run: docker compose -f docker-compose.prod.yml up -d
+        run: |
+          mkdir -p .deploy
+          printf 'server backend-blue:8080;\nserver backend-green:8080 backup;\n' > .deploy/backend-upstream.conf
+          docker compose -f docker-compose.prod.yml up -d
 
       - name: Wait for Environment
         run: sleep 15 # Allow services to start up completely 
@@ -93,18 +96,53 @@ jobs:
           docker push ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-gateway:latest
 
   deploy:
-    if: github.repository == 'RealOrangeKun/linuxdle'
+    if: github.event_name == 'push' && github.repository == 'RealOrangeKun/linuxdle'
     needs: build-test-push
     runs-on: self-hosted
     steps:
       - name: Deploy Local
         run: |
+          set -euo pipefail
           cd /home/yousseftarek/Projects/linuxdle
           git pull origin master
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          # Pull latest images
-          docker compose -f docker-compose.prod.yml pull
-          # Restart services
-          docker compose -f docker-compose.prod.yml up -d
+
+          mkdir -p .deploy
+          if [ ! -f .deploy/backend-upstream.conf ]; then
+            printf 'server backend-blue:8080;\nserver backend-green:8080 backup;\n' > .deploy/backend-upstream.conf
+          fi
+
+          active_backend=$(awk '/^server / {print $2; exit}' .deploy/backend-upstream.conf | cut -d: -f1)
+          if [ "$active_backend" = "backend-blue" ]; then
+            standby_backend="backend-green"
+            next_upstream='server backend-green:8080;\nserver backend-blue:8080 backup;'
+          else
+            standby_backend="backend-blue"
+            next_upstream='server backend-blue:8080;\nserver backend-green:8080 backup;'
+          fi
+
+          # Pull and update only the standby backend.
+          docker compose -f docker-compose.prod.yml pull "$standby_backend"
+          docker compose -f docker-compose.prod.yml up -d --no-deps "$standby_backend"
+
+          # Wait until the standby backend is healthy before switching traffic.
+          healthy=0
+          for i in $(seq 1 30); do
+            if docker exec linuxdle-gateway sh -lc "curl -fsS http://$standby_backend:8080/health >/dev/null"; then
+              healthy=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$healthy" -ne 1 ]; then
+            echo "[FAIL] Standby backend failed health check; keeping current active backend live."
+            exit 1
+          fi
+
+          # Atomically switch gateway traffic to the newly healthy backend.
+          printf '%b\n' "$next_upstream" > .deploy/backend-upstream.conf
+          docker exec linuxdle-gateway nginx -s reload
+
           # Clean up old/dangling images to save disk space
           docker image prune -f
