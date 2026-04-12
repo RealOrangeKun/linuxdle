@@ -39,30 +39,9 @@ internal sealed class UserService(
             throw new UnauthorizedAccessException("Refresh token is already expired");
         }
 
-        var newRefreshToken = User.CreateRefreshToken();
-        var newExpiration = now.AddDays(refreshTokenOptions.Value.MaxAgeDays);
-
-        var matchedUsers = await dbContext.Users
-            .Where(u => u.RefreshToken == refreshToken && u.ExpiresAt >= now)
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(u => u.RefreshToken, newRefreshToken)
-                .SetProperty(u => u.LastRefreshAt, now)
-                .SetProperty(u => u.ExpiresAt, newExpiration), cancellationToken);
-
-        if (matchedUsers == 0)
-        {
-            var expiredUserExists = await dbContext.Users
-                .AnyAsync(u => u.RefreshToken == refreshToken, cancellationToken);
-
-            throw new UnauthorizedAccessException(
-                expiredUserExists
-                    ? "Refresh token is already expired"
-                    : "User with the provided refresh token does not exist.");
-        }
-
         var accessToken = JwtTokenGenerator.GenerateJwtToken(user.Id, accessTokenOptions.Value);
 
-        return new(accessToken, newRefreshToken);
+        return new(accessToken, refreshToken);
     }
 
     public async Task CleanUnactiveUsers(CancellationToken cancellationToken = default)

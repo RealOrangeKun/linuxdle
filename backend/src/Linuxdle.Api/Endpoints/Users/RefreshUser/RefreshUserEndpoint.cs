@@ -1,4 +1,3 @@
-using Linuxdle.Api.Extensions;
 using Linuxdle.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -20,16 +19,14 @@ internal sealed class RefreshUserEndpoint : IEndpoint
         CancellationToken cancellationToken)
     {
         var refreshTokenOptions = options.Value;
-        string? oldRefreshToken = context.Request.Cookies[refreshTokenOptions.CookieName];
+        string? refreshToken = context.Request.Cookies[refreshTokenOptions.CookieName];
 
-        if (oldRefreshToken is null)
+        if (refreshToken is null)
         {
             return Results.Unauthorized();
         }
 
-        var tokens = await userService.RefreshUserToken(oldRefreshToken, cancellationToken);
-
-        context.Response.AppendRefreshToken(tokens.RefreshToken, refreshTokenOptions);
+        var tokens = await userService.RefreshUserToken(refreshToken, cancellationToken);
 
         return Results.Ok(tokens.AccessToken);
     }
