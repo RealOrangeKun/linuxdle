@@ -121,6 +121,10 @@ jobs:
             next_upstream='server backend-blue:8080;\nserver backend-green:8080 backup;'
           fi
 
+          # Pull and update frontend and gateway so production serves latest UI and routing config.
+          docker compose -f docker-compose.prod.yml pull frontend gateway
+          docker compose -f docker-compose.prod.yml up -d --no-deps frontend gateway
+
           # Pull and update only the standby backend.
           docker compose -f docker-compose.prod.yml pull "$standby_backend"
           docker compose -f docker-compose.prod.yml up -d --no-deps "$standby_backend"
