@@ -67,6 +67,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseExceptionHandler();
+
 app.UseRouting();
 
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
