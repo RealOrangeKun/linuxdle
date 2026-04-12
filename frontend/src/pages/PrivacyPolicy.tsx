@@ -7,7 +7,8 @@ const PrivacyPolicy: React.FC = () => {
     <>
       <SEO 
         title="Privacy Policy | Linuxdle" 
-        description="Privacy policy and data collection practices for Linuxdle." 
+        description="Privacy policy and data collection practices for Linuxdle."
+        noindex
       />
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.paper', border: 1, borderColor: 'divider', wordBreak: 'break-word' }}>
@@ -18,7 +19,7 @@ const PrivacyPolicy: React.FC = () => {
             <Divider sx={{ mb: 3 }} />
             
             <Typography variant="body2" color="text.secondary" paragraph>
-              Last updated: {new Date().toLocaleDateString()}
+              Last updated: April 12, 2026
             </Typography>
             
             <Typography variant="body1" paragraph>
@@ -27,7 +28,7 @@ const PrivacyPolicy: React.FC = () => {
             </Typography>
             
             <Typography variant="body1" paragraph>
-              When you visit our website https://linuxdle.com, and more generally, use any of our services, we appreciate that you are trusting us with your personal information. 
+              When you visit our website https://linuxdle.site, and more generally, use any of our services, we appreciate that you are trusting us with your personal information. 
               We take your privacy very seriously. In this privacy notice, we seek to explain to you in the clearest way possible what information we collect, how we use it and what rights you have in relation to it.
             </Typography>
           </Box>

@@ -80,6 +80,7 @@ const ContactUs: React.FC = () => {
       <SEO 
         title="Contact Us | Linuxdle" 
         description="Contact the Linuxdle team to submit a bug, request a new command, distribution, or desktop environment." 
+        noindex
       />
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>

@@ -7,7 +7,8 @@ const TermsOfService: React.FC = () => {
     <>
       <SEO 
         title="Terms of Service | Linuxdle" 
-        description="Terms of Service and legal agreements for using Linuxdle." 
+        description="Terms of Service and legal agreements for using Linuxdle."
+        noindex
       />
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.paper', border: 1, borderColor: 'divider', wordBreak: 'break-word' }}>
@@ -18,7 +19,7 @@ const TermsOfService: React.FC = () => {
             <Divider sx={{ mb: 3 }} />
             
             <Typography variant="body2" color="text.secondary" paragraph>
-              Last updated: {new Date().toLocaleDateString()}
+              Last updated: April 12, 2026
             </Typography>
             
             <Typography variant="body1" paragraph>

@@ -11,6 +11,11 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import ManPage from './pages/ManPage';
 import ContactUs from './pages/ContactUs';
+import GuidesHub from './pages/GuidesHub';
+import GuideCommandPipelines from './pages/GuideCommandPipelines';
+import GuideDistroReleaseModels from './pages/GuideDistroReleaseModels';
+import GuideDesktopTuning from './pages/GuideDesktopTuning';
+import GuideReleaseNotes from './pages/GuideReleaseNotes';
 import { useAuth } from './hooks/useAuth';
 
 
@@ -142,6 +147,11 @@ function App() {
               <Route path="terms" element={<TermsOfService />} />
               <Route path="man" element={<ManPage />} />
               <Route path="contact" element={<ContactUs />} />
+              <Route path="guides" element={<GuidesHub />} />
+              <Route path="guides/command-pipelines" element={<GuideCommandPipelines />} />
+              <Route path="guides/distro-release-models" element={<GuideDistroReleaseModels />} />
+              <Route path="guides/desktop-tuning" element={<GuideDesktopTuning />} />
+              <Route path="releases" element={<GuideReleaseNotes />} />
             </Route>
           </Routes>
         </Router>

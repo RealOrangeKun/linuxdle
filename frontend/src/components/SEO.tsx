@@ -7,6 +7,7 @@ interface SEOProps {
   keywords?: string;
   image?: string;
   url?: string;
+  noindex?: boolean;
 }
 
 const defaultSEO = {
@@ -17,7 +18,7 @@ const defaultSEO = {
   baseUrl: 'https://linuxdle.site',
 };
 
-export function SEO({ title, description, keywords, image, url }: SEOProps) {
+export function SEO({ title, description, keywords, image, url, noindex = false }: SEOProps) {
   const location = useLocation();
 
   const seoTitle = title || defaultSEO.title;
@@ -49,6 +50,7 @@ export function SEO({ title, description, keywords, image, url }: SEOProps) {
     // Update primary meta tags
     updateMetaTag('meta[name="description"]', seoDescription);
     updateMetaTag('meta[name="keywords"]', seoKeywords);
+    updateMetaTag('meta[name="robots"]', noindex ? 'noindex, nofollow' : 'index, follow');
 
     // Update Open Graph tags
     updateMetaTag('meta[property="og:title"]', seoTitle);
@@ -72,7 +74,7 @@ export function SEO({ title, description, keywords, image, url }: SEOProps) {
       canonical.href = seoUrl;
       document.head.appendChild(canonical);
     }
-  }, [seoTitle, seoDescription, seoKeywords, seoImage, seoUrl]);
+  }, [seoTitle, seoDescription, seoKeywords, seoImage, seoUrl, noindex]);
 
   return null; // This component doesn't render anything
 }

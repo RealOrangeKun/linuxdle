@@ -6,6 +6,7 @@ import { ColorModeContext } from '../App';
 import apiClient from '../api/apiClient';
 import SupportDialog, { EVENT_NAME, markSupportDialogShown, shouldShowSupportDialog } from './SupportDialog';
 import type { SupportDialogReason } from './SupportDialog';
+import AdSenseLoader from './AdSenseLoader';
 
 const STREAK_STORAGE_KEY = 'linuxdle_current_streak';
 const GAME_STATE_KEYS = ['linuxdle_commands_state', 'linuxdle_distros_state', 'linuxdle_des_state'] as const;
@@ -149,6 +150,7 @@ const Layout: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AdSenseLoader />
       <AppBar position="static" color="inherit" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Container maxWidth="lg">
           <Toolbar disableGutters>
@@ -224,7 +226,6 @@ const Layout: React.FC = () => {
               >
                 ./des
               </Button>
-              
               <IconButton
                 onClick={() => navigate('/man')}
                 color="inherit"
@@ -282,6 +283,12 @@ const Layout: React.FC = () => {
               </Typography>
               <Typography component={RouterLink} to="/contact" variant="body2" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
                 Contact Us
+              </Typography>
+              <Typography component={RouterLink} to="/releases" variant="body2" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
+                Releases
+              </Typography>
+              <Typography component={RouterLink} to="/guides" variant="body2" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
+                Guides
               </Typography>
               <Typography
                 component="a"

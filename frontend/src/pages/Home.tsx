@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Grid, Card, CardContent, CardActionArea, Box, Divider } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, CardActionArea, Box, Divider, Stack } from '@mui/material';
+import { AutoStories, NewReleases } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import CountdownTimer from '../components/CountdownTimer';
 import { dispatchSupportDialog } from '../components/SupportDialog';
@@ -142,6 +143,87 @@ const Home: React.FC = () => {
         <Typography variant="body1">
           Explore the modules above to start guessing. Good luck!
         </Typography>
+      </Box>
+
+      <Box mt={6} pt={4} borderTop={1} borderColor="divider">
+        <Typography variant="h5" component="h2" fontWeight="bold" sx={{ color: 'secondary.main', mb: 2 }}>
+          {`[DOCS] LINUX_GUIDES`}
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Beyond daily puzzles, Linuxdle now includes original long-form guides on commands, distributions, desktop tuning,
+          and public release notes. These are written for practical learning and updated as the ecosystem evolves.
+        </Typography>
+        <Card variant="outlined" sx={{ maxWidth: 720 }}>
+          <CardActionArea onClick={() => navigate('/guides')}>
+            <CardContent>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: 1,
+                    borderColor: 'divider',
+                    bgcolor: 'background.default',
+                    flexShrink: 0,
+                  }}
+                >
+                  <AutoStories sx={{ color: 'primary.main' }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ color: 'primary.main' }}>
+                    Linux Guides
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Open editorial tutorials, comparison writeups, and release notes written for readers.
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </CardActionArea>
+        </Card>
+      </Box>
+
+      <Box mt={6} pt={4} borderTop={1} borderColor="divider">
+        <Typography variant="h5" component="h2" fontWeight="bold" sx={{ color: 'secondary.main', mb: 2 }}>
+          {`[UPDATES] RELEASES_ARCHIVE`}
+        </Typography>
+        <Typography variant="body1" paragraph>
+          A separate archive for dated Linuxdle release notes. Each entry is clickable and shows the changes shipped in that version.
+        </Typography>
+        <Card variant="outlined" sx={{ maxWidth: 720 }}>
+          <CardActionArea onClick={() => navigate('/releases')}>
+            <CardContent>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: 1,
+                    borderColor: 'divider',
+                    bgcolor: 'background.default',
+                    flexShrink: 0,
+                  }}
+                >
+                  <NewReleases sx={{ color: 'primary.main' }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ color: 'primary.main' }}>
+                    Linuxdle Releases
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Open the dated release archive for product updates and changelog entries.
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </CardActionArea>
+        </Card>
       </Box>
     </Container>
     </>
