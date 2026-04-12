@@ -10,24 +10,124 @@ const apiClient = axios.create({
 
 let refreshInFlight: Promise<string> | null = null;
 
+const REFRESH_LOCK_KEY = 'linuxdle_refresh_lock';
+const REFRESH_LOCK_TTL_MS = 10000;
+const REFRESH_WAIT_TIMEOUT_MS = 12000;
+const REFRESH_WAIT_INTERVAL_MS = 150;
+const TAB_ID = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+type RefreshLock = {
+  owner: string;
+  expiresAt: number;
+};
+
 const isUnauthorizedStatus = (status?: number): boolean => status === 401 || status === 403;
+
+const parseRefreshLock = (value: string | null): RefreshLock | null => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(value) as RefreshLock;
+  } catch {
+    return null;
+  }
+};
+
+const getRefreshLock = (): RefreshLock | null => {
+  const lock = parseRefreshLock(localStorage.getItem(REFRESH_LOCK_KEY));
+
+  if (!lock) {
+    return null;
+  }
+
+  if (lock.expiresAt <= Date.now()) {
+    localStorage.removeItem(REFRESH_LOCK_KEY);
+    return null;
+  }
+
+  return lock;
+};
+
+const tryAcquireRefreshLock = (): boolean => {
+  const existing = getRefreshLock();
+
+  if (existing && existing.owner !== TAB_ID) {
+    return false;
+  }
+
+  const lock: RefreshLock = {
+    owner: TAB_ID,
+    expiresAt: Date.now() + REFRESH_LOCK_TTL_MS,
+  };
+
+  localStorage.setItem(REFRESH_LOCK_KEY, JSON.stringify(lock));
+
+  const stored = getRefreshLock();
+  return stored?.owner === TAB_ID;
+};
+
+const releaseRefreshLock = () => {
+  const current = getRefreshLock();
+  if (current?.owner === TAB_ID) {
+    localStorage.removeItem(REFRESH_LOCK_KEY);
+  }
+};
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForRefreshFromAnotherTab = async (): Promise<string | null> => {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < REFRESH_WAIT_TIMEOUT_MS) {
+    const lock = getRefreshLock();
+
+    if (!lock) {
+      return localStorage.getItem('linuxdle_token');
+    }
+
+    await delay(REFRESH_WAIT_INTERVAL_MS);
+  }
+
+  return null;
+};
 
 export const refreshAccessToken = async (): Promise<string> => {
   if (!refreshInFlight) {
-    refreshInFlight = axios
-      .post<string>(
+    refreshInFlight = (async () => {
+      if (tryAcquireRefreshLock()) {
+        try {
+          const response = await axios.post<string>(
+            `${import.meta.env.VITE_API_URL}/users/refresh-token`,
+            {},
+            { withCredentials: true }
+          );
+          const accessToken = response.data;
+          setAuthToken(accessToken);
+          return accessToken;
+        } finally {
+          releaseRefreshLock();
+        }
+      }
+
+      const tokenFromAnotherTab = await waitForRefreshFromAnotherTab();
+      if (tokenFromAnotherTab) {
+        setAuthToken(tokenFromAnotherTab);
+        return tokenFromAnotherTab;
+      }
+
+      const response = await axios.post<string>(
         `${import.meta.env.VITE_API_URL}/users/refresh-token`,
         {},
         { withCredentials: true }
-      )
-      .then((response) => {
-        const accessToken = response.data;
-        setAuthToken(accessToken);
-        return accessToken;
-      })
-      .finally(() => {
-        refreshInFlight = null;
-      });
+      );
+      const accessToken = response.data;
+      setAuthToken(accessToken);
+      return accessToken;
+    })().finally(() => {
+      refreshInFlight = null;
+    });
   }
 
   return refreshInFlight;
