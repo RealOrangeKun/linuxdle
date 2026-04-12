@@ -9,6 +9,7 @@ const apiClient = axios.create({
 });
 
 let refreshInFlight: Promise<string> | null = null;
+const COUNTRY_BLOCKED_KEY = 'linuxdle_country_blocked';
 
 const REFRESH_LOCK_KEY = 'linuxdle_refresh_lock';
 const REFRESH_LOCK_TTL_MS = 10000;
@@ -22,6 +23,50 @@ type RefreshLock = {
 };
 
 const isUnauthorizedStatus = (status?: number): boolean => status === 401 || status === 403;
+
+export const setCountryBlocked = (blocked: boolean) => {
+  if (blocked) {
+    localStorage.setItem(COUNTRY_BLOCKED_KEY, '1');
+  } else {
+    localStorage.removeItem(COUNTRY_BLOCKED_KEY);
+  }
+};
+
+export const isCountryBlocked = (): boolean => localStorage.getItem(COUNTRY_BLOCKED_KEY) === '1';
+
+const buildHealthUrl = (): string => {
+  const baseUrl = String(import.meta.env.VITE_API_URL ?? '').trim();
+  if (!baseUrl) {
+    return '/health';
+  }
+
+  if (baseUrl.endsWith('/api')) {
+    return `${baseUrl.slice(0, -4)}/health`;
+  }
+
+  return `${baseUrl}/health`;
+};
+
+export const probeCountryRestriction = async (): Promise<boolean> => {
+  try {
+    const response = await axios.get(buildHealthUrl(), {
+      withCredentials: true,
+      validateStatus: () => true,
+    });
+
+    const blocked = response.status === 451;
+    setCountryBlocked(blocked);
+
+    if (blocked) {
+      setAuthToken(null);
+      window.dispatchEvent(new Event('geo:blocked'));
+    }
+
+    return blocked;
+  } catch {
+    return isCountryBlocked();
+  }
+};
 
 const parseRefreshLock = (value: string | null): RefreshLock | null => {
   if (!value) {
@@ -151,8 +196,18 @@ export const setAuthToken = (token: string | null) => {
 
 // Response interceptor to handle token expiration
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    setCountryBlocked(false);
+    return response;
+  },
   async (error) => {
+    if (error.response?.status === 451) {
+      setCountryBlocked(true);
+      setAuthToken(null);
+      window.dispatchEvent(new Event('geo:blocked'));
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config as {
       _retry?: boolean;
       headers?: Record<string, string>;

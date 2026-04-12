@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import apiClient, { refreshAccessToken, setAuthToken } from '../api/apiClient';
+import apiClient, { refreshAccessToken, setAuthToken, setCountryBlocked } from '../api/apiClient';
 
 export const useAuth = () => {
   const [token, setToken] = useState<string | null>(() => {
@@ -18,11 +18,19 @@ export const useAuth = () => {
         // Recover an existing session from refresh cookie before creating a new user.
         const refreshedToken = await refreshAccessToken();
 
+        setCountryBlocked(false);
         setAuthToken(refreshedToken);
         setToken(refreshedToken);
         return;
       } catch (refreshError: unknown) {
         const status = (refreshError as { response?: { status?: number } }).response?.status;
+
+        if (status === 451) {
+          setCountryBlocked(true);
+          window.dispatchEvent(new Event('geo:blocked'));
+          setLoading(false);
+          return;
+        }
 
         // Only register a new user when there is no valid refresh session.
         if (status !== 401 && status !== 403) {
@@ -36,10 +44,17 @@ export const useAuth = () => {
         const response = await apiClient.post<string>('/users');
         const accessToken = response.data;
         
+        setCountryBlocked(false);
         setAuthToken(accessToken);
         setToken(accessToken);
       } catch (error) {
-        console.error('Failed to register user:', error);
+        const status = (error as { response?: { status?: number } }).response?.status;
+        if (status === 451) {
+          setCountryBlocked(true);
+          window.dispatchEvent(new Event('geo:blocked'));
+        } else {
+          console.error('Failed to register user:', error);
+        }
       } finally {
         setLoading(false);
       }

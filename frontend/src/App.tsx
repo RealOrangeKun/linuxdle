@@ -1,4 +1,4 @@
-import { useState, useMemo, createContext } from 'react';
+import { useState, useMemo, createContext, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress, useMediaQuery } from '@mui/material';
 import Layout from './components/Layout';
@@ -17,6 +17,8 @@ import GuideDistroReleaseModels from './pages/GuideDistroReleaseModels';
 import GuideDesktopTuning from './pages/GuideDesktopTuning';
 import GuideReleaseNotes from './pages/GuideReleaseNotes';
 import { useAuth } from './hooks/useAuth';
+import CountryNotSupported from './pages/CountryNotSupported';
+import { isCountryBlocked, probeCountryRestriction } from './api/apiClient';
 
 
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
@@ -24,6 +26,8 @@ export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 function App() {
   const { loading } = useAuth();
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const [countryBlocked, setCountryBlocked] = useState<boolean>(() => isCountryBlocked());
+  const [countryCheckLoading, setCountryCheckLoading] = useState(true);
   
   const [mode, setMode] = useState<'light' | 'dark'>(() => {
     const savedMode = localStorage.getItem('linuxdle_theme_mode');
@@ -123,11 +127,49 @@ function App() {
     [mode],
   );
 
-  if (loading) {
+  useEffect(() => {
+    const handleGeoBlocked = () => setCountryBlocked(true);
+
+    window.addEventListener('geo:blocked', handleGeoBlocked);
+    return () => window.removeEventListener('geo:blocked', handleGeoBlocked);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const runCountryProbe = async () => {
+      const blocked = await probeCountryRestriction();
+      if (!active) {
+        return;
+      }
+
+      setCountryBlocked(blocked);
+      setCountryCheckLoading(false);
+    };
+
+    runCountryProbe();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (loading || countryCheckLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh" bgcolor={mode === 'dark' ? '#0D1117' : '#F0F0F0'}>
         <CircularProgress color="primary" />
       </Box>
+    );
+  }
+
+  if (countryBlocked) {
+    return (
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <CountryNotSupported />
+        </ThemeProvider>
+      </ColorModeContext.Provider>
     );
   }
 
