@@ -4,6 +4,7 @@ using HealthChecks.UI.Client;
 using Linuxdle.Api.ExceptionHandlers;
 using Linuxdle.Api.Extensions;
 using Linuxdle.Api.Health;
+using Linuxdle.Api.Middleware;
 using Linuxdle.Infrastructure.Extensions;
 using Linuxdle.Services.Extensions;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -74,6 +75,8 @@ app.UseRouting();
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.UseCors();
+
+app.UseMiddleware<CountryRestrictionMiddleware>();
 
 app.UseAuthentication();
 
