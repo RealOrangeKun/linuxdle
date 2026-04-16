@@ -256,5 +256,149 @@
     "daily_desktop_environment_id": 2,
     "file_path": "wwwroot/assets/des/kde-plasma/kde-plasma3.png",
     "credit": "u/jom4d4"
+  },
+  {
+    "id": 108,
+    "daily_desktop_environment_id": 9,
+    "file_path": "wwwroot/assets/des/awesome/awesome3.png",
+    "credit": "u/szorfein"
+  },
+  {
+    "id": 109,
+    "daily_desktop_environment_id": 9,
+    "file_path": "wwwroot/assets/des/awesome/awesome4.png",
+    "credit": "u/Lorago123"
+  },
+  {
+    "id": 110,
+    "daily_desktop_environment_id": 7,
+    "file_path": "wwwroot/assets/des/bspwm/bspwm3.png",
+    "credit": "u/Unnat_297"
+  },
+  {
+    "id": 111,
+    "daily_desktop_environment_id": 7,
+    "file_path": "wwwroot/assets/des/bspwm/bspwm4.png",
+    "credit": "u/[deleted]"
+  },
+  {
+    "id": 112,
+    "daily_desktop_environment_id": 16,
+    "file_path": "wwwroot/assets/des/budgie/budgie3.png",
+    "credit": "u/Literature-Flimsy"
+  },
+  {
+    "id": 113,
+    "daily_desktop_environment_id": 16,
+    "file_path": "wwwroot/assets/des/budgie/budgie4.png",
+    "credit": "u/[deleted]"
+  },
+  {
+    "id": 114,
+    "daily_desktop_environment_id": 8,
+    "file_path": "wwwroot/assets/des/cosmic/cosmic3.png",
+    "credit": "u/slowdownanddrive"
+  },
+  {
+    "id": 115,
+    "daily_desktop_environment_id": 8,
+    "file_path": "wwwroot/assets/des/cosmic/cosmic4.png",
+    "credit": "u/The_River25"
+  },
+  {
+    "id": 116,
+    "daily_desktop_environment_id": 15,
+    "file_path": "wwwroot/assets/des/dwm/dwm3.png",
+    "credit": "u/pearcidar43"
+  },
+  {
+    "id": 117,
+    "daily_desktop_environment_id": 15,
+    "file_path": "wwwroot/assets/des/dwm/dwm4.png",
+    "credit": "u/koehr"
+  },
+  {
+    "id": 118,
+    "daily_desktop_environment_id": 20,
+    "file_path": "wwwroot/assets/des/enlightenment/enlightenment3.png",
+    "credit": "u/Lovethecreeper"
+  },
+  {
+    "id": 119,
+    "daily_desktop_environment_id": 20,
+    "file_path": "wwwroot/assets/des/enlightenment/enlightenment4.png",
+    "credit": "u/FabTheRedditor"
+  },
+  {
+    "id": 120,
+    "daily_desktop_environment_id": 19,
+    "file_path": "wwwroot/assets/des/fluxbox/fluxbox3.png",
+    "credit": "u/[deleted]"
+  },
+  {
+    "id": 121,
+    "daily_desktop_environment_id": 19,
+    "file_path": "wwwroot/assets/des/fluxbox/fluxbox4.png",
+    "credit": "u/xexpanderx"
+  },
+  {
+    "id": 122,
+    "daily_desktop_environment_id": 1,
+    "file_path": "wwwroot/assets/des/gnome/gnome3.png",
+    "credit": "u/syver34"
+  },
+  {
+    "id": 123,
+    "daily_desktop_environment_id": 1,
+    "file_path": "wwwroot/assets/des/gnome/gnome4.png",
+    "credit": "u/Firm-Calligrapher-32"
+  },
+  {
+    "id": 124,
+    "daily_desktop_environment_id": 18,
+    "file_path": "wwwroot/assets/des/herbstluftwm/herbstluftwm3.png",
+    "credit": "u/pradyungn"
+  },
+  {
+    "id": 125,
+    "daily_desktop_environment_id": 18,
+    "file_path": "wwwroot/assets/des/herbstluftwm/herbstluftwm4.png",
+    "credit": "u/chiyeonn"
+  },
+  {
+    "id": 126,
+    "daily_desktop_environment_id": 3,
+    "file_path": "wwwroot/assets/des/hyprland/hyprland3.png",
+    "credit": "u/bworneed"
+  },
+  {
+    "id": 127,
+    "daily_desktop_environment_id": 3,
+    "file_path": "wwwroot/assets/des/hyprland/hyprland4.png",
+    "credit": "u/Old_School5170"
+  },
+  {
+    "id": 128,
+    "daily_desktop_environment_id": 5,
+    "file_path": "wwwroot/assets/des/i3/i33.png",
+    "credit": "u/SuwaYuzuru"
+  },
+  {
+    "id": 129,
+    "daily_desktop_environment_id": 5,
+    "file_path": "wwwroot/assets/des/i3/i34.png",
+    "credit": "u/[deleted]"
+  },
+  {
+    "id": 130,
+    "daily_desktop_environment_id": 13,
+    "file_path": "wwwroot/assets/des/lxqt/lxqt3.png",
+    "credit": "u/[deleted]"
+  },
+  {
+    "id": 131,
+    "daily_desktop_environment_id": 13,
+    "file_path": "wwwroot/assets/des/lxqt/lxqt4.png",
+    "credit": "u/Working_Celery"
   }
 ]
