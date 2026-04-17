@@ -16,6 +16,7 @@ interface GuideArticleLayoutProps {
   keywords: string;
   toc: TocItem[];
   children: React.ReactNode;
+  showGuidesHubLink?: boolean;
 }
 
 const GuideArticleLayout: React.FC<GuideArticleLayoutProps> = ({
@@ -26,6 +27,7 @@ const GuideArticleLayout: React.FC<GuideArticleLayoutProps> = ({
   keywords,
   toc,
   children,
+  showGuidesHubLink = true,
 }) => {
   return (
     <>
@@ -74,9 +76,11 @@ const GuideArticleLayout: React.FC<GuideArticleLayoutProps> = ({
 
           <Divider sx={{ mt: 4, mb: 2 }} />
 
-          <Typography variant="body2" color="text.secondary">
-            Read more in the <Typography component={RouterLink} to="/guides" sx={{ color: 'primary.main' }}>Linuxdle Guides Hub</Typography>.
-          </Typography>
+          {showGuidesHubLink && (
+            <Typography variant="body2" color="text.secondary">
+              Read more in the <Typography component={RouterLink} to="/guides" sx={{ color: 'primary.main' }}>Linuxdle Guides Hub</Typography>.
+            </Typography>
+          )}
         </Paper>
       </Container>
     </>

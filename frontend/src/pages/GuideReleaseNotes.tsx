@@ -5,6 +5,17 @@ import GuideArticleLayout from '../components/GuideArticleLayout';
 
 const releases = [
   {
+    id: 'release-2026-04-16',
+    date: '2026-04-16',
+    title: 'Release 2026.04.16',
+    summary: 'SEO prerendering and desktop environment content refresh',
+    bullets: [
+      'Added prerendering script for SEO optimization and updated the frontend build process (ff3ca92).',
+      'Added new desktop environment assets and refreshed screenshots data for broader coverage (275393a).',
+      'Updated the BSPWM screenshot asset to improve visual quality (6940b90).',
+    ],
+  },
+  {
     id: 'release-2026-04',
     date: '2026-04-12',
     title: 'Release 2026.04',
@@ -72,10 +83,11 @@ const GuideReleaseNotes: React.FC = () => {
     <GuideArticleLayout
       title="Linuxdle Releases"
       description="A dated, clickable archive of Linuxdle releases and the changes shipped in each one."
-      updatedOn="April 12, 2026"
+      updatedOn="April 16, 2026"
       author="Linuxdle Editorial"
       keywords="linuxdle releases, changelog, release archive, product updates"
       toc={releases.map((release) => ({ id: release.id, label: `${release.date} - ${release.title}` }))}
+      showGuidesHubLink={false}
     >
       <Typography sx={{ mb: 3 }}>
         Each release below is clickable. Open one to see the dated change set, grouped by the work that shipped in that version.
