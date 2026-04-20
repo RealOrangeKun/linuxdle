@@ -315,9 +315,10 @@ const DailyCommands: React.FC = () => {
                     setInputValue(firstOption);
                   }
                 } else if (e.key === 'Enter') {
-                  if (!autocompleteOpen) return;
-                  // Prefer highlighted option (arrow key nav), fall back to first match
-                  const toSubmit = highlightedOptionRef.current ?? firstOption;
+                  // When popup is open, prefer highlighted option; when closed, submit the selected guess.
+                  const toSubmit = autocompleteOpen
+                    ? highlightedOptionRef.current ?? selectedGuess ?? firstOption
+                    : selectedGuess;
                   if (toSubmit) {
                     e.preventDefault();
                     handleSubmitGuess(toSubmit);

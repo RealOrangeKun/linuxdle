@@ -484,8 +484,9 @@ const DailyDesktopEnvironments: React.FC = () => {
                     setInputValue(firstOption.name);
                   }
                 } else if (e.key === 'Enter') {
-                  if (!autocompleteOpen) return;
-                  const toSubmit = highlightedOptionRef.current ?? firstOption;
+                  const toSubmit = autocompleteOpen
+                    ? highlightedOptionRef.current ?? selectedGuess ?? firstOption
+                    : selectedGuess;
                   if (toSubmit) {
                     e.preventDefault();
                     handleSubmitGuess(toSubmit);
