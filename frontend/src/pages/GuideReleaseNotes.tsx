@@ -5,6 +5,16 @@ import GuideArticleLayout from '../components/GuideArticleLayout';
 
 const releases = [
   {
+    id: 'release-2026-04-20',
+    date: '2026-04-20',
+    title: 'Release 2026.04.20',
+    summary: 'Autocomplete Enter behavior consistency improvements',
+    bullets: [
+      'Fixed suggestion list submission flow so Enter works consistently after mouse selection in Daily Commands, Daily Distros, and Daily Desktop Environments.',
+      'Updated keyboard handling to prefer highlighted items while suggestions are open, and selected items when the list is closed.',
+    ],
+  },
+  {
     id: 'release-2026-04-16',
     date: '2026-04-16',
     title: 'Release 2026.04.16',
@@ -77,13 +87,13 @@ const releases = [
 ];
 
 const GuideReleaseNotes: React.FC = () => {
-  const [expanded, setExpanded] = useState<string | false>('release-2026-04');
+  const [expanded, setExpanded] = useState<string | false>(releases[0]?.id ?? false);
 
   return (
     <GuideArticleLayout
       title="Linuxdle Releases"
       description="A dated, clickable archive of Linuxdle releases and the changes shipped in each one."
-      updatedOn="April 16, 2026"
+      updatedOn="April 20, 2026"
       author="Linuxdle Editorial"
       keywords="linuxdle releases, changelog, release archive, product updates"
       toc={releases.map((release) => ({ id: release.id, label: `${release.date} - ${release.title}` }))}
