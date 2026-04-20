@@ -17,6 +17,7 @@ import GuideDistroReleaseModels from './pages/GuideDistroReleaseModels';
 import GuideDesktopTuning from './pages/GuideDesktopTuning';
 import GuideJournalctl from './pages/GuideJournalctl';
 import GuideSystemctl from './pages/GuideSystemctl';
+import GuideXdgDesktopPortals from './pages/GuideXdgDesktopPortals';
 import GuideReleaseNotes from './pages/GuideReleaseNotes';
 import { useAuth } from './hooks/useAuth';
 import CountryNotSupported from './pages/CountryNotSupported';
@@ -197,6 +198,7 @@ function App() {
               <Route path="guides/desktop-tuning" element={<GuideDesktopTuning />} />
               <Route path="guides/journalctl" element={<GuideJournalctl />} />
               <Route path="guides/systemctl" element={<GuideSystemctl />} />
+              <Route path="guides/xdg-desktop-portals" element={<GuideXdgDesktopPortals />} />
               <Route path="releases" element={<GuideReleaseNotes />} />
             </Route>
           </Routes>

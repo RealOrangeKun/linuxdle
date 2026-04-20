@@ -6,6 +6,11 @@ import { SEO } from '../components/SEO';
 
 const guides = [
   {
+    title: 'XDG Desktop Portals: the hidden plumbing of modern Linux apps',
+    path: '/guides/xdg-desktop-portals',
+    summary: 'Learn how portals power file pickers, screen sharing, and sandbox permissions across Wayland sessions.',
+  },
+  {
     title: 'grep vs sed vs awk in real workflows',
     path: '/guides/command-pipelines',
     summary: 'Learn when each tool shines, where teams usually overcomplicate text processing, and how to keep pipelines maintainable.',
