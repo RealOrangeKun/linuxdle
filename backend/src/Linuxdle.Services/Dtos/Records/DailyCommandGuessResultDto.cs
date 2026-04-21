@@ -4,7 +4,8 @@ namespace Linuxdle.Services.Dtos.Records;
 
 public sealed record DailyCommandGuessResultDto(
     DailyCommandMatchResults MatchResults,
-    GuessCommandDetails GuessCommandDetails
+    GuessCommandDetails GuessCommandDetails,
+    CommandInfoDetails? Info
 );
 
 public sealed record DailyCommandMatchResults(
@@ -28,4 +29,11 @@ public sealed record GuessCommandDetails(
     bool RequiresArgs,
     bool IsPosix,
     IEnumerable<string> Categories
+);
+
+public sealed record CommandInfoDetails(
+    string Description,
+    string Synopsis,
+    string Example,
+    string FunFact
 );

@@ -23,10 +23,10 @@ internal sealed class DailyCommandService(
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var (puzzleId, target) = await GetDailyTargetAsync(today, cancellationToken);
-        
+
         bool hasGivenUp = await dbContext.UserGiveUps
             .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId && ug.Date == today, cancellationToken);
-            
+
         if (hasGivenUp)
             throw new BadRequestException("You have already given up today.");
 
@@ -53,8 +53,23 @@ internal sealed class DailyCommandService(
             cancellationToken: cancellationToken)
             ?? throw new NotFoundException($"Command '{userGuess}' not found");
 
-        var result = DailyCommandGuessResultCalculator.CalculateResults(target, guess);
-        var isCorrect = result.MatchResults.IsCorrect;
+        var isCorrect = target.Id == guess.Id;
+
+        CommandInfoDetails? info = null;
+        if (isCorrect)
+        {
+            info = await hybridCache.GetOrCreateAsync(
+                CacheKeys.CommandInfoByCommandId(target.Id),
+                async cancel => await dbContext.CommandInfos
+                    .Where(ci => ci.CommandId == target.Id)
+                    .Select(ci => new CommandInfoDetails(ci.Description, ci.Synopsis, ci.Example, ci.FunFact))
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(cancel),
+                options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+                cancellationToken: cancellationToken);
+        }
+
+        var result = DailyCommandGuessResultCalculator.CalculateResults(target, guess, info);
 
         dbContext.UserGuesses.Add(UserGuess.Create(userId, puzzleId, GameIds.DailyCommands, today, target.Id, isCorrect));
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -152,7 +167,7 @@ internal sealed class DailyCommandService(
             options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DailyContent },
             cancellationToken: cancellationToken);
     }
-    
+
     public async Task<DailyCommandDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);

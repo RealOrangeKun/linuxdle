@@ -9,6 +9,7 @@ internal static class CacheKeys
 
     public static string DailyCommandTarget(DateOnly date) => $"daily_command_target_{date:yyyy-MM-dd}";
     public static string CommandByName(string name) => $"command_{name.ToLower()}";
+    public static string CommandInfoByCommandId(int commandId) => $"command_info_{commandId}";
     public static string AllCommandNames => "all_command_names";
 
     public static string AllGameIds => "all_game_ids";

@@ -5,7 +5,7 @@ namespace Linuxdle.Services.DailyCommands;
 
 internal static class DailyCommandGuessResultCalculator
 {
-    public static DailyCommandGuessResultDto CalculateResults(DailyCommandDto target, DailyCommandDto guess)
+    public static DailyCommandGuessResultDto CalculateResults(DailyCommandDto target, DailyCommandDto guess, CommandInfoDetails? info = null)
     {
         var isCorrect = target.Id == guess.Id;
 
@@ -32,7 +32,7 @@ internal static class DailyCommandGuessResultCalculator
             Categories: guess.CategoryNames
         );
 
-        return new DailyCommandGuessResultDto(matchResults, guessDetails);
+        return new DailyCommandGuessResultDto(matchResults, guessDetails, isCorrect ? info : null);
     }
 
     private static MatchResult EvaluateCategories(HashSet<int> targetCatIds, HashSet<int> guessCatIds)
