@@ -16,7 +16,6 @@ import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
 import { useGameSettings } from '../hooks/useGameSettings';
 import { useMidnightReload } from '../hooks/useMidnightReload';
-import FirstTryFeedback from '../components/FirstTryFeedback';
 
 interface CommandResult {
   matchResults: {
@@ -40,6 +39,12 @@ interface CommandResult {
     isPosix: boolean;
     categories: string[];
   };
+  info: {
+    description: string;
+    synopsis: string;
+    example: string;
+    funFact: string;
+  } | null;
 }
 
 interface YesterdaysCommand {
@@ -56,7 +61,6 @@ interface YesterdaysCommand {
 }
 
 const STORAGE_KEY = 'linuxdle_commands_state';
-const FIRST_TRY_FEEDBACK_MS = 1400;
 
 const DailyCommands: React.FC = () => {
   const navigate = useNavigate();
@@ -71,8 +75,6 @@ const DailyCommands: React.FC = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [hasGivenUp, setHasGivenUp] = useState(false);
-  const [wonOnFirstTry, setWonOnFirstTry] = useState(false);
-  const [showFirstTryFeedback, setShowFirstTryFeedback] = useState(false);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<YesterdaysCommand | null>(null);
 
   const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
@@ -144,7 +146,7 @@ const DailyCommands: React.FC = () => {
   useEffect(() => {
     if (isGameOver && !loading) {
       if (checkAllGamesCompleted()) {
-        dispatchSupportDialog('all-complete', wonOnFirstTry ? FIRST_TRY_FEEDBACK_MS : 0);
+        dispatchSupportDialog('all-complete');
         if (!hasRedirectedToday()) {
           markAsRedirected();
           const timer = setTimeout(() => navigate('/'), 2000);
@@ -152,23 +154,13 @@ const DailyCommands: React.FC = () => {
         }
       }
     }
-  }, [isGameOver, loading, navigate, wonOnFirstTry]);
-
-  useEffect(() => {
-    if (!showFirstTryFeedback) {
-      return;
-    }
-
-    const timer = setTimeout(() => setShowFirstTryFeedback(false), FIRST_TRY_FEEDBACK_MS);
-    return () => clearTimeout(timer);
-  }, [showFirstTryFeedback]);
+  }, [isGameOver, loading, navigate]);
 
   const handleSubmitGuess = async (overrideGuess?: string | null) => {
     const guess = overrideGuess !== undefined ? overrideGuess : selectedGuess;
     if (!guess || isGameOver) return;
 
     try {
-      const isFirstTryAttempt = results.length === 0;
       const response = await apiClient.post<CommandResult>('/daily-commands/guesses', {
         userGuess: guess
       });
@@ -179,10 +171,6 @@ const DailyCommands: React.FC = () => {
       if (response.data.matchResults.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-        setWonOnFirstTry(isFirstTryAttempt);
-        if (isFirstTryAttempt) {
-          setShowFirstTryFeedback(true);
-        }
       }
       setSelectedGuess(null);
       highlightedOptionRef.current = null;
@@ -214,7 +202,6 @@ const DailyCommands: React.FC = () => {
       setIsGameOver(true);
       setShowSuccess(false);
       setHasGivenUp(true);
-      setWonOnFirstTry(false);
 
       const fakeResult: CommandResult = {
         matchResults: {
@@ -237,7 +224,8 @@ const DailyCommands: React.FC = () => {
           requiresArgs: false,
           isPosix: false,
           categories: []
-        }
+        },
+        info: null
       };
 
       setResults([fakeResult, ...results]);
@@ -274,7 +262,6 @@ const DailyCommands: React.FC = () => {
   return (
     <>
       <SEO {...pageSEO.dailyCommands} />
-      <FirstTryFeedback open={showFirstTryFeedback} subtitle="$ command solved on first execution." />
       <Container maxWidth="lg">
         <Box mb={4}>
           <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
@@ -335,10 +322,9 @@ const DailyCommands: React.FC = () => {
                     setInputValue(firstOption);
                   }
                 } else if (e.key === 'Enter') {
-                  // When popup is open, prefer highlighted option; when closed, submit the selected guess.
-                  const toSubmit = autocompleteOpen
-                    ? highlightedOptionRef.current ?? selectedGuess ?? firstOption
-                    : selectedGuess;
+                  if (!autocompleteOpen) return;
+                  // Prefer highlighted option (arrow key nav), fall back to first match
+                  const toSubmit = highlightedOptionRef.current ?? firstOption;
                   if (toSubmit) {
                     e.preventDefault();
                     handleSubmitGuess(toSubmit);
@@ -395,106 +381,175 @@ const DailyCommands: React.FC = () => {
 
         {results.length > 0 && (
           <Box>
-            <TableContainer sx={{
-              overflowX: 'auto',
-              // Bigger, easier-to-hit scrollbar with breathing room on mobile
-              pb: { xs: 1, sm: 0 },
-              mt: { xs: 1, sm: 0 },
-              '&::-webkit-scrollbar': { height: 8 },
-              '&::-webkit-scrollbar-track': { bgcolor: 'divider' },
-              '&::-webkit-scrollbar-thumb': { bgcolor: 'primary.main' },
-            }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell><Tooltip title="The command name" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>NAME</span></Tooltip></TableCell>
-                  <TableCell><Tooltip title="The package that provides this command (e.g. coreutils, util-linux)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>PKG</span></Tooltip></TableCell>
-                  <TableCell><Tooltip title="The year this command was first introduced" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>YEAR</span></Tooltip></TableCell>
-                  <TableCell>
-                    <Tooltip
-                      arrow
-                      placement="top"
-                      title={
-                        <Box sx={{ fontSize: '0.75rem' }}>
-                          <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Man Page Sections</Box>
-                          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-                            <tbody>
-                              {[
-                                ['1', 'User commands'],
-                                ['2', 'System calls'],
-                                ['3', 'Library functions'],
-                                ['4', 'Special files / devices'],
-                                ['5', 'File formats & conventions'],
-                                ['6', 'Games'],
-                                ['7', 'Miscellaneous'],
-                                ['8', 'System admin commands'],
-                              ].map(([num, desc]) => (
-                                <tr key={num}>
-                                  <td style={{ paddingRight: 8, fontWeight: 'bold', opacity: 0.7 }}>{num}</td>
-                                  <td>{desc}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </Box>
-                      }
+            {results[0].matchResults.isCorrect && results[0].info && (
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2.5,
+                  mb: 3,
+                  borderColor: 'success.main',
+                  bgcolor: 'background.paper',
+                  fontFamily: 'monospace',
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{ color: 'success.main', fontWeight: 'bold', mb: 1, fontFamily: 'monospace' }}
+                >
+                  {`$ man ${results[0].guessCommandDetails.name}`}
+                </Typography>
+                <Divider sx={{ mb: 1.5 }} />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 'bold', fontFamily: 'monospace', display: 'block' }}>
+                      NAME
+                    </Typography>
+                    <Typography variant="body2" sx={{ pl: 2, fontFamily: 'monospace' }}>
+                      {`${results[0].guessCommandDetails.name} - ${results[0].info.description}`}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 'bold', fontFamily: 'monospace', display: 'block' }}>
+                      SYNOPSIS
+                    </Typography>
+                    <Typography variant="body2" sx={{ pl: 2, fontFamily: 'monospace', opacity: 0.9 }}>
+                      {results[0].info.synopsis}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 'bold', fontFamily: 'monospace', display: 'block' }}>
+                      EXAMPLE
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      component="div"
+                      sx={{
+                        pl: 2,
+                        fontFamily: 'monospace',
+                        color: 'secondary.main',
+                        bgcolor: 'action.hover',
+                        px: 1.5,
+                        py: 0.5,
+                        display: 'inline-block',
+                      }}
                     >
-                      <span style={{ cursor: 'help', borderBottom: '1px dashed' }}>SEC</span>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell><Tooltip title="Built-in: whether the command is built into the shell (e.g. cd, echo in bash) rather than an external binary" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>B-IN</span></Tooltip></TableCell>
-                  <TableCell><Tooltip title="POSIX: whether the command is part of the POSIX standard, meaning it should be available on all POSIX-compliant systems (Linux, macOS, BSD...)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>POSIX</span></Tooltip></TableCell>
-                  <TableCell><Tooltip title="The functional categories this command belongs to (e.g. File Management, Networking, Text Processing)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>CATEGORIES</span></Tooltip></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {results.map((result, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.name), color: 'white', fontWeight: 'bold' }}>
-                      {result.guessCommandDetails.name}
+                      {`$ ${results[0].info.example}`}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 'bold', fontFamily: 'monospace', display: 'block' }}>
+                      [!] FUN_FACT
+                    </Typography>
+                    <Typography variant="body2" sx={{ pl: 2, fontFamily: 'monospace', opacity: 0.8, fontStyle: 'italic' }}>
+                      {results[0].info.funFact}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Paper>
+            )}
+
+            <Box>
+              <TableContainer sx={{
+                overflowX: 'auto',
+                // Bigger, easier-to-hit scrollbar with breathing room on mobile
+                pb: { xs: 1, sm: 0 },
+                mt: { xs: 1, sm: 0 },
+                '&::-webkit-scrollbar': { height: 8 },
+                '&::-webkit-scrollbar-track': { bgcolor: 'divider' },
+                '&::-webkit-scrollbar-thumb': { bgcolor: 'primary.main' },
+              }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><Tooltip title="The command name" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>NAME</span></Tooltip></TableCell>
+                    <TableCell><Tooltip title="The package that provides this command (e.g. coreutils, util-linux)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>PKG</span></Tooltip></TableCell>
+                    <TableCell><Tooltip title="The year this command was first introduced" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>YEAR</span></Tooltip></TableCell>
+                    <TableCell>
+                      <Tooltip
+                        arrow
+                        placement="top"
+                        title={
+                          <Box sx={{ fontSize: '0.75rem' }}>
+                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Man Page Sections</Box>
+                            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                              <tbody>
+                                {[
+                                  ['1', 'User commands'],
+                                  ['2', 'System calls'],
+                                  ['3', 'Library functions'],
+                                  ['4', 'Special files / devices'],
+                                  ['5', 'File formats & conventions'],
+                                  ['6', 'Games'],
+                                  ['7', 'Miscellaneous'],
+                                  ['8', 'System admin commands'],
+                                ].map(([num, desc]) => (
+                                  <tr key={num}>
+                                    <td style={{ paddingRight: 8, fontWeight: 'bold', opacity: 0.7 }}>{num}</td>
+                                    <td>{desc}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </Box>
+                        }
+                      >
+                        <span style={{ cursor: 'help', borderBottom: '1px dashed' }}>SEC</span>
+                      </Tooltip>
                     </TableCell>
-                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.package), color: 'white' }}>
-                      {result.guessCommandDetails.package}
-                    </TableCell>
-                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.year), color: 'white' }}>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        {result.guessCommandDetails.originYear}
-                        {result.matchResults.yearHint === YearDirection.Higher && <ArrowUpward fontSize="inherit" />}
-                        {result.matchResults.yearHint === YearDirection.Lower && <ArrowDownward fontSize="inherit" />}
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.section), color: 'white' }}>
-                      {result.guessCommandDetails.manSection}
-                    </TableCell>
-                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.builtIn), color: 'white' }}>
-                      {result.guessCommandDetails.isBuiltIn ? 'Y' : 'N'}
-                    </TableCell>
-                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.posix), color: 'white' }}>
-                      {result.guessCommandDetails.isPosix ? 'Y' : 'N'}
-                    </TableCell>
-                    <TableCell sx={{ bgcolor: getCellColor(result.matchResults.categories), color: 'white' }}>
-                      <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                        {result.guessCommandDetails.categories.join(', ')}
-                      </Typography>
-                    </TableCell>
+                    <TableCell><Tooltip title="Built-in: whether the command is built into the shell (e.g. cd, echo in bash) rather than an external binary" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>B-IN</span></Tooltip></TableCell>
+                    <TableCell><Tooltip title="POSIX: whether the command is part of the POSIX standard, meaning it should be available on all POSIX-compliant systems (Linux, macOS, BSD...)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>POSIX</span></Tooltip></TableCell>
+                    <TableCell><Tooltip title="The functional categories this command belongs to (e.g. File Management, Networking, Text Processing)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>CATEGORIES</span></Tooltip></TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-            {/* Mobile-only scroll hint */}
-            <Typography
-              variant="caption"
-              sx={{
-                display: { xs: 'flex', sm: 'none' },
-                justifyContent: 'center',
-                mt: 0.5,
-                opacity: 0.6,
-                fontFamily: 'monospace',
-              }}
-            >
-              ← scroll to see all columns →
-            </Typography>
+                </TableHead>
+                <TableBody>
+                  {results.map((result, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.name), color: 'white', fontWeight: 'bold' }}>
+                        {result.guessCommandDetails.name}
+                      </TableCell>
+                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.package), color: 'white' }}>
+                        {result.guessCommandDetails.package}
+                      </TableCell>
+                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.year), color: 'white' }}>
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          {result.guessCommandDetails.originYear}
+                          {result.matchResults.yearHint === YearDirection.Higher && <ArrowUpward fontSize="inherit" />}
+                          {result.matchResults.yearHint === YearDirection.Lower && <ArrowDownward fontSize="inherit" />}
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.section), color: 'white' }}>
+                        {result.guessCommandDetails.manSection}
+                      </TableCell>
+                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.builtIn), color: 'white' }}>
+                        {result.guessCommandDetails.isBuiltIn ? 'Y' : 'N'}
+                      </TableCell>
+                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.posix), color: 'white' }}>
+                        {result.guessCommandDetails.isPosix ? 'Y' : 'N'}
+                      </TableCell>
+                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.categories), color: 'white' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                          {result.guessCommandDetails.categories.join(', ')}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+              {/* Mobile-only scroll hint */}
+              <Typography
+                variant="caption"
+                sx={{
+                  display: { xs: 'flex', sm: 'none' },
+                  justifyContent: 'center',
+                  mt: 0.5,
+                  opacity: 0.6,
+                  fontFamily: 'monospace',
+                }}
+              >
+                ← scroll to see all columns →
+              </Typography>
+            </Box>
           </Box>
         )}
       </Paper>

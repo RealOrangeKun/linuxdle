@@ -6,6 +6,7 @@ from seed_data.games import seed_games
 from seed_data.distros import seed_distros
 from seed_data.desktop_environments import seed_desktop_environments, seed_screenshots
 from seed_data.commands import seed_categories, seed_commands, seed_command_categories_mapping
+from seed_data.command_info import seed_command_info
 
 
 # Keep this aligned with backend/src/Linuxdle.Services/Common/Constants/CacheKeys.cs
@@ -70,6 +71,7 @@ def seed_db():
         seed_categories(cur)
         seed_commands(cur)
         seed_command_categories_mapping(cur)
+        seed_command_info(cur)
 
         # Fix sequences
         fix_sequences(cur)

@@ -25,6 +25,7 @@ def clear_tables(cur):
     """Clear all tables before seeding. Preserves yesterday and today in daily_puzzles."""
     print("Clearing existing data...")
     tables_to_truncate = [
+        "command_infos",
         "daily_command_daily_command_category",
         "daily_commands",
         "daily_command_categories",
@@ -51,6 +52,7 @@ def fix_sequences(cur):
         "SELECT setval('desktop_environment_screenshots_id_seq', (SELECT MAX(id) FROM desktop_environment_screenshots));",
         "SELECT setval('daily_command_categories_id_seq', (SELECT MAX(id) FROM daily_command_categories));",
         "SELECT setval('daily_commands_id_seq', (SELECT MAX(id) FROM daily_commands));",
+        "SELECT setval('command_infos_id_seq', COALESCE((SELECT MAX(id) FROM command_infos), 1));",
         "SELECT setval('daily_puzzles_id_seq', COALESCE((SELECT MAX(id) FROM daily_puzzles), 1));"
     ]
     for sql in sequence_fixes:

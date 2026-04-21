@@ -1,0 +1,849 @@
+[
+  {
+    "command_id": 1,
+    "description": "list directory contents",
+    "synopsis": "ls [OPTION]... [FILE]...",
+    "example": "ls -lah /var/log",
+    "fun_fact": "ls originated in Unix in 1971 and is consistently one of the most frequently typed commands by Linux users worldwide."
+  },
+  {
+    "command_id": 2,
+    "description": "print lines that match patterns",
+    "synopsis": "grep [OPTION]... PATTERN [FILE]...",
+    "example": "grep -rn 'error' /var/log/syslog",
+    "fun_fact": "grep was written by Ken Thompson overnight in 1973 after Doug McIlroy suggested the ed editor's search feature should be a standalone tool."
+  },
+  {
+    "command_id": 3,
+    "description": "change the shell working directory",
+    "synopsis": "cd [DIR]",
+    "example": "cd /etc/nginx",
+    "fun_fact": "cd is one of the few POSIX shell builtins that must be built into the shell itself — if it were external, it could only change its own process's directory, not the shell's."
+  },
+  {
+    "command_id": 4,
+    "description": "change file mode bits",
+    "synopsis": "chmod [OPTION]... MODE[,MODE]... FILE...",
+    "example": "chmod 755 deploy.sh",
+    "fun_fact": "Unix permission bits predate chmod — the concept was part of the original Unix filesystem design at Bell Labs in 1969."
+  },
+  {
+    "command_id": 5,
+    "description": "change file owner and group",
+    "synopsis": "chown [OPTION]... [OWNER][:[GROUP]] FILE...",
+    "example": "chown www-data:www-data /var/www/html",
+    "fun_fact": "chown can recursively reassign ownership of an entire directory tree, making it indispensable when deploying web applications as specific service users."
+  },
+  {
+    "command_id": 6,
+    "description": "search for files in a directory hierarchy",
+    "synopsis": "find [starting-point...] [OPTION]... [EXPRESSION]",
+    "example": "find /home -name '*.log' -mtime +7 -delete",
+    "fun_fact": "find is one of the most powerful Unix utilities — it can match files by name, type, size, permissions, timestamps, and even execute arbitrary commands on each result."
+  },
+  {
+    "command_id": 7,
+    "description": "pattern scanning and processing language",
+    "synopsis": "awk [POSIX or GNU style options] [--] 'program' [file ...]",
+    "example": "awk -F: '{print $1}' /etc/passwd",
+    "fun_fact": "awk is named after its three creators: Alfred Aho, Peter Weinberger, and Brian Kernighan, all of Bell Labs, who developed it in 1977."
+  },
+  {
+    "command_id": 8,
+    "description": "stream editor for filtering and transforming text",
+    "synopsis": "sed [OPTION]... {script-only-if-no-other-script} [input-file]...",
+    "example": "sed -i 's/localhost/127.0.0.1/g' config.conf",
+    "fun_fact": "sed was one of the first Unix tools to use regular expressions for in-place text processing, created by Lee McMahon at Bell Labs in 1974."
+  },
+  {
+    "command_id": 9,
+    "description": "an archiving utility",
+    "synopsis": "tar [OPTION...] [FILE]...",
+    "example": "tar -czvf archive.tar.gz /etc/nginx",
+    "fun_fact": "tar stands for 'tape archive' — it was originally designed in 1979 to write data to sequential tape drives, but it's now universally used for file bundling."
+  },
+  {
+    "command_id": 10,
+    "description": "OpenSSH remote login client",
+    "synopsis": "ssh [USER@]HOSTNAME [COMMAND]",
+    "example": "ssh -i ~/.ssh/id_rsa user@192.168.1.10",
+    "fun_fact": "SSH was created by Tatu Ylonen in 1995 after a password-sniffing attack on his university's network — replacing the insecure rsh and rlogin commands."
+  },
+  {
+    "command_id": 11,
+    "description": "send ICMP ECHO_REQUEST to network hosts",
+    "synopsis": "ping [OPTION]... DESTINATION",
+    "example": "ping -c 4 google.com",
+    "fun_fact": "ping was written by Mike Muuss in 1983 in a single evening and named after the sound sonar makes — it uses ICMP echo requests to measure round-trip network time."
+  },
+  {
+    "command_id": 12,
+    "description": "transfer a URL",
+    "synopsis": "curl [OPTIONS...] <url>",
+    "example": "curl -sL https://api.example.com/data | jq .",
+    "fun_fact": "curl was first released in 1996 by Daniel Stenberg and now supports over 25 protocols including HTTP, FTP, SMTP, and LDAP."
+  },
+  {
+    "command_id": 13,
+    "description": "display Linux processes",
+    "synopsis": "top [OPTIONS]",
+    "example": "top -u www-data",
+    "fun_fact": "top was first written around 1984 and is one of the oldest still-maintained Unix monitoring tools. Its successor htop added color and mouse support in 2004."
+  },
+  {
+    "command_id": 14,
+    "description": "report a snapshot of the current processes",
+    "synopsis": "ps [OPTIONS]",
+    "example": "ps aux | grep nginx",
+    "fun_fact": "ps dates to the original Unix in 1971. The options 'aux' technically mix BSD and POSIX styles, but this combination is universally understood across Linux distributions."
+  },
+  {
+    "command_id": 15,
+    "description": "send a signal to a process",
+    "synopsis": "kill [OPTION]... PID...",
+    "example": "kill -9 $(pgrep nginx)",
+    "fun_fact": "Despite its name, kill doesn't necessarily terminate processes — it sends signals, and SIGTERM (15) asks politely while SIGKILL (9) forces immediate termination."
+  },
+  {
+    "command_id": 16,
+    "description": "report file system disk space usage",
+    "synopsis": "df [OPTION]... [FILE]...",
+    "example": "df -h /",
+    "fun_fact": "df stands for 'disk free' and has existed since Unix Version 1 (1971). The -h flag for human-readable output was added much later in GNU coreutils."
+  },
+  {
+    "command_id": 17,
+    "description": "concatenate files and print on the standard output",
+    "synopsis": "cat [OPTION]... [FILE]...",
+    "example": "cat /etc/os-release",
+    "fun_fact": "cat was designed to concatenate multiple files together, but it's most commonly used just to view single files — a usage sometimes humorously called 'useless use of cat'."
+  },
+  {
+    "command_id": 18,
+    "description": "make directories",
+    "synopsis": "mkdir [OPTION]... DIRECTORY...",
+    "example": "mkdir -p /opt/app/{logs,config,data}",
+    "fun_fact": "The -p flag, which creates parent directories and suppresses errors on existing directories, is one of mkdir's most useful and frequently used options."
+  },
+  {
+    "command_id": 19,
+    "description": "execute a command as another user",
+    "synopsis": "sudo [OPTION]... COMMAND",
+    "example": "sudo systemctl restart nginx",
+    "fun_fact": "sudo was created by Bob Coggeshall and Cliff Spencer around 1980 at SUNY/Buffalo. The name stands for 'superuser do', though it can run commands as any user."
+  },
+  {
+    "command_id": 20,
+    "description": "show / manipulate routing, network devices, interfaces and tunnels",
+    "synopsis": "ip [OPTIONS] OBJECT [COMMAND [ARGUMENTS]]",
+    "example": "ip addr show eth0",
+    "fun_fact": "ip from iproute2 was introduced in 1999 to replace the older ifconfig and route commands, offering a unified interface to the Linux kernel's netlink socket API."
+  },
+  {
+    "command_id": 41,
+    "description": "remove files or directories",
+    "synopsis": "rm [OPTION]... [FILE]...",
+    "example": "rm -rf ./build",
+    "fun_fact": "rm -rf / is one of the most feared commands in Unix — it recursively force-deletes everything from the root. Most modern systems require --no-preserve-root to actually do it."
+  },
+  {
+    "command_id": 42,
+    "description": "move (rename) files",
+    "synopsis": "mv [OPTION]... SOURCE DEST",
+    "example": "mv config.conf.bak config.conf",
+    "fun_fact": "On the same filesystem, mv is nearly instantaneous because it only updates directory entries — the data itself never moves. Cross-filesystem moves require a full copy-then-delete."
+  },
+  {
+    "command_id": 43,
+    "description": "copy files and directories",
+    "synopsis": "cp [OPTION]... SOURCE DEST",
+    "example": "cp -r /etc/nginx /etc/nginx.bak",
+    "fun_fact": "cp -a (archive mode) preserves symlinks, permissions, timestamps, and ownership in one flag — often used for reliable backup operations."
+  },
+  {
+    "command_id": 44,
+    "description": "the non-interactive network downloader",
+    "synopsis": "wget [OPTION]... [URL]...",
+    "example": "wget -c https://example.com/large-file.iso",
+    "fun_fact": "wget supports resuming interrupted downloads with -c, making it ideal for downloading large files over unreliable connections. It was first released in 1996."
+  },
+  {
+    "command_id": 45,
+    "description": "interactive process viewer",
+    "synopsis": "htop [OPTIONS]",
+    "example": "htop -u postgres",
+    "fun_fact": "htop was written by Hisham Muhammad in 2004 as a more user-friendly alternative to top, adding colour, scrolling, and mouse support. It became one of the most-installed Linux utilities."
+  },
+  {
+    "command_id": 46,
+    "description": "Nano's ANOther editor, inspired by Pico",
+    "synopsis": "nano [OPTIONS] [[+LINE[,COL]] FILE]...",
+    "example": "nano /etc/hosts",
+    "fun_fact": "nano was created in 1999 by Chris Allegretta as a free replacement for Pico after the University of Washington restricted Pico's redistribution."
+  },
+  {
+    "command_id": 47,
+    "description": "Vi IMproved, a programmer's text editor",
+    "synopsis": "vim [OPTION]... [FILE]...",
+    "example": "vim +/error /var/log/syslog",
+    "fun_fact": "Vim was created by Bram Moolenaar in 1991 as an improvement on vi. The 'How do I exit vim?' question has been viewed millions of times on Stack Overflow."
+  },
+  {
+    "command_id": 48,
+    "description": "change group ownership",
+    "synopsis": "chgrp [OPTION]... GROUP FILE...",
+    "example": "chgrp -R developers /srv/app",
+    "fun_fact": "chgrp lets you change a file's group without root privileges — as long as you own the file and are a member of the target group."
+  },
+  {
+    "command_id": 49,
+    "description": "print system information",
+    "synopsis": "uname [OPTION]...",
+    "example": "uname -a",
+    "fun_fact": "uname -r prints the kernel release version, which is commonly used in scripts to check kernel capabilities or load version-specific kernel modules."
+  },
+  {
+    "command_id": 50,
+    "description": "print effective username",
+    "synopsis": "whoami [OPTION]...",
+    "example": "whoami",
+    "fun_fact": "whoami prints the effective user name of the current user — particularly useful in scripts run via sudo to verify which user context is actually active."
+  },
+  {
+    "command_id": 51,
+    "description": "change user password",
+    "synopsis": "passwd [OPTIONS] [LOGIN]",
+    "example": "sudo passwd john",
+    "fun_fact": "passwd was one of the first Unix commands to use the /etc/passwd file, dating to Unix Version 1. Modern systems store hashed passwords in /etc/shadow for security."
+  },
+  {
+    "command_id": 52,
+    "description": "control the systemd system and service manager",
+    "synopsis": "systemctl [OPTIONS...] COMMAND [UNIT...]",
+    "example": "systemctl status nginx",
+    "fun_fact": "systemctl was introduced with systemd in 2010. systemd replaced traditional SysV init scripts and became the standard init system for most major Linux distributions by 2015."
+  },
+  {
+    "command_id": 53,
+    "description": "query the systemd journal",
+    "synopsis": "journalctl [OPTIONS...] [MATCHES...]",
+    "example": "journalctl -u nginx --since '1 hour ago'",
+    "fun_fact": "journalctl reads from systemd's binary journal, which indexes logs by unit, priority, and time — making structured log queries far faster than grepping plain text files."
+  },
+  {
+    "command_id": 54,
+    "description": "a fast, versatile, remote (and local) file-copying tool",
+    "synopsis": "rsync [OPTION]... SRC [SRC]... DEST",
+    "example": "rsync -avz --delete /var/www/ user@server:/var/www/",
+    "fun_fact": "rsync was created by Andrew Tridgell in 1996. Its delta-transfer algorithm only sends the differences between source and destination, dramatically reducing bandwidth for large syncs."
+  },
+  {
+    "command_id": 55,
+    "description": "the stupid content tracker",
+    "synopsis": "git [--version] [--help] [-C <path>] [<command> [<args>]]",
+    "example": "git log --oneline --graph --all",
+    "fun_fact": "Linus Torvalds created git in 2005 in just two weeks after a licensing dispute with BitKeeper. He named it 'git' (British slang for a stupid person) as a self-deprecating joke."
+  },
+  {
+    "command_id": 56,
+    "description": "mount a filesystem",
+    "synopsis": "mount [OPTIONS] [SOURCE] TARGET",
+    "example": "mount -o ro /dev/sdb1 /mnt/usb",
+    "fun_fact": "mount integrates with /etc/fstab, allowing filesystems to be auto-mounted at boot by UUID, label, or device path — making it resilient to device name changes."
+  },
+  {
+    "command_id": 57,
+    "description": "unmount filesystems",
+    "synopsis": "umount [OPTIONS] FILESYSTEM",
+    "example": "umount /mnt/usb",
+    "fun_fact": "umount (note: not 'unmount') will refuse to unmount a filesystem if any process has open files on it — use lsof or fuser to find and close them first."
+  },
+  {
+    "command_id": 58,
+    "description": "opposite of more",
+    "synopsis": "less [OPTIONS] [FILE]...",
+    "example": "less +F /var/log/syslog",
+    "fun_fact": "less was written by Mark Nudelman in 1984 because more didn't allow backwards navigation. Its tagline was 'less is more' and +F makes it behave like tail -f."
+  },
+  {
+    "command_id": 59,
+    "description": "output the last part of files",
+    "synopsis": "tail [OPTION]... [FILE]...",
+    "example": "tail -f /var/log/nginx/access.log",
+    "fun_fact": "tail -f (follow) is one of the most common ways to monitor live log files in real time, making it an essential tool for debugging running services."
+  },
+  {
+    "command_id": 60,
+    "description": "output the first part of files",
+    "synopsis": "head [OPTION]... [FILE]...",
+    "example": "head -n 20 /etc/passwd",
+    "fun_fact": "head and tail are counterparts — together they let you peek at the beginning or end of any file without loading it entirely into memory, which matters for huge log files."
+  },
+  {
+    "command_id": 68,
+    "description": "GNU project C and C++ compiler",
+    "synopsis": "gcc [OPTIONS] file...",
+    "example": "gcc -O2 -Wall -o program main.c",
+    "fun_fact": "gcc (GNU Compiler Collection) was first released by Richard Stallman in 1987 as a core part of the GNU Project. It now supports C, C++, Fortran, Ada, Go, and more."
+  },
+  {
+    "command_id": 69,
+    "description": "GNU make utility to maintain groups of programs",
+    "synopsis": "make [OPTION]... [TARGET]...",
+    "example": "make -j$(nproc) all",
+    "fun_fact": "make was created by Stuart Feldman at Bell Labs in 1976. The -j flag enables parallel builds, and $(nproc) uses all available CPU cores for maximum speed."
+  },
+  {
+    "command_id": 70,
+    "description": "define and run multi-container applications with Docker",
+    "synopsis": "docker [OPTIONS] COMMAND [ARG...]",
+    "example": "docker run -d -p 80:80 --name web nginx",
+    "fun_fact": "Docker was released in 2013 by Solomon Hykes at dotCloud. It popularized Linux containers by packaging applications with all their dependencies into portable images."
+  },
+  {
+    "command_id": 75,
+    "description": "list block devices",
+    "synopsis": "lsblk [OPTIONS] [DEVICE...]",
+    "example": "lsblk -o NAME,SIZE,TYPE,MOUNTPOINT",
+    "fun_fact": "lsblk reads from the /sys kernel filesystem rather than scanning /dev directly, making it fast and non-invasive. It was added to util-linux in 2010."
+  },
+  {
+    "command_id": 77,
+    "description": "estimate file space usage",
+    "synopsis": "du [OPTION]... [FILE]...",
+    "example": "du -sh /* | sort -hr | head -20",
+    "fun_fact": "Combining du with sort and head is a classic one-liner to quickly find what is consuming the most disk space on a Linux system."
+  },
+  {
+    "command_id": 90,
+    "description": "an interface to the system reference manuals",
+    "synopsis": "man [OPTION...] [SECTION] PAGE...",
+    "example": "man 5 passwd",
+    "fun_fact": "man pages were integral to Unix from the very beginning in 1971. The section number matters — 'man passwd' (section 1) is the command; 'man 5 passwd' is the file format."
+  },
+  {
+    "command_id": 121,
+    "description": "command-line interface for the APT package management system",
+    "synopsis": "apt [OPTIONS] COMMAND",
+    "example": "apt update && apt upgrade -y",
+    "fun_fact": "apt was introduced as a higher-level frontend to apt-get in Debian in 1998. The friendly progress bar and coloured output were added in 2014 to improve usability."
+  },
+  {
+    "command_id": 122,
+    "description": "package manager utility for Arch Linux",
+    "synopsis": "pacman <operation> [options] [packages]",
+    "example": "pacman -Syu",
+    "fun_fact": "pacman was created by Judd Vinet for Arch Linux in 2002. Its name is a play on 'package manager' and the classic arcade game. -Syu syncs, upgrades, and refreshes all at once."
+  },
+  {
+    "command_id": 123,
+    "description": "Fedora package manager based on RPM",
+    "synopsis": "dnf [options] COMMAND",
+    "example": "dnf install httpd -y",
+    "fun_fact": "dnf (Dandified YUM) replaced yum as the default package manager in Fedora 22 (2015). It uses libsolv for faster dependency resolution compared to its predecessor."
+  },
+  {
+    "command_id": 125,
+    "description": "package and compress (archive) files",
+    "synopsis": "zip [OPTIONS] zipfile files...",
+    "example": "zip -r backup.zip /etc/nginx",
+    "fun_fact": "The zip format was created by Phil Katz in 1989 after a licensing dispute over the ARC format. He released the specification as public domain, enabling its widespread adoption."
+  },
+  {
+    "command_id": 126,
+    "description": "list, test and extract compressed files in a ZIP archive",
+    "synopsis": "unzip [OPTIONS] file[.zip] [file(s)...] [-d exdir]",
+    "example": "unzip archive.zip -d /tmp/extracted",
+    "fun_fact": "unzip and zip were developed separately from the beginning — unzip was written by Info-ZIP volunteers starting in 1989 as a free decompressor for Phil Katz's zip format."
+  },
+  {
+    "command_id": 127,
+    "description": "maintain crontab files for individual users",
+    "synopsis": "crontab [-u user] {-l | -r | -e}",
+    "example": "crontab -e",
+    "fun_fact": "cron was written at Bell Labs by Brian Kernighan and Lorinda Cherry around 1975. The format '5 fields then command' (minute hour day month weekday) has never changed."
+  },
+  {
+    "command_id": 128,
+    "description": "queue, examine, or delete jobs for later execution",
+    "synopsis": "at [-V] [-q queue] [-f file] [-mMlv] TIME",
+    "example": "echo 'reboot' | at midnight",
+    "fun_fact": "at schedules one-time tasks, unlike cron which runs jobs repeatedly. Jobs are stored in a spool directory and survive reboots on systems with atd running."
+  },
+  {
+    "command_id": 129,
+    "description": "GNU Bourne-Again SHell",
+    "synopsis": "bash [long-opt] [-ir] [+abefhkmnptuvxBCDHP] [-o option] [--] [argument ...]",
+    "example": "bash -c 'echo $SHELL'",
+    "fun_fact": "bash was created by Brian Fox in 1989 for the GNU Project as a free replacement for the Bourne shell. It became the default shell for Linux and macOS (until zsh replaced it on macOS in 2019)."
+  },
+  {
+    "command_id": 130,
+    "description": "the Z shell",
+    "synopsis": "zsh [OPTIONS] [COMMAND]",
+    "example": "zsh --version",
+    "fun_fact": "zsh was created by Paul Falstad in 1990 as a student at Princeton. It became the default macOS shell in 2019, and is popular for its powerful tab completion and theming via Oh My Zsh."
+  },
+  {
+    "command_id": 131,
+    "description": "define or display aliases",
+    "synopsis": "alias [name[=value] ...]",
+    "example": "alias ll='ls -lah --color=auto'",
+    "fun_fact": "Aliases are evaluated before commands in the shell, so they can shadow system binaries. Many distros ship with aliases like ll and la pre-defined in /etc/bash.bashrc."
+  },
+  {
+    "command_id": 132,
+    "description": "set export attribute for shell variables",
+    "synopsis": "export [NAME[=VALUE]]...",
+    "example": "export PATH=\"$HOME/.local/bin:$PATH\"",
+    "fun_fact": "Variables created without export only exist in the current shell. export marks them for inheritance by child processes — critical for tools like PATH, HOME, and EDITOR."
+  },
+  {
+    "command_id": 133,
+    "description": "display a line of text",
+    "synopsis": "echo [SHORT-OPTION]... [STRING]...",
+    "example": "echo -e 'line1\\nline2' > file.txt",
+    "fun_fact": "echo exists both as a shell builtin and an external binary (/bin/echo). The builtin version's behaviour varies between shells, which is why printf is preferred in portable scripts."
+  },
+  {
+    "command_id": 134,
+    "description": "format and print data",
+    "synopsis": "printf FORMAT [ARGUMENT]...",
+    "example": "printf '%-20s %s\\n' 'Name:' 'Alice'",
+    "fun_fact": "printf is more portable and predictable than echo across different shells and systems. It mirrors the C standard library function and supports format specifiers like %s, %d, and %f."
+  },
+  {
+    "command_id": 135,
+    "description": "delay for a specified amount of time",
+    "synopsis": "sleep NUMBER[SUFFIX]...",
+    "example": "sleep 0.5 && systemctl restart app",
+    "fun_fact": "GNU sleep accepts fractional seconds and suffixes like m, h, d — so 'sleep 1h 30m' works. The POSIX standard only requires integer seconds."
+  },
+  {
+    "command_id": 136,
+    "description": "exit the shell",
+    "synopsis": "exit [n]",
+    "example": "exit 0",
+    "fun_fact": "The exit code is a number 0–255. By convention, 0 means success and anything else means an error. Scripts use specific codes to signal different failure modes."
+  },
+  {
+    "command_id": 137,
+    "description": "make links between files",
+    "synopsis": "ln [OPTION]... TARGET LINK_NAME",
+    "example": "ln -s /etc/nginx/sites-available/app /etc/nginx/sites-enabled/app",
+    "fun_fact": "Hard links and symbolic (soft) links are fundamentally different: hard links are additional directory entries pointing to the same inode; symlinks are files containing a path to the target."
+  },
+  {
+    "command_id": 138,
+    "description": "change file timestamps",
+    "synopsis": "touch [OPTION]... FILE...",
+    "example": "touch -t 202001010000 file.conf",
+    "fun_fact": "touch is most commonly used to create empty files, but its primary purpose is to update access and modification timestamps — useful for triggering build systems like make."
+  },
+  {
+    "command_id": 139,
+    "description": "list contents of directories in a tree-like format",
+    "synopsis": "tree [OPTIONS] [DIRECTORY]",
+    "example": "tree -L 2 /etc/nginx",
+    "fun_fact": "tree was originally written in the early 1990s and provides a visual ASCII representation of directory hierarchies — very useful for documenting and exploring project structures."
+  },
+  {
+    "command_id": 140,
+    "description": "determine file type",
+    "synopsis": "file [OPTIONS] FILE...",
+    "example": "file /usr/bin/python3",
+    "fun_fact": "file uses magic numbers — special byte sequences at the start of files — to identify types without relying on extensions, which is why it works even on files with missing or wrong extensions."
+  },
+  {
+    "command_id": 141,
+    "description": "compare files line by line",
+    "synopsis": "diff [OPTION]... FILES",
+    "example": "diff -u original.conf updated.conf",
+    "fun_fact": "diff was written at Bell Labs in 1974 using the longest common subsequence algorithm. The unified diff format (-u) it produces is the universal format for code patches."
+  },
+  {
+    "command_id": 142,
+    "description": "apply a diff file to an original",
+    "synopsis": "patch [OPTIONS] [ORIGINALFILE [PATCHFILE]]",
+    "example": "patch -p1 < fix.patch",
+    "fun_fact": "patch was written by Larry Wall (creator of Perl) in 1985. The -p flag strips leading path components, allowing patches generated on different systems to apply correctly."
+  },
+  {
+    "command_id": 143,
+    "description": "sort lines of text files",
+    "synopsis": "sort [OPTION]... [FILE]...",
+    "example": "sort -k2 -n -r data.csv",
+    "fun_fact": "sort can sort by specific fields (-k), numerically (-n), in reverse (-r), and even by human-readable sizes (-h). Combining it with uniq is the classic duplicate-removal pipeline."
+  },
+  {
+    "command_id": 144,
+    "description": "report or omit repeated lines",
+    "synopsis": "uniq [OPTION]... [INPUT [OUTPUT]]",
+    "example": "sort access.log | uniq -c | sort -rn | head",
+    "fun_fact": "uniq only removes adjacent duplicates, which is why it's almost always used after sort. The -c flag counts occurrences, making it perfect for frequency analysis."
+  },
+  {
+    "command_id": 145,
+    "description": "remove sections from each line of files",
+    "synopsis": "cut [OPTION]... [FILE]...",
+    "example": "cut -d: -f1,3 /etc/passwd",
+    "fun_fact": "cut is ideal for extracting fields from delimiter-separated files like CSV. For more complex field manipulation, awk is typically the next step up."
+  },
+  {
+    "command_id": 146,
+    "description": "merge lines of files",
+    "synopsis": "paste [OPTION]... [FILE]...",
+    "example": "paste -d, names.txt ages.txt > combined.csv",
+    "fun_fact": "paste is the complement of cut — while cut extracts columns, paste combines them. It's useful for assembling columnar data from separate files."
+  },
+  {
+    "command_id": 147,
+    "description": "translate or delete characters",
+    "synopsis": "tr [OPTION]... SET1 [SET2]",
+    "example": "echo 'Hello World' | tr '[:lower:]' '[:upper:]'",
+    "fun_fact": "tr works on individual characters, not strings or patterns — making it faster than sed for simple character-level substitutions on large volumes of text."
+  },
+  {
+    "command_id": 148,
+    "description": "print newline, word, and byte counts for each file",
+    "synopsis": "wc [OPTION]... [FILE]...",
+    "example": "wc -l /var/log/syslog",
+    "fun_fact": "wc -l is one of the fastest ways to count file lines, and is commonly pipelined as: grep -c 'pattern' file | wc -l — or more directly: grep -c 'pattern' file."
+  },
+  {
+    "command_id": 149,
+    "description": "display output one screen at a time",
+    "synopsis": "more [OPTIONS] file...",
+    "example": "dmesg | more",
+    "fun_fact": "more was written in 1978 by Dan Halbert and could only scroll downward. Its limitation inspired the creation of less by Mark Nudelman in 1984, which allowed bidirectional scrolling."
+  },
+  {
+    "command_id": 150,
+    "description": "display amount of free and used memory in the system",
+    "synopsis": "free [OPTIONS]",
+    "example": "free -h",
+    "fun_fact": "The 'available' column in free output (added in Linux 3.14) is more useful than 'free' — it accounts for reclaimable page cache, giving a realistic picture of usable memory."
+  },
+  {
+    "command_id": 151,
+    "description": "tell how long the system has been running",
+    "synopsis": "uptime [OPTIONS]",
+    "example": "uptime -p",
+    "fun_fact": "uptime also shows the system load averages for the past 1, 5, and 15 minutes. On a system with N CPUs, a load average of N means the processors are fully utilised."
+  },
+  {
+    "command_id": 152,
+    "description": "show or set the system's host name",
+    "synopsis": "hostname [OPTIONS] [NAME]",
+    "example": "hostname -f",
+    "fun_fact": "The hostname is stored in /etc/hostname on most Linux systems. The -f flag returns the fully qualified domain name (FQDN), which requires proper DNS or /etc/hosts configuration."
+  },
+  {
+    "command_id": 153,
+    "description": "print or set the system date and time",
+    "synopsis": "date [OPTION]... [+FORMAT]",
+    "example": "date '+%Y-%m-%d %H:%M:%S'",
+    "fun_fact": "date is commonly used in shell scripts to generate timestamps for log filenames. The format string syntax follows strftime() from the C standard library."
+  },
+  {
+    "command_id": 154,
+    "description": "displays a calendar",
+    "synopsis": "cal [OPTIONS] [[month] year]",
+    "example": "cal 12 2025",
+    "fun_fact": "cal has been part of Unix since 1971 and can display calendars for any year from 1 to 9999. It correctly handles the 1752 calendar reform when Britain switched from Julian to Gregorian."
+  },
+  {
+    "command_id": 155,
+    "description": "shows the full path of (shell) commands",
+    "synopsis": "which [OPTIONS] COMMAND...",
+    "example": "which python3",
+    "fun_fact": "which searches the directories in your PATH environment variable, making it easy to discover which binary will actually run when you type a command name."
+  },
+  {
+    "command_id": 156,
+    "description": "locate the binary, source, and manual page files for a command",
+    "synopsis": "whereis [OPTIONS] NAME...",
+    "example": "whereis nginx",
+    "fun_fact": "whereis goes beyond which by also locating source code and man page files for a command — useful for understanding where a program's components are distributed across the filesystem."
+  },
+  {
+    "command_id": 157,
+    "description": "display information about the CPU architecture",
+    "synopsis": "lscpu [OPTIONS]",
+    "example": "lscpu | grep -E 'CPU\\(s\\)|Thread|Core|Socket'",
+    "fun_fact": "lscpu reads from /proc/cpuinfo and /sys, presenting CPU topology in a human-readable format including the number of sockets, cores, threads, and NUMA nodes."
+  },
+  {
+    "command_id": 158,
+    "description": "list all PCI devices",
+    "synopsis": "lspci [OPTIONS]",
+    "example": "lspci -nn | grep VGA",
+    "fun_fact": "lspci identifies hardware by reading the PCI bus and matching device IDs against a database (pci.ids). The -k flag shows which kernel driver is currently bound to each device."
+  },
+  {
+    "command_id": 159,
+    "description": "list hardware",
+    "synopsis": "lshw [OPTIONS]",
+    "example": "sudo lshw -short",
+    "fun_fact": "lshw queries multiple kernel interfaces (DMI/SMBIOS, PCI, USB, /proc) to provide detailed hardware information. It requires root privileges to access firmware-level data."
+  },
+  {
+    "command_id": 160,
+    "description": "run a program with modified scheduling priority",
+    "synopsis": "nice [OPTION] [COMMAND [ARG]...]",
+    "example": "nice -n 19 make -j$(nproc)",
+    "fun_fact": "nice values range from -20 (highest priority) to 19 (lowest). Only root can set negative values. Naming it 'nice' reflects the idea of being 'nice' to other processes by reducing priority."
+  },
+  {
+    "command_id": 161,
+    "description": "alter priority of running processes",
+    "synopsis": "renice [-n] priority [-g|-p|-u] identifier...",
+    "example": "renice -n 10 -p $(pgrep ffmpeg)",
+    "fun_fact": "Unlike nice (which sets priority at launch), renice adjusts the priority of already-running processes — useful for de-prioritising CPU-hungry background jobs without restarting them."
+  },
+  {
+    "command_id": 162,
+    "description": "run a command immune to hangups, with output to a non-tty",
+    "synopsis": "nohup COMMAND [ARG]...",
+    "example": "nohup ./server.sh > server.log 2>&1 &",
+    "fun_fact": "nohup prevents SIGHUP from terminating a process when its terminal is closed. Appending & runs it in the background, making it a quick way to daemonize a script without systemd."
+  },
+  {
+    "command_id": 163,
+    "description": "list active jobs",
+    "synopsis": "jobs [OPTIONS] [jobspec...]",
+    "example": "jobs -l",
+    "fun_fact": "jobs lists background and stopped jobs in the current shell session. Each job gets a number you can use with fg and bg — for example, 'fg %1' brings job 1 to the foreground."
+  },
+  {
+    "command_id": 164,
+    "description": "move jobs to the background",
+    "synopsis": "bg [jobspec...]",
+    "example": "bg %1",
+    "fun_fact": "bg resumes a suspended (Ctrl+Z) job and runs it in the background, equivalent to having originally started it with &. Use jobs to list job numbers first."
+  },
+  {
+    "command_id": 165,
+    "description": "move jobs to the foreground",
+    "synopsis": "fg [jobspec]",
+    "example": "fg %2",
+    "fun_fact": "fg brings a background or suspended job to the foreground so it can receive keyboard input. If only one job exists, you can just type 'fg' without a job number."
+  },
+  {
+    "command_id": 166,
+    "description": "look up or signal processes based on name and other attributes",
+    "synopsis": "pgrep [OPTIONS] PATTERN",
+    "example": "pgrep -la nginx",
+    "fun_fact": "pgrep searches /proc to find processes by name pattern, avoiding the fragile 'ps aux | grep name | grep -v grep' pipeline many admins use out of habit."
+  },
+  {
+    "command_id": 167,
+    "description": "look up or signal processes based on name and other attributes",
+    "synopsis": "pkill [OPTIONS] PATTERN",
+    "example": "pkill -USR1 nginx",
+    "fun_fact": "pkill can send any signal to matching processes — pkill -HUP nginx reloads nginx config without restarting it, a pattern used by many daemons for zero-downtime reloads."
+  },
+  {
+    "command_id": 168,
+    "description": "print network connections, routing tables, interface statistics, masquerade connections, and multicast memberships",
+    "synopsis": "netstat [ADDRESS_FAMILY_OPTIONS] [OPTIONS] [DELAY]",
+    "example": "netstat -tulnp",
+    "fun_fact": "netstat is deprecated in favour of ss from iproute2, but remains very commonly used. The classic netstat -tulnp shows all listening TCP/UDP ports with their process IDs."
+  },
+  {
+    "command_id": 169,
+    "description": "another utility to investigate sockets",
+    "synopsis": "ss [OPTIONS] [FILTER]",
+    "example": "ss -tulnp",
+    "fun_fact": "ss queries the kernel via netlink sockets, making it significantly faster than the older netstat — especially on servers with thousands of concurrent connections."
+  },
+  {
+    "command_id": 170,
+    "description": "show / manipulate the IP routing table",
+    "synopsis": "route [OPTIONS]",
+    "example": "route -n",
+    "fun_fact": "route is deprecated in favour of 'ip route' from iproute2, but is still widely taught and used. 'route -n' is a quick way to see the kernel routing table numerically."
+  },
+  {
+    "command_id": 171,
+    "description": "print the route packets trace to network host",
+    "synopsis": "traceroute [OPTIONS] host",
+    "example": "traceroute -n google.com",
+    "fun_fact": "traceroute works by sending packets with increasing TTL values — each router that drops a packet (TTL=0) sends back an ICMP error, revealing the path across the network."
+  },
+  {
+    "command_id": 172,
+    "description": "query Internet name servers interactively",
+    "synopsis": "nslookup [tool] [host]",
+    "example": "nslookup -type=MX gmail.com",
+    "fun_fact": "nslookup is now considered deprecated in favour of dig, but it remains popular for its interactive mode and is still installed on most systems by default."
+  },
+  {
+    "command_id": 173,
+    "description": "DNS lookup utility",
+    "synopsis": "dig [@server] [name] [type] [options]",
+    "example": "dig +short TXT linuxdle.site",
+    "fun_fact": "dig (Domain Information Groper) is the preferred tool for DNS troubleshooting. The +short flag gives just the answer, while +trace follows the full delegation chain from root servers."
+  },
+  {
+    "command_id": 174,
+    "description": "DNS lookup utility",
+    "synopsis": "host [OPTIONS] NAME [SERVER]",
+    "example": "host -t A linuxdle.site",
+    "fun_fact": "host is a simpler alternative to dig — it provides clean output suitable for scripting. Like dig, it can query any record type: A, AAAA, MX, TXT, CNAME, and more."
+  },
+  {
+    "command_id": 175,
+    "description": "configure a network interface",
+    "synopsis": "ifconfig [interface] [OPTION]...",
+    "example": "ifconfig eth0",
+    "fun_fact": "ifconfig has been deprecated in favour of 'ip addr' on Linux, but remains a muscle-memory staple for sysadmins. On macOS and BSD it is still the primary network configuration tool."
+  },
+  {
+    "command_id": 176,
+    "description": "arbitrary TCP and UDP connections and listens",
+    "synopsis": "nc [OPTIONS] [hostname] [port]",
+    "example": "nc -zv google.com 443",
+    "fun_fact": "Netcat is often called the 'Swiss Army knife' of networking — it can create TCP/UDP connections, listen on ports, transfer files, and even act as a rudimentary chat server."
+  },
+  {
+    "command_id": 177,
+    "description": "OpenSSH secure file copy",
+    "synopsis": "scp [OPTION]... [[user@]host1:]src_file ... [[user@]host2:]dest_file",
+    "example": "scp -r user@server:/var/log/ ./logs/",
+    "fun_fact": "scp is effectively SSH + cp. While still widely used, sftp and rsync over SSH are increasingly preferred for their ability to resume transfers and handle large file sets more efficiently."
+  },
+  {
+    "command_id": 178,
+    "description": "Internet file transfer program",
+    "synopsis": "ftp [OPTION] [host [port]]",
+    "example": "ftp ftp.gnu.org",
+    "fun_fact": "FTP dates back to 1971 and transmits data including credentials in plain text — making it insecure by modern standards. SFTP and FTPS are its secure replacements."
+  },
+  {
+    "command_id": 179,
+    "description": "display or set file mode mask",
+    "synopsis": "umask [OPTION] [mode]",
+    "example": "umask 027",
+    "fun_fact": "umask defines which permission bits are removed from newly created files. 022 (the common default) means new files get 644 and directories get 755 regardless of what the creating program requests."
+  },
+  {
+    "command_id": 180,
+    "description": "compress or expand files",
+    "synopsis": "gzip [OPTION]... [FILE]...",
+    "example": "gzip -9 large-file.log",
+    "fun_fact": "gzip was created by Jean-loup Gailly and Mark Adler in 1992 as a free replacement for Unix compress. It uses the DEFLATE algorithm and is the basis for the .gz and .tgz formats."
+  },
+  {
+    "command_id": 181,
+    "description": "compress or expand files",
+    "synopsis": "gunzip [OPTION]... [FILE]...",
+    "example": "gunzip archive.tar.gz",
+    "fun_fact": "gunzip is functionally identical to 'gzip -d' — it decompresses .gz files in place, removing the compressed file and leaving the original. It can also read from stdin."
+  },
+  {
+    "command_id": 182,
+    "description": "a block-sorting file compressor",
+    "synopsis": "bzip2 [OPTION]... [FILE]...",
+    "example": "bzip2 -k -9 bigfile.txt",
+    "fun_fact": "bzip2 was created by Julian Seward in 1996 using the Burrows-Wheeler algorithm. It typically achieves better compression than gzip at the cost of being slower to compress and decompress."
+  },
+  {
+    "command_id": 183,
+    "description": "a block-sorting file compressor",
+    "synopsis": "bunzip2 [OPTION]... [FILE]...",
+    "example": "bunzip2 archive.tar.bz2",
+    "fun_fact": "bunzip2 is the complementary decompressor to bzip2, equivalent to 'bzip2 -d'. The -k flag in bzip2 keeps the original file, which is useful when you need both versions."
+  },
+  {
+    "command_id": 184,
+    "description": "compress or decompress .xz and .lzma files",
+    "synopsis": "xz [OPTION]... [FILE]...",
+    "example": "xz -T0 -9 kernel-source.tar",
+    "fun_fact": "xz uses the LZMA2 algorithm and typically achieves the best compression ratio among common formats. The Linux kernel source is distributed as a .tar.xz for this reason. -T0 uses all CPU threads."
+  },
+  {
+    "command_id": 185,
+    "description": "create a new user or update default new user information",
+    "synopsis": "useradd [OPTIONS] LOGIN",
+    "example": "useradd -m -s /bin/bash -G sudo deploy",
+    "fun_fact": "useradd creates the user account but doesn't create a home directory by default on all distros — the -m flag ensures /home/username is created with skeleton files from /etc/skel."
+  },
+  {
+    "command_id": 186,
+    "description": "delete a user account and related files",
+    "synopsis": "userdel [OPTIONS] LOGIN",
+    "example": "userdel -r olduser",
+    "fun_fact": "Without -r, userdel removes the user from /etc/passwd and groups but leaves the home directory intact. With -r, it removes the home directory and mail spool as well."
+  },
+  {
+    "command_id": 187,
+    "description": "modify a user account",
+    "synopsis": "usermod [OPTIONS] LOGIN",
+    "example": "usermod -aG docker alice",
+    "fun_fact": "The -aG flag is critical — it appends to existing groups rather than replacing them. Forgetting -a when adding a user to a group can silently remove them from all their other groups."
+  },
+  {
+    "command_id": 188,
+    "description": "create a new group",
+    "synopsis": "groupadd [OPTIONS] GROUP",
+    "example": "groupadd -g 1500 devteam",
+    "fun_fact": "Groups are stored in /etc/group. The -g flag sets a specific GID, which is important in multi-machine environments where UIDs and GIDs must be consistent for NFS or shared filesystems."
+  },
+  {
+    "command_id": 189,
+    "description": "delete a group",
+    "synopsis": "groupdel [OPTIONS] GROUP",
+    "example": "groupdel oldteam",
+    "fun_fact": "groupdel will refuse to delete a group that is set as a user's primary group — you must change those users' primary group with usermod -g first."
+  },
+  {
+    "command_id": 190,
+    "description": "print the groups a user is in",
+    "synopsis": "groups [OPTION]... [USERNAME]...",
+    "example": "groups alice",
+    "fun_fact": "groups reads from /etc/group, but newly added group memberships (via usermod -aG) only take effect for new login sessions — until then, 'id' and 'groups' show the old membership."
+  },
+  {
+    "command_id": 191,
+    "description": "run a command with substitute user and group ID",
+    "synopsis": "su [OPTIONS] [-] [USER [ARG]...]",
+    "example": "su - postgres",
+    "fun_fact": "The hyphen in 'su -' (or 'su -l') is critical — it starts a login shell, loading the target user's environment variables and profile. Without it, you keep your current environment."
+  },
+  {
+    "command_id": 192,
+    "description": "show a listing of last logged in users",
+    "synopsis": "last [OPTION]... [USERNAME]... [TTY]...",
+    "example": "last -n 20 root",
+    "fun_fact": "last reads from /var/log/wtmp, which records all login and logout events. lastb reads from /var/log/btmp to show failed login attempts — useful for detecting brute-force attacks."
+  },
+  {
+    "command_id": 193,
+    "description": "execute commands from a file in the current shell",
+    "synopsis": "source FILENAME [ARGUMENTS]",
+    "example": "source ~/.bashrc",
+    "fun_fact": "source (or its shorthand '.') runs a script in the current shell rather than a subshell — meaning it can modify the calling shell's variables, aliases, and functions."
+  },
+  {
+    "command_id": 194,
+    "description": "display or manipulate the history list",
+    "synopsis": "history [n]",
+    "example": "history | grep 'docker run'",
+    "fun_fact": "Pressing Ctrl+R in bash starts a reverse-incremental search through history. Commands are stored in ~/.bash_history and the HISTSIZE variable controls how many are kept."
+  },
+  {
+    "command_id": 195,
+    "description": "display information about command type",
+    "synopsis": "type [OPTION]... NAME...",
+    "example": "type -a echo",
+    "fun_fact": "type reveals whether a name resolves to a shell builtin, alias, function, or external binary — and with -a, shows all of them. This is how you diagnose why a command behaves unexpectedly."
+  },
+  {
+    "command_id": 196,
+    "description": "read a line from the standard input and split it into fields",
+    "synopsis": "read [-ers] [-a array] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]",
+    "example": "read -rp 'Enter your name: ' name && echo \"Hello, $name\"",
+    "fun_fact": "read is the primary way to get interactive user input in bash scripts. The -r flag prevents backslash interpretation, which is almost always what you want in robust scripts."
+  }
+]
