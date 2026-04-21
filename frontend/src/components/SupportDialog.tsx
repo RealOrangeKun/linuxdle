@@ -83,8 +83,15 @@ const SupportDialog: React.FC<SupportDialogProps> = ({ open, onClose }) => (
 );
 
 /** Dispatches the support dialog event — call this right after all games complete. */
-export function dispatchSupportDialog(reason: SupportDialogReason = 'all-complete'): void {
-  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: { reason } }));
+export function dispatchSupportDialog(reason: SupportDialogReason = 'all-complete', delayMs = 0): void {
+  const emit = () => window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: { reason } }));
+
+  if (delayMs > 0) {
+    window.setTimeout(emit, delayMs);
+    return;
+  }
+
+  emit();
 }
 
 export { EVENT_NAME };

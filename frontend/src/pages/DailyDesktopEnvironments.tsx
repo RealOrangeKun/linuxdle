@@ -14,6 +14,7 @@ import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
 import { useGameSettings } from '../hooks/useGameSettings';
 import { useMidnightReload } from '../hooks/useMidnightReload';
+import FirstTryFeedback from '../components/FirstTryFeedback';
 
 interface DesktopEnvironment {
   name: string;
@@ -38,6 +39,7 @@ interface GuessResult {
 }
 
 const STORAGE_KEY = 'linuxdle_des_state';
+const FIRST_TRY_FEEDBACK_MS = 1400;
 
 const DailyDesktopEnvironments: React.FC = () => {
   const navigate = useNavigate();
@@ -53,6 +55,8 @@ const DailyDesktopEnvironments: React.FC = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [hasGivenUp, setHasGivenUp] = useState(false);
+  const [wonOnFirstTry, setWonOnFirstTry] = useState(false);
+  const [showFirstTryFeedback, setShowFirstTryFeedback] = useState(false);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<DesktopEnvironment | null>(null);
 
   const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
@@ -135,7 +139,7 @@ const DailyDesktopEnvironments: React.FC = () => {
   useEffect(() => {
     if (isGameOver && !loading) {
       if (checkAllGamesCompleted()) {
-        dispatchSupportDialog('all-complete');
+        dispatchSupportDialog('all-complete', wonOnFirstTry ? FIRST_TRY_FEEDBACK_MS : 0);
         if (!hasRedirectedToday()) {
           markAsRedirected();
           const timer = setTimeout(() => navigate('/'), 2000);
@@ -143,13 +147,23 @@ const DailyDesktopEnvironments: React.FC = () => {
         }
       }
     }
-  }, [isGameOver, loading, navigate]);
+  }, [isGameOver, loading, navigate, wonOnFirstTry]);
+
+  useEffect(() => {
+    if (!showFirstTryFeedback) {
+      return;
+    }
+
+    const timer = setTimeout(() => setShowFirstTryFeedback(false), FIRST_TRY_FEEDBACK_MS);
+    return () => clearTimeout(timer);
+  }, [showFirstTryFeedback]);
 
   const handleSubmitGuess = async (overrideGuess?: DesktopEnvironment | null) => {
     const guess = overrideGuess !== undefined ? overrideGuess : selectedGuess;
     if (!guess || isGameOver) return;
 
     try {
+      const isFirstTryAttempt = guesses.length === 0;
       const response = await apiClient.post<GuessResult>('/daily-desktop-environments/guesses', {
         userGuess: guess.slug,
         numberOfGuesses: guesses.length + 1
@@ -169,6 +183,10 @@ const DailyDesktopEnvironments: React.FC = () => {
       if (response.data.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
+        setWonOnFirstTry(isFirstTryAttempt);
+        if (isFirstTryAttempt) {
+          setShowFirstTryFeedback(true);
+        }
       }
       setSelectedGuess(null);
       highlightedOptionRef.current = null;
@@ -200,6 +218,7 @@ const DailyDesktopEnvironments: React.FC = () => {
       setIsGameOver(true);
       setShowSuccess(false);
       setHasGivenUp(true);
+      setWonOnFirstTry(false);
       const newGuess: Guess = { name: `Gave up -> Answer: ${response.data.name}`, isCorrect: false };
       setGuesses([newGuess, ...guesses]);
       setSelectedGuess(null);
@@ -325,6 +344,7 @@ const DailyDesktopEnvironments: React.FC = () => {
   return (
     <>
       <SEO {...pageSEO.dailyDesktopEnvironments} />
+      <FirstTryFeedback open={showFirstTryFeedback} subtitle="$ desktop environment identified instantly." />
       <Container maxWidth="md">
         <Box mb={4}>
           <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>

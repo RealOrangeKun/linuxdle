@@ -16,6 +16,7 @@ import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
 import { useGameSettings } from '../hooks/useGameSettings';
 import { useMidnightReload } from '../hooks/useMidnightReload';
+import FirstTryFeedback from '../components/FirstTryFeedback';
 
 interface CommandResult {
   matchResults: {
@@ -55,6 +56,7 @@ interface YesterdaysCommand {
 }
 
 const STORAGE_KEY = 'linuxdle_commands_state';
+const FIRST_TRY_FEEDBACK_MS = 1400;
 
 const DailyCommands: React.FC = () => {
   const navigate = useNavigate();
@@ -69,6 +71,8 @@ const DailyCommands: React.FC = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [hasGivenUp, setHasGivenUp] = useState(false);
+  const [wonOnFirstTry, setWonOnFirstTry] = useState(false);
+  const [showFirstTryFeedback, setShowFirstTryFeedback] = useState(false);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<YesterdaysCommand | null>(null);
 
   const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
@@ -140,7 +144,7 @@ const DailyCommands: React.FC = () => {
   useEffect(() => {
     if (isGameOver && !loading) {
       if (checkAllGamesCompleted()) {
-        dispatchSupportDialog('all-complete');
+        dispatchSupportDialog('all-complete', wonOnFirstTry ? FIRST_TRY_FEEDBACK_MS : 0);
         if (!hasRedirectedToday()) {
           markAsRedirected();
           const timer = setTimeout(() => navigate('/'), 2000);
@@ -148,13 +152,23 @@ const DailyCommands: React.FC = () => {
         }
       }
     }
-  }, [isGameOver, loading, navigate]);
+  }, [isGameOver, loading, navigate, wonOnFirstTry]);
+
+  useEffect(() => {
+    if (!showFirstTryFeedback) {
+      return;
+    }
+
+    const timer = setTimeout(() => setShowFirstTryFeedback(false), FIRST_TRY_FEEDBACK_MS);
+    return () => clearTimeout(timer);
+  }, [showFirstTryFeedback]);
 
   const handleSubmitGuess = async (overrideGuess?: string | null) => {
     const guess = overrideGuess !== undefined ? overrideGuess : selectedGuess;
     if (!guess || isGameOver) return;
 
     try {
+      const isFirstTryAttempt = results.length === 0;
       const response = await apiClient.post<CommandResult>('/daily-commands/guesses', {
         userGuess: guess
       });
@@ -165,6 +179,10 @@ const DailyCommands: React.FC = () => {
       if (response.data.matchResults.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
+        setWonOnFirstTry(isFirstTryAttempt);
+        if (isFirstTryAttempt) {
+          setShowFirstTryFeedback(true);
+        }
       }
       setSelectedGuess(null);
       highlightedOptionRef.current = null;
@@ -196,6 +214,7 @@ const DailyCommands: React.FC = () => {
       setIsGameOver(true);
       setShowSuccess(false);
       setHasGivenUp(true);
+      setWonOnFirstTry(false);
 
       const fakeResult: CommandResult = {
         matchResults: {
@@ -255,6 +274,7 @@ const DailyCommands: React.FC = () => {
   return (
     <>
       <SEO {...pageSEO.dailyCommands} />
+      <FirstTryFeedback open={showFirstTryFeedback} subtitle="$ command solved on first execution." />
       <Container maxWidth="lg">
         <Box mb={4}>
           <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>

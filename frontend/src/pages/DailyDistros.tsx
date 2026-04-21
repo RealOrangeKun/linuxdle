@@ -14,6 +14,7 @@ import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
 import { useGameSettings } from '../hooks/useGameSettings';
 import { useMidnightReload } from '../hooks/useMidnightReload';
+import FirstTryFeedback from '../components/FirstTryFeedback';
 
 interface Distro {
   name: string;
@@ -30,6 +31,7 @@ interface GuessResult {
 }
 
 const STORAGE_KEY = 'linuxdle_distros_state';
+const FIRST_TRY_FEEDBACK_MS = 1400;
 
 const DailyDistros: React.FC = () => {
   const navigate = useNavigate();
@@ -45,6 +47,8 @@ const DailyDistros: React.FC = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [hasGivenUp, setHasGivenUp] = useState(false);
+  const [wonOnFirstTry, setWonOnFirstTry] = useState(false);
+  const [showFirstTryFeedback, setShowFirstTryFeedback] = useState(false);
   const [hardMode, setHardMode] = useState(true);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<Distro | null>(null);
 
@@ -135,7 +139,7 @@ const DailyDistros: React.FC = () => {
   useEffect(() => {
     if (isGameOver && !loading) {
       if (checkAllGamesCompleted()) {
-        dispatchSupportDialog('all-complete');
+        dispatchSupportDialog('all-complete', wonOnFirstTry ? FIRST_TRY_FEEDBACK_MS : 0);
         if (!hasRedirectedToday()) {
           markAsRedirected();
           const timer = setTimeout(() => navigate('/'), 2000);
@@ -143,7 +147,16 @@ const DailyDistros: React.FC = () => {
         }
       }
     }
-  }, [isGameOver, loading, navigate]);
+  }, [isGameOver, loading, navigate, wonOnFirstTry]);
+
+  useEffect(() => {
+    if (!showFirstTryFeedback) {
+      return;
+    }
+
+    const timer = setTimeout(() => setShowFirstTryFeedback(false), FIRST_TRY_FEEDBACK_MS);
+    return () => clearTimeout(timer);
+  }, [showFirstTryFeedback]);
 
   const handleToggleHardMode = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (isGameOver) return;
@@ -157,6 +170,7 @@ const DailyDistros: React.FC = () => {
     if (!guess || isGameOver) return;
 
     try {
+      const isFirstTryAttempt = guesses.length === 0;
       const response = await apiClient.post<GuessResult>('/daily-distros/guesses', {
         userGuess: guess.slug
       });
@@ -166,6 +180,10 @@ const DailyDistros: React.FC = () => {
       if (response.data.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
+        setWonOnFirstTry(isFirstTryAttempt);
+        if (isFirstTryAttempt) {
+          setShowFirstTryFeedback(true);
+        }
         updateLogoUrl(12, false); // Force normal mode on success
       } else {
         updateLogoUrl(Math.min(newGuesses.length + 1, 12), hardMode);
@@ -202,6 +220,7 @@ const DailyDistros: React.FC = () => {
       setIsGameOver(true);
       setShowSuccess(false);
       setHasGivenUp(true);
+      setWonOnFirstTry(false);
       setGuesses([{ name: `Gave up -> Answer: ${response.data.name}`, isCorrect: false }, ...guesses]);
       updateLogoUrl(12, false);
       setSelectedGuess(null);
@@ -230,6 +249,7 @@ const DailyDistros: React.FC = () => {
   return (
     <>
       <SEO {...pageSEO.dailyDistros} />
+      <FirstTryFeedback open={showFirstTryFeedback} subtitle="$ distro recognized with a single guess." />
       <Container maxWidth="sm">
         <Box mb={4}>
           <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
