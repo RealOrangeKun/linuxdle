@@ -18,6 +18,8 @@ public sealed class DailyCommand
     [JsonIgnore]
     public ICollection<DailyCommandCategory> Categories { get; private set; } = [];
 
+    public CommandInfo? Info { get; private set; }
+
     public static DailyCommand Create(
         string name,
         string package,

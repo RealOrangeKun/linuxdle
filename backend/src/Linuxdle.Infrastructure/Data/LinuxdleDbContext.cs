@@ -3,6 +3,7 @@ using Linuxdle.Domain.DailyDesktopEnvironments;
 using Linuxdle.Domain.DailyDistros;
 using Linuxdle.Domain.DailyPuzzles;
 using Linuxdle.Domain.Games;
+using Linuxdle.Domain.UserGiveUps;
 using Linuxdle.Domain.UserGuesses;
 using Linuxdle.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,12 @@ public sealed class LinuxdleDbContext(DbContextOptions<LinuxdleDbContext> option
     public DbSet<User> Users { get; set; }
     public DbSet<DailyCommand> DailyCommands { get; set; }
     public DbSet<DailyCommandCategory> DailyCommandCategories { get; set; }
+    public DbSet<CommandInfo> CommandInfos { get; set; }
     public DbSet<DailyDistro> DailyDistros { get; set; }
     public DbSet<DailyDesktopEnvironment> DailyDesktopEnvironments { get; set; }
     public DbSet<DesktopEnvironmentScreenshot> DesktopEnvironmentScreenshots { get; set; }
     public DbSet<UserGuess> UserGuesses { get; set; }
-    public DbSet<Linuxdle.Domain.UserGiveUps.UserGiveUp> UserGiveUps { get; set; }
+    public DbSet<UserGiveUp> UserGiveUps { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
