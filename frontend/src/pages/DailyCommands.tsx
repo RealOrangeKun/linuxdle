@@ -48,6 +48,25 @@ interface CommandResult {
   } | null;
 }
 
+interface GiveUpCommandResponse {
+  guessCommandDetails: {
+    name: string;
+    package: string;
+    originYear: number;
+    manSection: number;
+    isBuiltIn: boolean;
+    requiresArgs: boolean;
+    isPosix: boolean;
+    categories: string[];
+  };
+  info: {
+    description: string;
+    synopsis: string;
+    example: string;
+    funFact: string;
+  } | null;
+}
+
 interface YesterdaysCommand {
   id: number;
   name: string;
@@ -216,38 +235,29 @@ const DailyCommands: React.FC = () => {
   const handleGiveUpConfirm = async () => {
     setGiveUpDialogOpen(false);
     try {
-      const response = await apiClient.post<{name: string}>('/daily-commands/give-up');
+      const response = await apiClient.post<GiveUpCommandResponse>('/daily-commands/give-up');
       setIsGameOver(true);
       setShowSuccess(false);
       setHasGivenUp(true);
       setWonOnFirstTry(false);
 
-      const fakeResult: CommandResult = {
+      const revealedResult: CommandResult = {
         matchResults: {
           isCorrect: false,
-          name: MatchResult.Red,
-          package: MatchResult.Red,
-          year: MatchResult.Red,
-          yearHint: YearDirection.Higher, // Using Higher just as fallback since None might not exist
-          section: MatchResult.Red,
-          builtIn: MatchResult.Red,
-          posix: MatchResult.Red,
-          categories: MatchResult.Red
+          name: MatchResult.Green,
+          package: MatchResult.Green,
+          year: MatchResult.Green,
+          yearHint: YearDirection.None,
+          section: MatchResult.Green,
+          builtIn: MatchResult.Green,
+          posix: MatchResult.Green,
+          categories: MatchResult.Green
         },
-        guessCommandDetails: {
-          name: `Gave up -> Answer: ${response.data.name}`,
-          package: '-',
-          originYear: 0,
-          manSection: 0,
-          isBuiltIn: false,
-          requiresArgs: false,
-          isPosix: false,
-          categories: []
-        },
-        info: null
+        guessCommandDetails: response.data.guessCommandDetails,
+        info: response.data.info
       };
 
-      setResults([fakeResult, ...results]);
+      setResults([revealedResult, ...results]);
       setSelectedGuess(null);
     } catch (error: any) {
       console.error('Error giving up:', error);
@@ -310,7 +320,10 @@ const DailyCommands: React.FC = () => {
               size="small"
               open={autocompleteOpen}
               onOpen={() => setAutocompleteOpen(true)}
-              onClose={() => setAutocompleteOpen(false)}
+              onClose={() => {
+                setAutocompleteOpen(false);
+                highlightedOptionRef.current = null;
+              }}
               options={commands.filter(cmd => !results.some(r => r.guessCommandDetails.name === cmd))}
               filterOptions={(options, { inputValue }) =>
                 inputValue
@@ -319,8 +332,12 @@ const DailyCommands: React.FC = () => {
               }
               value={selectedGuess}
               inputValue={inputValue}
-              onInputChange={(_, newInputValue) => {
+              onInputChange={(_, newInputValue, reason) => {
                 setInputValue(newInputValue);
+                highlightedOptionRef.current = null;
+                if (reason === 'input') {
+                  setSelectedGuess(null);
+                }
                 if (newInputValue) setAutocompleteOpen(true);
               }}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
@@ -333,6 +350,17 @@ const DailyCommands: React.FC = () => {
                   cmd.toLowerCase().startsWith(inputValue.toLowerCase())
                 );
                 const firstOption = filteredOptions[0] ?? null;
+                const normalizedInput = inputValue.trim().toLowerCase();
+                const highlightedOption = highlightedOptionRef.current;
+                const validHighlightedOption = highlightedOption && filteredOptions.includes(highlightedOption)
+                  ? highlightedOption
+                  : null;
+                const exactOption = normalizedInput
+                  ? filteredOptions.find(cmd => cmd.toLowerCase() === normalizedInput) ?? null
+                  : null;
+                const validSelectedOption = selectedGuess && filteredOptions.includes(selectedGuess)
+                  ? selectedGuess
+                  : null;
 
                 if (e.key === 'Tab' || e.key === 'ArrowRight') {
                   // Autocomplete the first match without submitting
@@ -343,8 +371,7 @@ const DailyCommands: React.FC = () => {
                   }
                 } else if (e.key === 'Enter') {
                   if (!autocompleteOpen) return;
-                  // Prefer highlighted option (arrow key nav), fall back to first match
-                  const toSubmit = highlightedOptionRef.current ?? firstOption;
+                  const toSubmit = validHighlightedOption ?? exactOption ?? validSelectedOption ?? firstOption;
                   if (toSubmit) {
                     e.preventDefault();
                     handleSubmitGuess(toSubmit);
@@ -401,7 +428,7 @@ const DailyCommands: React.FC = () => {
 
         {results.length > 0 && (
           <Box>
-            {results[0].matchResults.isCorrect && results[0].info && (
+            {(results[0].matchResults.isCorrect || hasGivenUp) && results[0].info && (
               <Paper
                 variant="outlined"
                 sx={{

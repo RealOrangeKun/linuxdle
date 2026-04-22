@@ -472,7 +472,10 @@ const DailyDesktopEnvironments: React.FC = () => {
               size="small"
               open={autocompleteOpen}
               onOpen={() => setAutocompleteOpen(true)}
-              onClose={() => setAutocompleteOpen(false)}
+              onClose={() => {
+                setAutocompleteOpen(false);
+                highlightedOptionRef.current = null;
+              }}
               options={des.filter(de => !guesses.some(g => g.name === de.name))}
               getOptionLabel={(option) => option?.name || ''}
               filterOptions={(options, { inputValue }) =>
@@ -482,8 +485,12 @@ const DailyDesktopEnvironments: React.FC = () => {
               }
               value={selectedGuess}
               inputValue={inputValue}
-              onInputChange={(_, newInputValue) => {
+              onInputChange={(_, newInputValue, reason) => {
                 setInputValue(newInputValue);
+                highlightedOptionRef.current = null;
+                if (reason === 'input') {
+                  setSelectedGuess(null);
+                }
                 if (newInputValue) setAutocompleteOpen(true);
               }}
               onChange={(_, newValue) => setSelectedGuess(newValue)}
@@ -496,6 +503,17 @@ const DailyDesktopEnvironments: React.FC = () => {
                   de.name.toLowerCase().startsWith(inputValue.toLowerCase())
                 );
                 const firstOption = filteredOptions[0] ?? null;
+                const normalizedInput = inputValue.trim().toLowerCase();
+                const highlightedOption = highlightedOptionRef.current;
+                const validHighlightedOption = highlightedOption && filteredOptions.includes(highlightedOption)
+                  ? highlightedOption
+                  : null;
+                const exactOption = normalizedInput
+                  ? filteredOptions.find(de => de.name.toLowerCase() === normalizedInput) ?? null
+                  : null;
+                const validSelectedOption = selectedGuess && filteredOptions.includes(selectedGuess)
+                  ? selectedGuess
+                  : null;
 
                 if (e.key === 'Tab' || e.key === 'ArrowRight') {
                   if (!selectedGuess && firstOption) {
@@ -505,7 +523,7 @@ const DailyDesktopEnvironments: React.FC = () => {
                   }
                 } else if (e.key === 'Enter') {
                   const toSubmit = autocompleteOpen
-                    ? highlightedOptionRef.current ?? selectedGuess ?? firstOption
+                    ? validHighlightedOption ?? exactOption ?? validSelectedOption ?? firstOption
                     : selectedGuess;
                   if (toSubmit) {
                     e.preventDefault();

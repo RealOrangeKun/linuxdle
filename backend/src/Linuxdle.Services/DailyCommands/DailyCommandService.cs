@@ -168,7 +168,7 @@ internal sealed class DailyCommandService(
             cancellationToken: cancellationToken);
     }
 
-    public async Task<DailyCommandDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<DailyCommandGiveUpResultDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var (puzzleId, target) = await GetDailyTargetAsync(today, cancellationToken);
@@ -185,9 +185,29 @@ internal sealed class DailyCommandService(
         if (hasGivenUp)
             throw new BadRequestException("You have already given up today.");
 
+        var info = await hybridCache.GetOrCreateAsync(
+            CacheKeys.CommandInfoByCommandId(target.Id),
+            async cancel => await dbContext.CommandInfos
+                .Where(ci => ci.CommandId == target.Id)
+                .Select(ci => new CommandInfoDetails(ci.Description, ci.Synopsis, ci.Example, ci.FunFact))
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+            cancellationToken: cancellationToken);
+
         dbContext.UserGiveUps.Add(UserGiveUp.Create(userId, puzzleId, GameIds.DailyCommands, today));
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return target;
+        return new DailyCommandGiveUpResultDto(
+            GuessCommandDetails: new GuessCommandDetails(
+                Name: target.Name,
+                Package: target.Package,
+                OriginYear: target.OriginYear,
+                ManSection: target.ManSection,
+                IsBuiltIn: target.IsBuiltIn,
+                RequiresArgs: target.RequiresArgs,
+                IsPosix: target.IsPosix,
+                Categories: target.CategoryNames),
+            Info: info);
     }
 }

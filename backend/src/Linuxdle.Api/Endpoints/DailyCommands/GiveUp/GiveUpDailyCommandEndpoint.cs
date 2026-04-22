@@ -26,7 +26,7 @@ internal sealed partial class GiveUpDailyCommandEndpoint
         var userId = user.GetUserId();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        DailyCommandDto response = await dailyCommandService.HandleUserGiveUpAsync(userId, cancellationToken);
+        DailyCommandGiveUpResultDto response = await dailyCommandService.HandleUserGiveUpAsync(userId, cancellationToken);
         await userStreakService.UpdateStreakIfAllGamesCompletedAsync(userId, today, cancellationToken);
 
         return Results.Ok(response);
