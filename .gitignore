@@ -23,6 +23,9 @@ __pycache__/
 *.pyc
 .venv/
 
+# Node
+node_modules/
+
 # Build artifacts are handled by sub-directory gitignores
 
 *.csv

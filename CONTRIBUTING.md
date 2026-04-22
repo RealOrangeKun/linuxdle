@@ -24,6 +24,17 @@ If you agree to these terms, we would love your help!
    git checkout -b feature/your-feature-name
    ```
 
+   One-time setup for commit style enforcement:
+   ```bash
+   npm install
+   ```
+
+   Hooks are installed automatically via `npm install`.
+   If needed, you can re-run setup manually:
+   ```bash
+   npm run hooks:install
+   ```
+
 3. **Make Your Changes**
    - If you are adding new Daily Distros, Commands, or Desktop Environments, please edit the appropriate JSON files in `seed_data/data/` as outlined in the `seed_data/README.md`.
    - If you are contributing code, ensure you run the local development stack (`docker-compose.dev.yml`) to verify everything works properly.
@@ -35,6 +46,8 @@ If you agree to these terms, we would love your help!
    git commit -m "feat(data): add new feature or distro"
    git push origin feature/your-feature-name
    ```
+
+   Commit messages are enforced via a `commit-msg` hook and CI (`commitlint`).
 
 5. **Open a Pull Request**
    Open a Pull Request against the `main` branch of this repository. Please provide a clear title and description of the changes you made.

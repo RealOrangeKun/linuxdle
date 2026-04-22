@@ -123,8 +123,9 @@ We heartily welcome contributions from the community! However, please note that 
 If it's your first time, here is the basic workflow:
 1. Fork the repository.
 2. Create a feature branch (`git checkout -b feat/amazing-feature`) — make sure your commit messages follow the Conventional Commits specification!
-3. Commit and push your changes.
-4. Open a Pull Request against our `main` branch.
+3. Install commit tooling once (`npm install`). This auto-configures Git hooks.
+4. Commit and push your changes.
+5. Open a Pull Request against our `main` branch.
 
 ## 📝 License
 

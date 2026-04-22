@@ -1,0 +1,14 @@
+{
+  "name": "linuxdle-git-tools",
+  "private": true,
+  "scripts": {
+    "prepare": "npm run hooks:install",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "commitlint": "commitlint",
+    "commitlint:message": "commitlint --edit"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1"
+  }
+}
