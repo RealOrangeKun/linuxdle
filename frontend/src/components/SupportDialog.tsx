@@ -3,7 +3,7 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, Typography, Box, Divider, IconButton
 } from '@mui/material';
-import { Close, GitHub, LocalCafe } from '@mui/icons-material';
+import { Close, GitHub, LocalCafe, OpenInNew } from '@mui/icons-material';
 
 const STORAGE_KEY = 'linuxdle_support_dialog_shown';
 const EVENT_NAME = 'linuxdle:show-support';
@@ -68,6 +68,20 @@ const SupportDialog: React.FC<SupportDialogProps> = ({ open, onClose }) => (
           sx={{ fontFamily: 'monospace', justifyContent: 'flex-start' }}
         >
           Support on Ko-fi
+        </Button>
+
+        <Button
+          component="a"
+          href="https://devguessr.site/"
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outlined"
+          color="secondary"
+          startIcon={<OpenInNew />}
+          fullWidth
+          sx={{ fontFamily: 'monospace', justifyContent: 'flex-start' }}
+        >
+          Enjoying Linuxdle? Try this out: DevGuessr
         </Button>
       </Box>
     </DialogContent>

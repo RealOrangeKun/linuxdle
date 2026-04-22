@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Grid, Card, CardContent, CardActionArea, Box, Divider, Stack } from '@mui/material';
-import { AutoStories, NewReleases } from '@mui/icons-material';
+import { Container, Typography, Grid, Card, CardContent, CardActionArea, Box, Divider, Stack, Button } from '@mui/material';
+import { AutoStories, NewReleases, OpenInNew } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import CountdownTimer from '../components/CountdownTimer';
 import { dispatchSupportDialog } from '../components/SupportDialog';
@@ -71,7 +71,21 @@ const Home: React.FC = () => {
             <Typography variant="h6" sx={{ color: 'success.main', mb: 1, fontWeight: 'bold' }}>
               [OK] ALL_MODULES_COMPLETE
             </Typography>
-            <CountdownTimer />
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <CountdownTimer />
+              <Button
+                component="a"
+                href="https://devguessr.site/"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="outlined"
+                color="secondary"
+                startIcon={<OpenInNew />}
+                sx={{ fontFamily: 'monospace', width: { xs: '100%', sm: 'auto' }, maxWidth: 420 }}
+              >
+                Enjoying Linuxdle? Try this out: DevGuessr
+              </Button>
+            </Box>
           </Box>
         )}
       </Box>
