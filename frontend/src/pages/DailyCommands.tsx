@@ -286,6 +286,11 @@ const DailyCommands: React.FC = () => {
     }
   };
 
+  const getCellStyles = (result: MatchResult) => ({
+    bgcolor: getCellColor(result),
+    color: 'white'
+  });
+
   if (loading || settingsLoading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
@@ -496,106 +501,179 @@ const DailyCommands: React.FC = () => {
             )}
 
             <Box>
-              <TableContainer sx={{
-                overflowX: 'auto',
-                // Bigger, easier-to-hit scrollbar with breathing room on mobile
-                pb: { xs: 1, sm: 0 },
-                mt: { xs: 1, sm: 0 },
-                '&::-webkit-scrollbar': { height: 8 },
-                '&::-webkit-scrollbar-track': { bgcolor: 'divider' },
-                '&::-webkit-scrollbar-thumb': { bgcolor: 'primary.main' },
-              }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell><Tooltip title="The command name" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>NAME</span></Tooltip></TableCell>
-                    <TableCell><Tooltip title="The package that provides this command (e.g. coreutils, util-linux)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>PKG</span></Tooltip></TableCell>
-                    <TableCell><Tooltip title="The year this command was first introduced" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>YEAR</span></Tooltip></TableCell>
-                    <TableCell>
-                      <Tooltip
-                        arrow
-                        placement="top"
-                        title={
-                          <Box sx={{ fontSize: '0.75rem' }}>
-                            <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Man Page Sections</Box>
-                            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-                              <tbody>
-                                {[
-                                  ['1', 'User commands'],
-                                  ['2', 'System calls'],
-                                  ['3', 'Library functions'],
-                                  ['4', 'Special files / devices'],
-                                  ['5', 'File formats & conventions'],
-                                  ['6', 'Games'],
-                                  ['7', 'Miscellaneous'],
-                                  ['8', 'System admin commands'],
-                                ].map(([num, desc]) => (
-                                  <tr key={num}>
-                                    <td style={{ paddingRight: 8, fontWeight: 'bold', opacity: 0.7 }}>{num}</td>
-                                    <td>{desc}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </Box>
-                        }
+              <Box sx={{ display: { xs: 'flex', sm: 'none' }, flexDirection: 'column', gap: 1.5 }}>
+                {results.map((result, idx) => (
+                  <Paper
+                    key={`mobile-result-${idx}`}
+                    variant="outlined"
+                    sx={{
+                      p: 1.5,
+                      bgcolor: 'background.default',
+                      borderColor: result.matchResults.isCorrect ? 'success.main' : 'divider'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 'bold', fontFamily: 'monospace', color: 'primary.main' }}>
+                        GUESS #{results.length - idx}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 'bold',
+                          fontFamily: 'monospace',
+                          color: result.matchResults.isCorrect ? 'success.main' : 'text.secondary'
+                        }}
                       >
-                        <span style={{ cursor: 'help', borderBottom: '1px dashed' }}>SEC</span>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell><Tooltip title="Built-in: whether the command is built into the shell (e.g. cd, echo in bash) rather than an external binary" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>B-IN</span></Tooltip></TableCell>
-                    <TableCell><Tooltip title="POSIX: whether the command is part of the POSIX standard, meaning it should be available on all POSIX-compliant systems (Linux, macOS, BSD...)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>POSIX</span></Tooltip></TableCell>
-                    <TableCell><Tooltip title="The functional categories this command belongs to (e.g. File Management, Networking, Text Processing)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>CATEGORIES</span></Tooltip></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {results.map((result, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.name), color: 'white', fontWeight: 'bold' }}>
-                        {result.guessCommandDetails.name}
-                      </TableCell>
-                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.package), color: 'white' }}>
-                        {result.guessCommandDetails.package}
-                      </TableCell>
-                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.year), color: 'white' }}>
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          {result.guessCommandDetails.originYear}
-                          {result.matchResults.yearHint === YearDirection.Higher && <ArrowUpward fontSize="inherit" />}
-                          {result.matchResults.yearHint === YearDirection.Lower && <ArrowDownward fontSize="inherit" />}
+                        {result.matchResults.isCorrect ? '[MATCH]' : '[IN_PROGRESS]'}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'grid', gap: 0.75 }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', alignItems: 'stretch', gap: 0.75 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', alignSelf: 'center' }}>NAME</Typography>
+                        <Box sx={{ ...getCellStyles(result.matchResults.name), px: 1, py: 0.75, fontWeight: 'bold', wordBreak: 'break-word', textAlign: 'right' }}>
+                          {result.guessCommandDetails.name}
                         </Box>
-                      </TableCell>
-                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.section), color: 'white' }}>
-                        {result.guessCommandDetails.manSection}
-                      </TableCell>
-                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.builtIn), color: 'white' }}>
-                        {result.guessCommandDetails.isBuiltIn ? 'Y' : 'N'}
-                      </TableCell>
-                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.posix), color: 'white' }}>
-                        {result.guessCommandDetails.isPosix ? 'Y' : 'N'}
-                      </TableCell>
-                      <TableCell sx={{ bgcolor: getCellColor(result.matchResults.categories), color: 'white' }}>
-                        <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                          {result.guessCommandDetails.categories.join(', ')}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-              {/* Mobile-only scroll hint */}
-              <Typography
-                variant="caption"
-                sx={{
-                  display: { xs: 'flex', sm: 'none' },
-                  justifyContent: 'center',
-                  mt: 0.5,
-                  opacity: 0.6,
-                  fontFamily: 'monospace',
-                }}
-              >
-                ← scroll to see all columns →
-              </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', alignItems: 'stretch', gap: 0.75 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', alignSelf: 'center' }}>PKG</Typography>
+                        <Box sx={{ ...getCellStyles(result.matchResults.package), px: 1, py: 0.75, wordBreak: 'break-word', textAlign: 'right', fontWeight: 'bold' }}>
+                          {result.guessCommandDetails.package}
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', alignItems: 'stretch', gap: 0.75 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', alignSelf: 'center' }}>YEAR</Typography>
+                        <Box sx={{ ...getCellStyles(result.matchResults.year), px: 1, py: 0.75, textAlign: 'right', fontWeight: 'bold' }}>
+                          <Box display="flex" alignItems="center" gap={0.5} justifyContent="flex-end">
+                            {result.guessCommandDetails.originYear}
+                            {result.matchResults.yearHint === YearDirection.Higher && <ArrowUpward fontSize="inherit" />}
+                            {result.matchResults.yearHint === YearDirection.Lower && <ArrowDownward fontSize="inherit" />}
+                          </Box>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', alignItems: 'stretch', gap: 0.75 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', alignSelf: 'center' }}>SEC</Typography>
+                        <Box sx={{ ...getCellStyles(result.matchResults.section), px: 1, py: 0.75, textAlign: 'right', fontWeight: 'bold' }}>
+                          {result.guessCommandDetails.manSection}
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', alignItems: 'stretch', gap: 0.75 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', alignSelf: 'center' }}>B-IN</Typography>
+                        <Box sx={{ ...getCellStyles(result.matchResults.builtIn), px: 1, py: 0.75, textAlign: 'right', fontWeight: 'bold' }}>
+                          {result.guessCommandDetails.isBuiltIn ? 'Y' : 'N'}
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', alignItems: 'stretch', gap: 0.75 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', alignSelf: 'center' }}>POSIX</Typography>
+                        <Box sx={{ ...getCellStyles(result.matchResults.posix), px: 1, py: 0.75, textAlign: 'right', fontWeight: 'bold' }}>
+                          {result.guessCommandDetails.isPosix ? 'Y' : 'N'}
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', alignItems: 'stretch', gap: 0.75 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', alignSelf: 'center' }}>CATEGORIES</Typography>
+                        <Box sx={{ ...getCellStyles(result.matchResults.categories), px: 1, py: 0.75, textAlign: 'right' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                            {result.guessCommandDetails.categories.join(', ')}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Paper>
+                ))}
+              </Box>
+
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <TableContainer sx={{
+                  overflowX: 'auto',
+                  '&::-webkit-scrollbar': { height: 8 },
+                  '&::-webkit-scrollbar-track': { bgcolor: 'divider' },
+                  '&::-webkit-scrollbar-thumb': { bgcolor: 'primary.main' },
+                }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell><Tooltip title="The command name" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>NAME</span></Tooltip></TableCell>
+                        <TableCell><Tooltip title="The package that provides this command (e.g. coreutils, util-linux)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>PKG</span></Tooltip></TableCell>
+                        <TableCell><Tooltip title="The year this command was first introduced" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>YEAR</span></Tooltip></TableCell>
+                        <TableCell>
+                          <Tooltip
+                            arrow
+                            placement="top"
+                            title={
+                              <Box sx={{ fontSize: '0.75rem' }}>
+                                <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>Man Page Sections</Box>
+                                <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                                  <tbody>
+                                    {[
+                                      ['1', 'User commands'],
+                                      ['2', 'System calls'],
+                                      ['3', 'Library functions'],
+                                      ['4', 'Special files / devices'],
+                                      ['5', 'File formats & conventions'],
+                                      ['6', 'Games'],
+                                      ['7', 'Miscellaneous'],
+                                      ['8', 'System admin commands'],
+                                    ].map(([num, desc]) => (
+                                      <tr key={num}>
+                                        <td style={{ paddingRight: 8, fontWeight: 'bold', opacity: 0.7 }}>{num}</td>
+                                        <td>{desc}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </Box>
+                            }
+                          >
+                            <span style={{ cursor: 'help', borderBottom: '1px dashed' }}>SEC</span>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell><Tooltip title="Built-in: whether the command is built into the shell (e.g. cd, echo in bash) rather than an external binary" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>B-IN</span></Tooltip></TableCell>
+                        <TableCell><Tooltip title="POSIX: whether the command is part of the POSIX standard, meaning it should be available on all POSIX-compliant systems (Linux, macOS, BSD...)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>POSIX</span></Tooltip></TableCell>
+                        <TableCell><Tooltip title="The functional categories this command belongs to (e.g. File Management, Networking, Text Processing)" arrow placement="top"><span style={{ cursor: 'help', borderBottom: '1px dashed' }}>CATEGORIES</span></Tooltip></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {results.map((result, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell sx={{ ...getCellStyles(result.matchResults.name), fontWeight: 'bold', textAlign: 'right' }}>
+                            {result.guessCommandDetails.name}
+                          </TableCell>
+                          <TableCell sx={{ ...getCellStyles(result.matchResults.package), textAlign: 'right', fontWeight: 'bold' }}>
+                            {result.guessCommandDetails.package}
+                          </TableCell>
+                          <TableCell sx={{ ...getCellStyles(result.matchResults.year), textAlign: 'right', fontWeight: 'bold' }}>
+                            <Box display="flex" alignItems="center" gap={0.5} justifyContent="flex-end">
+                              {result.guessCommandDetails.originYear}
+                              {result.matchResults.yearHint === YearDirection.Higher && <ArrowUpward fontSize="inherit" />}
+                              {result.matchResults.yearHint === YearDirection.Lower && <ArrowDownward fontSize="inherit" />}
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ ...getCellStyles(result.matchResults.section), textAlign: 'right', fontWeight: 'bold' }}>
+                            {result.guessCommandDetails.manSection}
+                          </TableCell>
+                          <TableCell sx={{ ...getCellStyles(result.matchResults.builtIn), textAlign: 'right', fontWeight: 'bold' }}>
+                            {result.guessCommandDetails.isBuiltIn ? 'Y' : 'N'}
+                          </TableCell>
+                          <TableCell sx={{ ...getCellStyles(result.matchResults.posix), textAlign: 'right', fontWeight: 'bold' }}>
+                            {result.guessCommandDetails.isPosix ? 'Y' : 'N'}
+                          </TableCell>
+                          <TableCell sx={{ ...getCellStyles(result.matchResults.categories), textAlign: 'right' }}>
+                            <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                              {result.guessCommandDetails.categories.join(', ')}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
             </Box>
           </Box>
         )}

@@ -1,7 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { AppBar, Toolbar, Typography, Container, Button, Box, IconButton, useTheme } from '@mui/material';
-import { Outlet, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { DarkMode, LightMode, Terminal, GitHub, LocalCafe, Whatshot, MenuBook } from '@mui/icons-material';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Container,
+  Button,
+  Box,
+  IconButton,
+  useTheme,
+  BottomNavigation,
+  BottomNavigationAction,
+  Paper
+} from '@mui/material';
+import { Outlet, useNavigate, Link as RouterLink, useLocation } from 'react-router-dom';
+import {
+  DarkMode,
+  LightMode,
+  Terminal,
+  GitHub,
+  LocalCafe,
+  Whatshot,
+  MenuBook,
+  Home,
+  Image,
+  DesktopWindows
+} from '@mui/icons-material';
 import { ColorModeContext } from '../App';
 import apiClient from '../api/apiClient';
 import SupportDialog, { EVENT_NAME, markSupportDialogShown, shouldShowSupportDialog } from './SupportDialog';
@@ -24,6 +47,7 @@ interface SupportDialogFeedback {
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const colorMode = React.useContext(ColorModeContext);
   const [supportOpen, setSupportOpen] = useState(false);
@@ -148,10 +172,121 @@ const Layout: React.FC = () => {
     setPendingStreak(null);
   };
 
+  const pathname = location.pathname;
+  const mobileNavValue =
+    pathname === '/' ? 'home'
+      : pathname.startsWith('/commands') ? 'commands'
+      : pathname.startsWith('/distros') ? 'distros'
+      : pathname.startsWith('/des') ? 'des'
+      : null;
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
       <AdSenseLoader />
-      <AppBar position="static" color="inherit" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <AppBar
+        position="fixed"
+        color="inherit"
+        elevation={0}
+        sx={{
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: { xs: 'block', sm: 'none' }
+        }}
+      >
+        <Container maxWidth="lg">
+          <Toolbar disableGutters>
+            <Box
+              sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexGrow: 1 }}
+              onClick={() => navigate('/')}
+            >
+              <Terminal sx={{ mr: 1, color: 'primary.main' }} />
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{ fontWeight: 'bold', fontFamily: 'monospace', letterSpacing: '.1rem' }}
+              >
+                LINUXDLE
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'warning.main', mr: 0.5, position: 'relative' }}>
+                <Whatshot sx={{ fontSize: { xs: 21, sm: 23, md: 24 } }} />
+                <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
+                  {`[${streak}]`}
+                </Typography>
+                {streakDeltaFlash && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      position: 'absolute',
+                      right: 'unset',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      top: -12,
+                      fontFamily: 'monospace',
+                      fontWeight: 'bold',
+                      fontSize: '1.4rem',
+                      whiteSpace: 'nowrap',
+                      color: streakDeltaFlash.startsWith('+') ? '#00ff00' : '#ff4444',
+                      textShadow: streakDeltaFlash.startsWith('+')
+                        ? '0 0 8px rgba(0, 255, 0, 0.8), 0 0 16px rgba(0, 255, 0, 0.5)'
+                        : '0 0 8px rgba(255, 68, 68, 0.8), 0 0 16px rgba(255, 68, 68, 0.5)',
+                      animation: 'streak-pop 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+                      '@keyframes streak-pop': {
+                        '0%': { opacity: 0, transform: 'translateY(10px) scale(0.3)' },
+                        '20%': { opacity: 1, transform: 'translateY(-2px) scale(1.3)' },
+                        '50%': { opacity: 1, transform: 'translateY(-8px) scale(1.1)' },
+                        '100%': { opacity: 0, transform: 'translateY(-20px) scale(0.8)' }
+                      }
+                    }}
+                  >
+                    {streakDeltaFlash}
+                  </Typography>
+                )}
+              </Box>
+
+              <IconButton
+                component="a"
+                href="https://github.com/RealOrangeKun/linuxdle"
+                target="_blank"
+                rel="noopener noreferrer"
+                color="inherit"
+                title="GitHub Repository"
+                size="small"
+                sx={{ p: { xs: 0.8, sm: 1 } }}
+              >
+                <GitHub sx={{ fontSize: { xs: 23, sm: 24, md: 25 } }} />
+              </IconButton>
+              <IconButton
+                component="a"
+                href="https://ko-fi.com/orangekun"
+                target="_blank"
+                rel="noopener noreferrer"
+                color="inherit"
+                title="Support on Ko-fi"
+                size="small"
+                sx={{ p: { xs: 0.8, sm: 1 } }}
+              >
+                <LocalCafe sx={{ fontSize: { xs: 23, sm: 24, md: 25 } }} />
+              </IconButton>
+
+              <IconButton onClick={colorMode.toggleColorMode} color="inherit" sx={{ p: { xs: 0.8, sm: 1 } }}>
+                {theme.palette.mode === 'dark'
+                  ? <LightMode sx={{ fontSize: { xs: 23, sm: 24, md: 25 } }} />
+                  : <DarkMode sx={{ fontSize: { xs: 23, sm: 24, md: 25 } }} />}
+              </IconButton>
+            </Box>
+          </Toolbar>
+        </Container>
+      </AppBar>
+
+      <AppBar
+        position="static"
+        color="inherit"
+        elevation={0}
+        sx={{ borderBottom: 1, borderColor: 'divider', display: { xs: 'none', sm: 'block' } }}
+      >
         <Container maxWidth="lg">
           <Toolbar disableGutters>
             <Box 
@@ -170,7 +305,7 @@ const Layout: React.FC = () => {
             
             <Box sx={{ display: 'flex', gap: { xs: 1, md: 2 }, alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'warning.main', mr: { xs: 0.5, md: 1 }, position: 'relative' }}>
-                <Whatshot fontSize="small" />
+                <Whatshot sx={{ fontSize: { xs: 21, sm: 23, md: 24 } }} />
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
                   {`[${streak}]`}
                 </Typography>
@@ -232,7 +367,7 @@ const Layout: React.FC = () => {
                 title="Manual (man page)"
                 sx={{ ml: { xs: 0, md: 1 }, color: 'primary.main', display: { xs: 'none', sm: 'inline-flex' } }}
               >
-                <MenuBook />
+                <MenuBook sx={{ fontSize: { xs: 23, sm: 24, md: 25 } }} />
               </IconButton>
               <IconButton 
                 component="a" 
@@ -241,9 +376,9 @@ const Layout: React.FC = () => {
                 rel="noopener noreferrer" 
                 color="inherit" 
                 title="GitHub Repository"
-                sx={{ ml: { xs: 0, md: 1 }, display: { xs: 'none', sm: 'inline-flex' } }}
+                sx={{ ml: { xs: 0, md: 1 }, display: { xs: 'none', sm: 'inline-flex' }, p: { sm: 0.9, md: 1 } }}
               >
-                <GitHub />
+                <GitHub sx={{ fontSize: { xs: 23, sm: 24, md: 25 } }} />
               </IconButton>
               <IconButton
                 component="a"
@@ -252,23 +387,86 @@ const Layout: React.FC = () => {
                 rel="noopener noreferrer"
                 color="inherit"
                 title="Support on Ko-fi"
-                sx={{ ml: { xs: 0, md: 1 }, display: { xs: 'none', sm: 'inline-flex' } }}
+                sx={{ ml: { xs: 0, md: 1 }, display: { xs: 'none', sm: 'inline-flex' }, p: { sm: 0.9, md: 1 } }}
               >
-                <LocalCafe />
+                <LocalCafe sx={{ fontSize: { xs: 23, sm: 24, md: 25 } }} />
               </IconButton>
-              <IconButton onClick={colorMode.toggleColorMode} color="inherit" sx={{ ml: { xs: 0, md: 1 } }}>
-                {theme.palette.mode === 'dark' ? <LightMode /> : <DarkMode />}
+              <IconButton onClick={colorMode.toggleColorMode} color="inherit" sx={{ ml: { xs: 0, md: 1 }, p: { sm: 0.9, md: 1 } }}>
+                {theme.palette.mode === 'dark'
+                  ? <LightMode sx={{ fontSize: { xs: 23, sm: 24, md: 25 } }} />
+                  : <DarkMode sx={{ fontSize: { xs: 23, sm: 24, md: 25 } }} />}
               </IconButton>
             </Box>
           </Toolbar>
         </Container>
       </AppBar>
 
-      <Container component="main" sx={{ mt: 4, mb: 4, flex: 1 }}>
+      <Container component="main" sx={{ mt: { xs: 10, sm: 4 }, mb: { xs: 10, sm: 4 }, flex: 1 }}>
         <Outlet />
       </Container>
 
-      <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          borderTop: 1,
+          borderColor: 'divider',
+          zIndex: theme.zIndex.appBar,
+          bgcolor: 'background.paper'
+        }}
+      >
+        <BottomNavigation
+          showLabels
+          value={mobileNavValue}
+          sx={{
+            height: 68,
+            '& .MuiBottomNavigationAction-root': {
+              minWidth: 0,
+              px: 0.25,
+            },
+            '& .MuiBottomNavigationAction-label': {
+              fontFamily: 'monospace',
+              fontSize: '0.65rem',
+              marginTop: '2px',
+            }
+          }}
+        >
+          <BottomNavigationAction
+            value="home"
+            label="Home"
+            icon={<Home fontSize="small" />}
+            onClick={() => navigate('/')}
+            aria-label="Home"
+          />
+          <BottomNavigationAction
+            value="commands"
+            label="Commands"
+            icon={<Terminal fontSize="small" />}
+            onClick={() => navigate('/commands')}
+            aria-label="Daily Commands"
+          />
+          <BottomNavigationAction
+            value="distros"
+            label="Distros"
+            icon={<Image fontSize="small" />}
+            onClick={() => navigate('/distros')}
+            aria-label="Daily Distros"
+          />
+          <BottomNavigationAction
+            value="des"
+            label="DEs"
+            icon={<DesktopWindows fontSize="small" />}
+            onClick={() => navigate('/des')}
+            aria-label="Daily Desktop Environments"
+          />
+        </BottomNavigation>
+      </Paper>
+
+      <Box component="footer" sx={{ py: 3, px: 2, pb: { xs: 11, sm: 3 }, mt: 'auto', borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box sx={{ display: 'flex', gap: 3, mb: { xs: 2, md: 0 }, flexWrap: 'wrap' }}>
@@ -289,26 +487,6 @@ const Layout: React.FC = () => {
               </Typography>
               <Typography component={RouterLink} to="/guides" variant="body2" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
                 Guides
-              </Typography>
-              <Typography
-                component="a"
-                href="https://github.com/RealOrangeKun/linuxdle"
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="body2"
-                sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
-              >
-                GitHub
-              </Typography>
-              <Typography
-                component="a"
-                href="https://ko-fi.com/orangekun"
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="body2"
-                sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
-              >
-                Ko-fi
               </Typography>
             </Box>
             <Typography variant="body2" align="center" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>

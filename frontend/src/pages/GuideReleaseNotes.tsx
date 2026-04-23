@@ -5,6 +5,19 @@ import GuideArticleLayout from '../components/GuideArticleLayout';
 
 const releases = [
   {
+    id: 'release-2026-04-23',
+    date: '2026-04-23',
+    title: 'Release 2026.04.23',
+    summary: 'Mobile UX overhaul, command results readability, and man-page refresh',
+    bullets: [
+      'Reworked Daily Commands results on phones into stacked per-guess cards to avoid horizontal table scrolling.',
+      'Improved command result readability by right-aligning and bolding property values across mobile cards and desktop table cells.',
+      'Refreshed the /man page with clearer module separation, command feedback color legend, and improved scanability.',
+      'Added mobile fixed navigation: persistent top bar, labeled bottom game navigation, and quick GitHub/Ko-fi access in the top bar.',
+      'Scaled top navbar icon sizing responsively for better visibility across small and large mobile screens.',
+    ],
+  },
+  {
     id: 'release-2026-04-20',
     date: '2026-04-20',
     title: 'Release 2026.04.20',
@@ -93,7 +106,7 @@ const GuideReleaseNotes: React.FC = () => {
     <GuideArticleLayout
       title="Linuxdle Releases"
       description="A dated, clickable archive of Linuxdle releases and the changes shipped in each one."
-      updatedOn="April 20, 2026"
+      updatedOn="April 23, 2026"
       author="Linuxdle Editorial"
       keywords="linuxdle releases, changelog, release archive, product updates"
       toc={releases.map((release) => ({ id: release.id, label: `${release.date} - ${release.title}` }))}
