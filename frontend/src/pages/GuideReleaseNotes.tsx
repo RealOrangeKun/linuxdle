@@ -10,11 +10,11 @@ const releases = [
     title: 'Release 2026.04.23',
     summary: 'Mobile UX overhaul, command results readability, and man-page refresh',
     bullets: [
-      'Reworked Daily Commands results on phones into stacked per-guess cards to avoid horizontal table scrolling.',
-      'Improved command result readability by right-aligning and bolding property values across mobile cards and desktop table cells.',
-      'Refreshed the /man page with clearer module separation, command feedback color legend, and improved scanability.',
-      'Added mobile fixed navigation: persistent top bar, labeled bottom game navigation, and quick GitHub/Ko-fi access in the top bar.',
-      'Scaled top navbar icon sizing responsively for better visibility across small and large mobile screens.',
+      'Reworked Daily Commands results on phones into stacked per-guess cards to avoid horizontal table scrolling (c608a3d).',
+      'Improved command result readability by right-aligning and bolding property values across mobile cards and desktop table cells (c608a3d).',
+      'Refreshed the /man page with clearer module separation, command feedback color legend, and improved scanability (c608a3d).',
+      'Added mobile fixed navigation: persistent top bar, labeled bottom game navigation, and quick GitHub/Ko-fi access in the top bar (c608a3d).',
+      'Scaled top navbar icon sizing responsively for better visibility across small and large mobile screens (c608a3d).',
     ],
   },
   {
@@ -23,8 +23,8 @@ const releases = [
     title: 'Release 2026.04.20',
     summary: 'Autocomplete Enter behavior consistency improvements',
     bullets: [
-      'Fixed suggestion list submission flow so Enter works consistently after mouse selection in Daily Commands, Daily Distros, and Daily Desktop Environments.',
-      'Updated keyboard handling to prefer highlighted items while suggestions are open, and selected items when the list is closed.',
+      'Fixed suggestion list submission flow so Enter works consistently after mouse selection in Daily Commands, Daily Distros, and Daily Desktop Environments (035d820, 93020c1).',
+      'Updated keyboard handling to prefer highlighted items while suggestions are open, and selected items when the list is closed (035d820).',
     ],
   },
   {
