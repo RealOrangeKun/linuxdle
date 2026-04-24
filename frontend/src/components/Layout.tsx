@@ -29,6 +29,10 @@ import { ColorModeContext } from '../App';
 import apiClient from '../api/apiClient';
 import SupportDialog, { EVENT_NAME, markSupportDialogShown, shouldShowSupportDialog } from './SupportDialog';
 import type { SupportDialogReason } from './SupportDialog';
+import GameProgressDialog, {
+  GAME_PROGRESS_EVENT_NAME,
+  type GameProgressDialogDetail,
+} from './GameProgressDialog';
 import AdSenseLoader from './AdSenseLoader';
 
 const STREAK_STORAGE_KEY = 'linuxdle_current_streak';
@@ -55,6 +59,8 @@ const Layout: React.FC = () => {
   const [pendingStreak, setPendingStreak] = useState<number | null>(null);
   const [dialogFeedback, setDialogFeedback] = useState<SupportDialogFeedback | null>(null);
   const [streakDeltaFlash, setStreakDeltaFlash] = useState<string | null>(null);
+  const [gameProgressOpen, setGameProgressOpen] = useState(false);
+  const [gameProgressPayload, setGameProgressPayload] = useState<GameProgressDialogDetail | null>(null);
 
   const getCurrentStreakFromBackend = async (): Promise<number | null> => {
     try {
@@ -136,12 +142,26 @@ const Layout: React.FC = () => {
       setSupportOpen(true);
     };
 
+    const gameProgressHandler = (event: Event) => {
+      const customEvent = event as CustomEvent<GameProgressDialogDetail>;
+      const detail = customEvent.detail;
+
+      if (!detail || !Array.isArray(detail.unfinishedGames) || detail.unfinishedGames.length === 0) {
+        return;
+      }
+
+      setGameProgressPayload(detail);
+      setGameProgressOpen(true);
+    };
+
     fetchCurrentStreak();
     window.addEventListener(EVENT_NAME, handler);
+    window.addEventListener(GAME_PROGRESS_EVENT_NAME, gameProgressHandler);
     window.addEventListener('focus', fetchCurrentStreak);
 
     return () => {
       window.removeEventListener(EVENT_NAME, handler);
+      window.removeEventListener(GAME_PROGRESS_EVENT_NAME, gameProgressHandler);
       window.removeEventListener('focus', fetchCurrentStreak);
     };
   }, []);
@@ -170,6 +190,16 @@ const Layout: React.FC = () => {
     setSupportOpen(false);
     setDialogFeedback(null);
     setPendingStreak(null);
+  };
+
+  const handleGameProgressClose = () => {
+    setGameProgressOpen(false);
+    setGameProgressPayload(null);
+  };
+
+  const handleGameProgressNavigate = (path: string) => {
+    handleGameProgressClose();
+    navigate(path);
   };
 
   const pathname = location.pathname;
@@ -495,6 +525,12 @@ const Layout: React.FC = () => {
           </Box>
         </Container>
       </Box>
+      <GameProgressDialog
+        open={gameProgressOpen}
+        payload={gameProgressPayload}
+        onClose={handleGameProgressClose}
+        onNavigate={handleGameProgressNavigate}
+      />
       <SupportDialog open={supportOpen} onClose={handleSupportClose} />
     </Box>
   );

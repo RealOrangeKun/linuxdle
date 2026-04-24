@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
 import { dispatchSupportDialog } from '../components/SupportDialog';
+import { dispatchGameProgressDialog } from '../components/GameProgressDialog';
 import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
@@ -184,6 +185,7 @@ const DailyDesktopEnvironments: React.FC = () => {
         setIsGameOver(true);
         setShowSuccess(true);
         setWonOnFirstTry(isFirstTryAttempt);
+        dispatchGameProgressDialog('success', 'des');
         if (isFirstTryAttempt) {
           setShowFirstTryFeedback(true);
         }
@@ -222,6 +224,7 @@ const DailyDesktopEnvironments: React.FC = () => {
       const newGuess: Guess = { name: `Gave up -> Answer: ${response.data.name}`, isCorrect: false };
       setGuesses([newGuess, ...guesses]);
       setSelectedGuess(null);
+      dispatchGameProgressDialog('give-up', 'des');
     } catch (error: any) {
       console.error('Error giving up:', error);
       if (error.response?.data?.message) {

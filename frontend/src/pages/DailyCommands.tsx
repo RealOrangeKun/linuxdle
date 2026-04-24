@@ -11,6 +11,7 @@ import apiClient from '../api/apiClient';
 import { MatchResult, YearDirection } from '../types/game';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
 import { dispatchSupportDialog } from '../components/SupportDialog';
+import { dispatchGameProgressDialog } from '../components/GameProgressDialog';
 import { getCachedYesterday, cacheYesterday } from '../utils/yesterdayCache';
 import { SEO, pageSEO } from '../components/SEO';
 import CountdownTimer from '../components/CountdownTimer';
@@ -205,6 +206,7 @@ const DailyCommands: React.FC = () => {
         setIsGameOver(true);
         setShowSuccess(true);
         setWonOnFirstTry(isFirstTryAttempt);
+        dispatchGameProgressDialog('success', 'commands');
         if (isFirstTryAttempt) {
           setShowFirstTryFeedback(true);
         }
@@ -259,6 +261,7 @@ const DailyCommands: React.FC = () => {
 
       setResults([revealedResult, ...results]);
       setSelectedGuess(null);
+      dispatchGameProgressDialog('give-up', 'commands');
     } catch (error: any) {
       console.error('Error giving up:', error);
       if (error.response?.data?.message) {
@@ -701,10 +704,6 @@ const DailyCommands: React.FC = () => {
           )}
         </Paper>
       )}
-
-      <Snackbar open={showSuccess} autoHideDuration={3000} onClose={() => setShowSuccess(false)}>
-        <Alert severity="success" variant="filled">STATUS_OK: Command recognized.</Alert>
-      </Snackbar>
 
       <Dialog open={giveUpDialogOpen} onClose={() => setGiveUpDialogOpen(false)}>
         <DialogTitle>Confirm Give Up</DialogTitle>

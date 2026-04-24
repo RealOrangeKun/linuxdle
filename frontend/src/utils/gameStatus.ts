@@ -4,36 +4,61 @@ export const ALL_STORAGE_KEYS = {
   des: 'linuxdle_des_state',
 };
 
+export type GameKey = keyof typeof ALL_STORAGE_KEYS;
+
+export interface GameProgressItem {
+  key: GameKey;
+  label: string;
+  path: string;
+}
+
+const GAME_PROGRESS_ITEMS: GameProgressItem[] = [
+  { key: 'commands', label: 'Daily Commands', path: '/commands' },
+  { key: 'distros', label: 'Daily Distros', path: '/distros' },
+  { key: 'des', label: 'Daily Desktop Environments', path: '/des' },
+];
+
 const REDIRECT_FLAG_KEY = 'linuxdle_redirected_today';
 
-export const checkAllGamesCompleted = (): boolean => {
-  const today = new Date().toISOString().split('T')[0];
-  
-  const status = Object.values(ALL_STORAGE_KEYS).map(key => {
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      try {
-        const state = JSON.parse(saved);
-        if (state && typeof state === 'object') {
-          const isValidDate = typeof state.date === 'string';
-          const isValidGameOverFlag = typeof state.isGameOver === 'boolean';
+const isStorageStateCompletedForToday = (storageKey: string, today: string): boolean => {
+  const saved = localStorage.getItem(storageKey);
+  if (!saved) {
+    return false;
+  }
 
-          if (isValidDate && isValidGameOverFlag) {
-            return state.date === today && state.isGameOver;
-          }
-        }
+  try {
+    const state = JSON.parse(saved);
+    if (state && typeof state === 'object') {
+      const isValidDate = typeof state.date === 'string';
+      const isValidGameOverFlag = typeof state.isGameOver === 'boolean';
 
-        localStorage.removeItem(key);
-        return false;
-      } catch {
-        localStorage.removeItem(key);
-        return false;
+      if (isValidDate && isValidGameOverFlag) {
+        return state.date === today && state.isGameOver;
       }
     }
-    return false;
-  });
 
-  return status.every(s => s === true);
+    localStorage.removeItem(storageKey);
+    return false;
+  } catch {
+    localStorage.removeItem(storageKey);
+    return false;
+  }
+};
+
+export const getUnfinishedGames = (completedGameKey?: GameKey): GameProgressItem[] => {
+  const today = new Date().toISOString().split('T')[0];
+
+  return GAME_PROGRESS_ITEMS.filter((item) => {
+    if (completedGameKey && item.key === completedGameKey) {
+      return false;
+    }
+
+    return !isStorageStateCompletedForToday(ALL_STORAGE_KEYS[item.key], today);
+  });
+};
+
+export const checkAllGamesCompleted = (): boolean => {
+  return getUnfinishedGames().length === 0;
 };
 
 export const hasRedirectedToday = (): boolean => {
