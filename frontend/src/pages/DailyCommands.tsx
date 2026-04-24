@@ -375,8 +375,9 @@ const DailyCommands: React.FC = () => {
                     setInputValue(firstOption);
                   }
                 } else if (e.key === 'Enter') {
-                  if (!autocompleteOpen) return;
-                  const toSubmit = validHighlightedOption ?? exactOption ?? validSelectedOption ?? firstOption;
+                  const toSubmit = autocompleteOpen
+                    ? validHighlightedOption ?? exactOption ?? validSelectedOption ?? firstOption
+                    : selectedGuess;
                   if (toSubmit) {
                     e.preventDefault();
                     handleSubmitGuess(toSubmit);
