@@ -21,6 +21,7 @@ export type GameProgressOutcome = 'success' | 'give-up';
 
 export interface GameProgressDialogDetail {
   outcome: GameProgressOutcome;
+  isFirstTry: boolean;
   unfinishedGames: GameProgressItem[];
 }
 
@@ -37,6 +38,17 @@ const GameProgressDialog: React.FC<GameProgressDialogProps> = ({ open, payload, 
   }
 
   const isSuccess = payload.outcome === 'success';
+  const isFirstTry = payload.isFirstTry;
+
+  const title = isSuccess
+    ? (isFirstTry ? '[OK] ONE_PASS_COMPLETE' : '[OK] MODULE_COMPLETED')
+    : '[FAIL] MODULE_ABORTED';
+
+  const subtitle = isSuccess
+    ? (isFirstTry
+      ? '$ single execution, no retries needed.'
+      : '$ match confirmed, remaining modules:')
+    : '$ process terminated by user. unfinished modules:';
 
   return (
     <Dialog
@@ -56,7 +68,7 @@ const GameProgressDialog: React.FC<GameProgressDialogProps> = ({ open, payload, 
           color: isSuccess ? 'success.main' : 'error.main',
         }}
       >
-        {isSuccess ? '[OK] MODULE_COMPLETED' : '[FAIL] MODULE_ABORTED'}
+        {title}
         <IconButton
           onClick={onClose}
           size="small"
@@ -68,9 +80,7 @@ const GameProgressDialog: React.FC<GameProgressDialogProps> = ({ open, payload, 
 
       <DialogContent>
         <Typography variant="body2" sx={{ fontFamily: 'monospace', opacity: 0.8, mb: 2 }}>
-          {isSuccess
-            ? '$ target locked. remaining modules:'
-            : '$ round ended with SIGKILL. unfinished modules:'}
+          {subtitle}
         </Typography>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
@@ -122,7 +132,11 @@ const GameProgressDialog: React.FC<GameProgressDialogProps> = ({ open, payload, 
   );
 };
 
-export const dispatchGameProgressDialog = (outcome: GameProgressOutcome, completedGameKey: GameKey): void => {
+export const dispatchGameProgressDialog = (
+  outcome: GameProgressOutcome,
+  completedGameKey: GameKey,
+  isFirstTry: boolean
+): void => {
   const unfinishedGames = getUnfinishedGames(completedGameKey);
   if (unfinishedGames.length === 0) {
     return;
@@ -132,6 +146,7 @@ export const dispatchGameProgressDialog = (outcome: GameProgressOutcome, complet
     new CustomEvent<GameProgressDialogDetail>(GAME_PROGRESS_EVENT_NAME, {
       detail: {
         outcome,
+        isFirstTry,
         unfinishedGames,
       },
     })
