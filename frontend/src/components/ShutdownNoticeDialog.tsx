@@ -50,7 +50,7 @@ const ShutdownNoticeDialog: React.FC = () => {
         <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
           Attention users:
           
-          Linuxdle will be temporarily offline soon. The server hosting the site is my personal laptop, and I will need it for my work for about a week.
+          Linuxdle will be temporarily offline soon. The server hosting the site is my personal laptop, and I will need it for my work for about a week. (Note: I still don't know exactly when this will happen, as I am currently in the process of planning things).
           
           Linuxdle will probably be back after that! It has been incredibly fun to develop and work on this project, and to see people use it and share their feedback. Thank you all for playing and being part of this!
         </Typography>
