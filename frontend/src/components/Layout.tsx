@@ -34,6 +34,7 @@ import GameProgressDialog, {
   type GameProgressDialogDetail,
 } from './GameProgressDialog';
 import AdSenseLoader from './AdSenseLoader';
+import ShutdownNoticeDialog from './ShutdownNoticeDialog';
 
 const STREAK_STORAGE_KEY = 'linuxdle_current_streak';
 const GAME_STATE_KEYS = ['linuxdle_commands_state', 'linuxdle_distros_state', 'linuxdle_des_state'] as const;
@@ -532,6 +533,7 @@ const Layout: React.FC = () => {
         onNavigate={handleGameProgressNavigate}
       />
       <SupportDialog open={supportOpen} onClose={handleSupportClose} />
+      <ShutdownNoticeDialog />
     </Box>
   );
 };

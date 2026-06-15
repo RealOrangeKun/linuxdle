@@ -66,6 +66,32 @@ const Home: React.FC = () => {
           Welcome to the daily puzzle suite for Linux enthusiasts. Select a module to begin.
         </Typography>
 
+        <Box 
+          sx={{ 
+            border: 1, 
+            borderColor: 'error.main', 
+            bgcolor: 'action.hover', 
+            p: 2.5, 
+            mt: 4, 
+            mb: 2, 
+            fontFamily: 'monospace'
+          }}
+        >
+          <Typography variant="h6" color="error.main" fontWeight="bold" sx={{ fontFamily: 'monospace', mb: 1 }}>
+            [!] SYSTEM_SHUTDOWN_NOTICE
+          </Typography>
+          <Typography variant="body2" sx={{ fontFamily: 'monospace', opacity: 0.8, mb: 1.5 }}>
+            $ cat /etc/motd/shutdown.txt
+          </Typography>
+          <Typography variant="body2" sx={{ fontFamily: 'monospace', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+            Attention users:
+            
+            Linuxdle will be shut down soon. The server hosting the site is my personal laptop, and I will need it soon for my work.
+            
+            It has been incredibly fun to develop and work on this project, and to see people use it and share their feedback. Thank you all for playing and being part of this!
+          </Typography>
+        </Box>
+
         {allGamesPlayed && (
           <Box mt={4} sx={{ textAlign: 'center' }}>
             <Typography variant="h6" sx={{ color: 'success.main', mb: 1, fontWeight: 'bold' }}>

@@ -30,6 +30,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql
+      - ./tables_postgres.sql:/docker-entrypoint-initdb.d/tables_postgres.sql
     networks:
       - linuxdle-network
 
@@ -50,6 +51,9 @@ services:
       target: dev
     ports:
       - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
     networks:

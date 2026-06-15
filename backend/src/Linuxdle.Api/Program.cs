@@ -5,9 +5,11 @@ using Linuxdle.Api.ExceptionHandlers;
 using Linuxdle.Api.Extensions;
 using Linuxdle.Api.Health;
 using Linuxdle.Api.Middleware;
+using Linuxdle.Infrastructure.Data;
 using Linuxdle.Infrastructure.Extensions;
 using Linuxdle.Services.Extensions;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,6 +90,31 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 });
 
 app.MapGroup("/api").MapAllEndpoints();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<LinuxdleDbContext>();
+    int retries = 15;
+    while (retries > 0)
+    {
+        try
+        {
+            await dbContext.Database.MigrateAsync();
+            break;
+        }
+        catch (Exception ex)
+        {
+            retries--;
+            if (retries == 0)
+            {
+                Console.WriteLine($"Database migration failed: {ex.Message}");
+                throw;
+            }
+            Console.WriteLine($"Database not ready yet, retrying migration in 2 seconds... (Retries left: {retries})");
+            await Task.Delay(2000);
+        }
+    }
+}
 
 await app.RunAsync();
 

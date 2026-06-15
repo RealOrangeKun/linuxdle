@@ -67,6 +67,7 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql
+      - ./tables_postgres.sql:/docker-entrypoint-initdb.d/tables_postgres.sql
     networks:
       - linuxdle-network
 
