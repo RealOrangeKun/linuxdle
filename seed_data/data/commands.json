@@ -119,5 +119,10 @@
   {"id": 193, "name": "source", "package": "shell-builtin", "origin_year": 1989, "man_section": "1", "is_built_in": true, "requires_args": true, "is_posix": false},
   {"id": 194, "name": "history", "package": "shell-builtin", "origin_year": 1989, "man_section": "1", "is_built_in": true, "requires_args": false, "is_posix": false},
   {"id": 195, "name": "type", "package": "shell-builtin", "origin_year": 1989, "man_section": "1", "is_built_in": true, "requires_args": true, "is_posix": false},
-  {"id": 196, "name": "read", "package": "shell-builtin", "origin_year": 1971, "man_section": "1", "is_built_in": true, "requires_args": false, "is_posix": true}
+  {"id": 196, "name": "read", "package": "shell-builtin", "origin_year": 1971, "man_section": "1", "is_built_in": true, "requires_args": false, "is_posix": true},
+  {"id": 197, "name": "dd", "package": "coreutils", "origin_year": 1974, "man_section": "1", "is_built_in": false, "requires_args": true, "is_posix": true},
+  {"id": 198, "name": "ln", "package": "coreutils", "origin_year": 1971, "man_section": "1", "is_built_in": false, "requires_args": true, "is_posix": true},
+  {"id": 199, "name": "wc", "package": "coreutils", "origin_year": 1971, "man_section": "1", "is_built_in": false, "requires_args": false, "is_posix": true},
+  {"id": 200, "name": "file", "package": "file", "origin_year": 1973, "man_section": "1", "is_built_in": false, "requires_args": true, "is_posix": true},
+  {"id": 201, "name": "uptime", "package": "procps", "origin_year": 1983, "man_section": "1", "is_built_in": false, "requires_args": false, "is_posix": true}
 ]

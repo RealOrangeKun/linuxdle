@@ -145,5 +145,11 @@
   {"category_id": 10, "command_id": 193},
   {"category_id": 10, "command_id": 194},
   {"category_id": 10, "command_id": 195},
-  {"category_id": 10, "command_id": 196}
+  {"category_id": 10, "command_id": 196},
+  {"category_id": 2, "command_id": 197},
+  {"category_id": 1, "command_id": 198},
+  {"category_id": 3, "command_id": 199},
+  {"category_id": 4, "command_id": 200},
+  {"category_id": 1, "command_id": 200},
+  {"category_id": 4, "command_id": 201}
 ]

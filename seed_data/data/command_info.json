@@ -845,5 +845,40 @@
     "synopsis": "read [-ers] [-a array] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]",
     "example": "read -rp 'Enter your name: ' name && echo \"Hello, $name\"",
     "fun_fact": "read is the primary way to get interactive user input in bash scripts. The -r flag prevents backslash interpretation, which is almost always what you want in robust scripts."
+  },
+  {
+    "command_id": 197,
+    "description": "convert and copy a file",
+    "synopsis": "dd [OPERAND]...",
+    "example": "dd if=/dev/urandom of=/dev/null bs=1M count=10",
+    "fun_fact": "dd is historically nicknamed 'data destroyer' or 'disk destroyer' because a simple typo in input/output files can easily overwrite partition tables and wipe entire hard drives."
+  },
+  {
+    "command_id": 198,
+    "description": "make links between files",
+    "synopsis": "ln [OPTION]... TARGET LINK_NAME",
+    "example": "ln -s /etc/nginx/sites-available/app /etc/nginx/sites-enabled/app",
+    "fun_fact": "By default, ln creates hard links. Soft or symbolic links are created using the -s flag and are more common as they can cross filesystems and link directories."
+  },
+  {
+    "command_id": 199,
+    "description": "print newline, word, and byte counts for each file",
+    "synopsis": "wc [OPTION]... [FILE]...",
+    "example": "wc -l /var/log/syslog",
+    "fun_fact": "wc (word count) defaults to printing lines, words, and bytes. The -l flag counts newlines, making it a standard way to count records or entries in pipes."
+  },
+  {
+    "command_id": 200,
+    "description": "determine file type",
+    "synopsis": "file [OPTION]... [FILE]...",
+    "example": "file /usr/bin/python3",
+    "fun_fact": "file uses magic numbers located at specific offsets in the file header to determine the file type, meaning it is completely independent of the file's extension."
+  },
+  {
+    "command_id": 201,
+    "description": "tell how long the system has been running",
+    "synopsis": "uptime [OPTION]...",
+    "example": "uptime -p",
+    "fun_fact": "uptime reads the system uptime from /proc/uptime and calculates load averages over 1, 5, and 15 minutes, representing CPU and I/O request queue sizes."
   }
 ]

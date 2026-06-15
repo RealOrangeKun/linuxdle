@@ -61,9 +61,31 @@ jobs:
 
       - name: Build Docker images locally
         run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-backend:latest ./backend
-          docker build -t ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-frontend:latest --target production ./frontend
-          docker build -t ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-gateway:latest ./gateway
+          build_with_retry() {
+            local tag=$1
+            local context=$2
+            shift 2
+            local extra_args="$@"
+            local n=0
+            local max=5
+            local delay=15
+            until [ "$n" -ge "$max" ]; do
+              docker build -t "$tag" $extra_args "$context" && break
+              n=$((n+1))
+              if [ "$n" -lt "$max" ]; then
+                echo "[WARN] Build failed for $tag, retrying in ${delay}s... ($n/$max)"
+                sleep $delay
+                delay=$((delay * 2))
+              else
+                echo "[ERROR] Build failed after $max attempts."
+                return 1
+              fi
+            done
+          }
+          
+          build_with_retry "${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-backend:latest" "./backend"
+          build_with_retry "${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-frontend:latest" "./frontend" --target production
+          build_with_retry "${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-gateway:latest" "./gateway"
 
       - name: Start Environment
         # Spin up compose. It will automatically use the images we just built locally.
