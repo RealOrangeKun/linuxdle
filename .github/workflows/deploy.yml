@@ -2,9 +2,7 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [ main, master ]
   pull_request:
-    branches: [ main, master ]
 
 env:
   REGISTRY: ghcr.io
@@ -103,7 +101,7 @@ jobs:
           BASE_URL: http://localhost:8081
 
       - name: Log in to the Container registry (Push only)
-        if: github.event_name == 'push' && github.repository == 'RealOrangeKun/linuxdle'
+        if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master') && github.repository == 'RealOrangeKun/linuxdle'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -111,14 +109,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push Docker images
-        if: github.event_name == 'push' && github.repository == 'RealOrangeKun/linuxdle'
+        if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master') && github.repository == 'RealOrangeKun/linuxdle'
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-backend:latest
           docker push ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-frontend:latest
           docker push ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/linuxdle-gateway:latest
 
   deploy:
-    if: github.event_name == 'push' && github.repository == 'RealOrangeKun/linuxdle'
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master') && github.repository == 'RealOrangeKun/linuxdle'
     needs: build-test-push
     runs-on: self-hosted
     steps:
