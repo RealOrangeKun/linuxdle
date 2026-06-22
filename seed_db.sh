@@ -35,11 +35,25 @@ DB_USER=$(docker exec ${CONTAINER_NAME} env | grep POSTGRES_USER | cut -d'=' -f2
 DB_NAME=${DB_NAME:-linuxdle}
 DB_USER=${DB_USER:-linuxdle}
 
+# Get Redis container details if running
+REDIS_CONTAINER="linuxdle-redis"
+REDIS_HOST=""
+REDIS_PASSWORD=""
+if docker ps --format '{{.Names}}' | grep -q "^${REDIS_CONTAINER}$"; then
+    REDIS_HOST=$(docker inspect ${REDIS_CONTAINER} --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}')
+    if [ -f .env ]; then
+        REDIS_PASSWORD=$(grep '^REDIS_PASSWORD=' .env | cut -d'=' -f2- | tr -d '"'\''\r')
+    fi
+fi
+
 echo ""
 echo "🌱 Seeding database..."
 echo "   Host: ${DB_HOST}"
 echo "   Database: ${DB_NAME}"
 echo "   User: ${DB_USER}"
+if [ -n "${REDIS_HOST}" ]; then
+    echo "   Redis Host: ${REDIS_HOST}"
+fi
 echo ""
 
 # Run the seed script
@@ -47,7 +61,10 @@ DB_HOST="${DB_HOST}" \
 DB_NAME="${DB_NAME}" \
 DB_USER="${DB_USER}" \
 DB_PASSWORD="${DB_PASSWORD}" \
+REDIS_HOST="${REDIS_HOST}" \
+REDIS_PASSWORD="${REDIS_PASSWORD}" \
 .venv/bin/python seed_db.py
 
 echo ""
 echo "✅ Database seeding complete!"
+
