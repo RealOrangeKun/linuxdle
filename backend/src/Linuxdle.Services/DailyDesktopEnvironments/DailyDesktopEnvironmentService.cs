@@ -2,6 +2,7 @@ using Linuxdle.Domain.Exceptions;
 using Linuxdle.Domain.Games;
 using Linuxdle.Domain.UserGiveUps;
 using Linuxdle.Domain.UserGuesses;
+using Linuxdle.Domain.DailyPuzzles;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Common.Constants;
 using Linuxdle.Services.Configurations;
@@ -188,8 +189,175 @@ internal sealed class DailyDesktopEnvironmentService(
             .Select(dde => new DailyDesktopEnvironmentDto(dde.Name, dde.Slug))
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException("Daily desktop environment target not found");
+ 
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return dde;
+    }
+
+    private async Task<(int PuzzleId, DailyDesktopEnvironmentTargetDto Target)> GetTargetByPuzzleIdAsync(int puzzleId, CancellationToken cancellationToken)
+    {
+        var target = await hybridCache.GetOrCreateAsync(
+            $"puzzle_de_target_{puzzleId}",
+            async cancel =>
+            {
+                var puzzle = await dbContext.DailyPuzzles
+                    .AsNoTracking()
+                    .Where(p => p.Id == puzzleId)
+                    .Select(p => new { p.TargetId })
+                    .FirstOrDefaultAsync(cancel);
+
+                if (puzzle == null) return null;
+
+                var target = await dbContext.DailyDesktopEnvironments
+                    .AsNoTracking()
+                    .Include(dde => dde.DesktopEnvironmentScreenshots)
+                    .Where(dde => dde.Id == puzzle.TargetId)
+                    .Select(dde => new DailyDesktopEnvironmentTargetDto(
+                        dde.Id,
+                        dde.Family,
+                        dde.ConfigurationLanguage,
+                        dde.ReleaseYear,
+                        dde.PrimaryLanguage,
+                        dde.DesktopEnvironmentScreenshots.Select(s => new DesktopEnvironmentScreenshotDto(
+                            s.Id,
+                            s.FilePath,
+                            s.Credit
+                        )).ToList()
+                    ))
+                    .FirstOrDefaultAsync(cancel);
+
+                return target;
+            },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+            cancellationToken: cancellationToken);
+
+        if (target == null)
+        {
+            throw new NotFoundException($"Target for puzzle {puzzleId} not found");
+        }
+
+        return (puzzleId, target);
+    }
+
+    public async Task<DailyDesktopEnvironmentGuessResultDto> HandlePastGuessAsync(Guid userId, int puzzleId, string userGuess, int numberOfGuesses, CancellationToken cancellationToken = default)
+    {
+        var puzzle = await dbContext.DailyPuzzles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == puzzleId, cancellationToken)
+            ?? throw new NotFoundException($"Puzzle {puzzleId} not found");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (puzzle.ScheduledDate >= today)
+        {
+            throw new BadRequestException("You can only play past puzzles through this endpoint.");
+        }
+
+        var (_, target) = await GetTargetByPuzzleIdAsync(puzzleId, cancellationToken);
+
+        bool hasGivenUp = await dbContext.UserGiveUps
+            .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId, cancellationToken);
+
+        if (hasGivenUp)
+            throw new BadRequestException("You have already given up on this puzzle.");
+
+        var guess = await hybridCache.GetOrCreateAsync(
+            CacheKeys.DesktopEnvironmentBySlug(userGuess),
+            async cancel => await dbContext.DailyDesktopEnvironments
+                .AsNoTracking()
+                .Where(dde => dde.Slug == userGuess.ToLower())
+                .Select(dd => new { dd.Id })
+                .FirstOrDefaultAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+            cancellationToken: cancellationToken)
+            ?? throw new InvalidOperationException($"No Distro found for {userGuess}");
+
+        var isCorrect = guess.Id == target.Id;
+
+        // Record guess with the puzzle's original ScheduledDate to protect active daily streaks
+        dbContext.UserGuesses.Add(UserGuess.Create(userId, puzzleId, GameIds.DailyDesktopEnvironments, puzzle.ScheduledDate, target.Id, isCorrect));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new DailyDesktopEnvironmentGuessResultDto(
+            IsCorrect: isCorrect,
+            Family: numberOfGuesses >= 2 ? target.Family : null,
+            ConfigurationLanguage: numberOfGuesses >= 4 ? target.ConfigurationLanguage : null,
+            ReleaseYear: numberOfGuesses >= 6 ? target.ReleaseYear : null,
+            PrimaryLanguage: numberOfGuesses >= 8 ? target.PrimaryLanguage : null
+        );
+    }
+
+    public async Task<DailyDesktopEnvironmentDto> HandlePastGiveUpAsync(Guid userId, int puzzleId, CancellationToken cancellationToken = default)
+    {
+        var puzzle = await dbContext.DailyPuzzles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == puzzleId, cancellationToken)
+            ?? throw new NotFoundException($"Puzzle {puzzleId} not found");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (puzzle.ScheduledDate >= today)
+        {
+            throw new BadRequestException("You can only play past puzzles through this endpoint.");
+        }
+
+        var (_, target) = await GetTargetByPuzzleIdAsync(puzzleId, cancellationToken);
+
+        var guessesCount = await dbContext.UserGuesses
+            .CountAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId, cancellationToken);
+
+        if (guessesCount < gameSettings.Value.MinGuessesToGiveUp)
+        {
+            throw new BadRequestException($"You must make at least {gameSettings.Value.MinGuessesToGiveUp} guesses before you can give up.");
+        }
+
+        var hasGivenUp = await dbContext.UserGiveUps
+            .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId, cancellationToken);
+
+        if (hasGivenUp)
+        {
+            throw new BadRequestException("You have already given up on this puzzle.");
+        }
+
+        // Record giveup with the puzzle's original ScheduledDate to protect active daily streaks
+        dbContext.UserGiveUps.Add(UserGiveUp.Create(userId, puzzleId, GameIds.DailyDesktopEnvironments, puzzle.ScheduledDate));
+
+        var dde = await dbContext.DailyDesktopEnvironments
+            .Where(d => d.Id == target.Id)
+            .Select(dde => new DailyDesktopEnvironmentDto(dde.Name, dde.Slug))
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("Daily desktop environment target not found");
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return dde;
+    }
+
+    public async Task<byte[]> GetPastDesktopEnvironmentScreenshotAsync(int puzzleId, CancellationToken cancellationToken = default)
+    {
+        var puzzle = await dbContext.DailyPuzzles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == puzzleId, cancellationToken)
+            ?? throw new NotFoundException($"Puzzle {puzzleId} not found");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (puzzle.ScheduledDate >= today)
+        {
+            throw new BadRequestException("You can only access screenshots for past puzzles through this endpoint.");
+        }
+
+        var (_, target) = await GetTargetByPuzzleIdAsync(puzzleId, cancellationToken);
+
+        var screenshots = target.Screenshots.ToList();
+        if (screenshots.Count == 0)
+        {
+            throw new NotFoundException($"No screenshots available for past puzzle {puzzleId}");
+        }
+
+        var selectedScreenshot = screenshots[puzzleId % screenshots.Count];
+
+        return await hybridCache.GetOrCreateAsync(
+            $"puzzle_de_screenshot_{selectedScreenshot.Id}",
+            async cancel => await File.ReadAllBytesAsync(selectedScreenshot.FilePath, cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.ProcessedAssets },
+            cancellationToken: cancellationToken
+        );
     }
 }

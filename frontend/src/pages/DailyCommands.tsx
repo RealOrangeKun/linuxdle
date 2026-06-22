@@ -6,7 +6,8 @@ import {
   Tooltip
 } from '@mui/material';
 import { ArrowUpward, ArrowDownward, ArrowForward } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import apiClient from '../api/apiClient';
 import { MatchResult, YearDirection } from '../types/game';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
@@ -80,10 +81,21 @@ interface YesterdaysCommand {
   categoryNames: string[];
 }
 
+interface PastPuzzle {
+  id: number;
+  gameId: number;
+  scheduledDate: string;
+  isCompleted: boolean;
+  isAttempted: boolean;
+}
+
 const STORAGE_KEY = 'linuxdle_commands_state';
 
 const DailyCommands: React.FC = () => {
   const navigate = useNavigate();
+  const { puzzleId } = useParams<{ puzzleId?: string }>();
+  const isPastPuzzle = !!puzzleId;
+
   const [commands, setCommands] = useState<string[]>([]);
   const [selectedGuess, setSelectedGuess] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -96,14 +108,18 @@ const DailyCommands: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [hasGivenUp, setHasGivenUp] = useState(false);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<YesterdaysCommand | null>(null);
+  const [nextPuzzleId, setNextPuzzleId] = useState<number | null>(null);
+  const [allPastPuzzles, setAllPastPuzzles] = useState<PastPuzzle[]>([]);
 
   const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
   useMidnightReload();
   const [giveUpDialogOpen, setGiveUpDialogOpen] = useState(false);
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
 
   const today = new Date().toISOString().split('T')[0];
+  const storageKey = isPastPuzzle ? `linuxdle_commands_state_${puzzleId}` : STORAGE_KEY;
 
   useEffect(() => {
     const fetchCommands = async () => {
@@ -111,11 +127,12 @@ const DailyCommands: React.FC = () => {
         const response = await apiClient.get<string[]>('/daily-commands');
         setCommands(Array.isArray(response.data) ? response.data : []);
 
-        const saved = localStorage.getItem(STORAGE_KEY);
+        const saved = localStorage.getItem(storageKey);
         if (saved) {
           try {
             const state = JSON.parse(saved);
-            if (state.date === today) {
+            const isStateValid = isPastPuzzle ? state.puzzleId === puzzleId : state.date === today;
+            if (isStateValid) {
               const parsedResults = Array.isArray(state.results) ? state.results : [];
               setResults(parsedResults);
               setIsGameOver(typeof state.isGameOver === 'boolean' ? state.isGameOver : false);
@@ -123,22 +140,24 @@ const DailyCommands: React.FC = () => {
               setHasGivenUp(typeof state.hasGivenUp === 'boolean' ? state.hasGivenUp : false);
             }
           } catch {
-            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(storageKey);
           }
         }
 
-        // Fetch yesterday's target (check cache first)
-        const cachedYesterday = getCachedYesterday<YesterdaysCommand>('commands');
-        if (cachedYesterday) {
-          setYesterdaysTarget(cachedYesterday);
-        } else {
-          try {
-            const yesterdayResponse = await apiClient.get<YesterdaysCommand>('/daily-commands/yesterdays-target');
-            setYesterdaysTarget(yesterdayResponse.data);
-            cacheYesterday('commands', yesterdayResponse.data);
-          } catch (error) {
-            // Yesterday's target might not exist (e.g., first day)
-            console.log('No yesterday\'s target available');
+        // Fetch yesterday's target (check cache first) if not playing a past puzzle
+        if (!isPastPuzzle) {
+          const cachedYesterday = getCachedYesterday<YesterdaysCommand>('commands');
+          if (cachedYesterday) {
+            setYesterdaysTarget(cachedYesterday);
+          } else {
+            try {
+              const yesterdayResponse = await apiClient.get<YesterdaysCommand>('/daily-commands/yesterdays-target');
+              setYesterdaysTarget(yesterdayResponse.data);
+              cacheYesterday('commands', yesterdayResponse.data);
+            } catch {
+              // Yesterday's target might not exist (e.g., first day)
+              console.log('No yesterday\'s target available');
+            }
           }
         }
       } catch (error) {
@@ -149,22 +168,42 @@ const DailyCommands: React.FC = () => {
       }
     };
     fetchCommands();
-  }, [today]);
+  }, [today, isPastPuzzle, puzzleId, storageKey]);
 
   useEffect(() => {
     if (!loading) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      localStorage.setItem(storageKey, JSON.stringify({
         date: today,
+        puzzleId: puzzleId,
         results,
         isGameOver,
         showSuccess,
         hasGivenUp
       }));
     }
-  }, [results, isGameOver, showSuccess, hasGivenUp, today, loading]);
+  }, [results, isGameOver, showSuccess, hasGivenUp, today, loading, storageKey, puzzleId]);
 
   useEffect(() => {
-    if (isGameOver && !loading) {
+    if (isPastPuzzle && puzzleId) {
+      apiClient.get<PastPuzzle[]>('/past-puzzles')
+        .then(response => {
+          const allPuzzles = response.data;
+          setAllPastPuzzles(allPuzzles);
+          const currentPuzzle = allPuzzles.find(p => p.id === Number(puzzleId));
+          if (currentPuzzle) {
+            const currentScheduledDate = currentPuzzle.scheduledDate;
+            const nextPuzzle = allPuzzles.find(p => p.scheduledDate === currentScheduledDate && p.gameId === 2);
+            if (nextPuzzle) {
+              setNextPuzzleId(nextPuzzle.id);
+            }
+          }
+        })
+        .catch(err => console.error('Error fetching past puzzles for navigation:', err));
+    }
+  }, [isPastPuzzle, puzzleId]);
+
+  useEffect(() => {
+    if (isGameOver && !loading && !isPastPuzzle) {
       if (checkAllGamesCompleted()) {
         dispatchSupportDialog('all-complete');
         if (!hasRedirectedToday()) {
@@ -174,7 +213,31 @@ const DailyCommands: React.FC = () => {
         }
       }
     }
-  }, [isGameOver, loading, navigate]);
+  }, [isGameOver, loading, navigate, isPastPuzzle]);
+
+  const handleResetPuzzle = async () => {
+    if (!isPastPuzzle || !puzzleId) return;
+    try {
+      await apiClient.post(`/past-puzzles/${puzzleId}/reset`);
+      localStorage.removeItem(storageKey);
+      
+      setResults([]);
+      setIsGameOver(false);
+      setShowSuccess(false);
+      setHasGivenUp(false);
+      setSelectedGuess(null);
+      setInputValue('');
+      
+      setSnackbarSeverity('success');
+      setErrorMessage("Puzzle progress has been reset successfully.");
+      setErrorSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error resetting puzzle:', error);
+      setSnackbarSeverity('error');
+      setErrorMessage("Failed to reset puzzle.");
+      setErrorSnackbarOpen(true);
+    }
+  };
 
   const handleSubmitGuess = async (overrideGuess?: string | null) => {
     const guess = overrideGuess !== undefined ? overrideGuess : selectedGuess;
@@ -182,7 +245,8 @@ const DailyCommands: React.FC = () => {
 
     try {
       const isFirstTryAttempt = results.length === 0;
-      const response = await apiClient.post<CommandResult>('/daily-commands/guesses', {
+      const url = isPastPuzzle ? `/past-puzzles/${puzzleId}/guesses` : '/daily-commands/guesses';
+      const response = await apiClient.post<CommandResult>(url, {
         userGuess: guess
       });
 
@@ -192,16 +256,16 @@ const DailyCommands: React.FC = () => {
       if (response.data.matchResults.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-        dispatchGameProgressDialog('success', 'commands', isFirstTryAttempt);
+        dispatchGameProgressDialog('success', 'commands', isFirstTryAttempt, puzzleId, allPastPuzzles);
       }
       setSelectedGuess(null);
       highlightedOptionRef.current = null;
       setInputValue('');
       setAutocompleteOpen(false);
       setTimeout(() => inputRef.current?.focus(), 50);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error:', error);
-      if (error.response?.data?.message) {
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
         const msg = error.response.data.message;
         if (msg.includes('given up')) {
           setIsGameOver(true);
@@ -211,6 +275,7 @@ const DailyCommands: React.FC = () => {
           setIsGameOver(true);
           setShowSuccess(true);
         }
+        setSnackbarSeverity('error');
         setErrorMessage(msg);
         setErrorSnackbarOpen(true);
       }
@@ -220,7 +285,8 @@ const DailyCommands: React.FC = () => {
   const handleGiveUpConfirm = async () => {
     setGiveUpDialogOpen(false);
     try {
-      const response = await apiClient.post<GiveUpCommandResponse>('/daily-commands/give-up');
+      const url = isPastPuzzle ? `/past-puzzles/${puzzleId}/give-up` : '/daily-commands/give-up';
+      const response = await apiClient.post<GiveUpCommandResponse>(url);
       setIsGameOver(true);
       setShowSuccess(false);
       setHasGivenUp(true);
@@ -243,10 +309,10 @@ const DailyCommands: React.FC = () => {
 
       setResults([revealedResult, ...results]);
       setSelectedGuess(null);
-      dispatchGameProgressDialog('give-up', 'commands', false);
-    } catch (error: any) {
+      dispatchGameProgressDialog('give-up', 'commands', false, puzzleId, allPastPuzzles);
+    } catch (error) {
       console.error('Error giving up:', error);
-      if (error.response?.data?.message) {
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
         const msg = error.response.data.message;
         if (msg.includes('given up')) {
           setIsGameOver(true);
@@ -256,6 +322,7 @@ const DailyCommands: React.FC = () => {
           setIsGameOver(true);
           setShowSuccess(true);
         }
+        setSnackbarSeverity('error');
         setErrorMessage(msg);
         setErrorSnackbarOpen(true);
       }
@@ -282,9 +349,47 @@ const DailyCommands: React.FC = () => {
     <>
       <SEO {...pageSEO.dailyCommands} />
       <Container maxWidth="lg">
+        {isPastPuzzle && (
+          <Alert 
+            severity="warning" 
+            variant="outlined" 
+            sx={{ 
+              mb: 3, 
+              fontFamily: 'monospace', 
+              borderRadius: 0,
+              '& .MuiAlert-message': {
+                width: '100%',
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                gap: { xs: 1.5, sm: 2 }
+              }
+            }}
+          >
+            <Box>
+              This is a past puzzle. Playing or resetting it will not affect your daily streak.
+            </Box>
+            <Button 
+              size="small" 
+              variant="outlined" 
+              color="warning" 
+              sx={{ fontFamily: 'monospace', borderRadius: 0, flexShrink: 0 }} 
+              onClick={handleResetPuzzle}
+            >
+              RESET_PROGRESS
+            </Button>
+          </Alert>
+        )}
         <Box mb={4}>
-          <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
-            {`_ > DAILY_COMMAND`}
+          <Typography 
+            variant="h4" 
+            fontWeight="bold" 
+            sx={{ 
+              color: isPastPuzzle ? 'warning.main' : 'primary.main',
+              fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.125rem' }
+            }}
+          >
+            {isPastPuzzle ? `_ > PAST_COMMAND (PUZZLE #${puzzleId})` : `_ > DAILY_COMMAND`}
           </Typography>
         <Divider sx={{ my: 1 }} />
         <Typography variant="body2" sx={{ opacity: 0.8 }}>
@@ -292,7 +397,7 @@ const DailyCommands: React.FC = () => {
         </Typography>
       </Box>
 
-      {isGameOver && checkAllGamesCompleted() && (
+      {isGameOver && !isPastPuzzle && checkAllGamesCompleted() && (
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography variant="h6" sx={{ color: 'success.main', mb: 1, fontWeight: 'bold' }}>
             [OK] ALL_MODULES_COMPLETE
@@ -301,9 +406,18 @@ const DailyCommands: React.FC = () => {
         </Box>
       )}
 
-      <Paper variant="outlined" sx={{ p: 3, mb: 4, bgcolor: 'background.paper' }}>
+      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 3 }, mb: 4, bgcolor: 'background.paper' }}>
         {!isGameOver ? (
-          <Box sx={{ display: 'flex', gap: 1, mb: 4, maxWidth: 600 }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' }, 
+              gap: 1, 
+              mb: 4, 
+              width: '100%',
+              maxWidth: 600 
+            }}
+          >
             <Autocomplete
               fullWidth
               size="small"
@@ -369,50 +483,98 @@ const DailyCommands: React.FC = () => {
                 }
               }}
               renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="input_command"
-                  variant="outlined"
-                  inputRef={inputRef}
-                  autoFocus
-                />
+                <Typography component="div">
+                  <TextField
+                    {...params}
+                    label="input_command"
+                    variant="outlined"
+                    inputRef={inputRef}
+                    autoFocus
+                  />
+                </Typography>
               )}
             />
-            {results.length >= minGuessesToGiveUp && (
+            <Box sx={{ display: 'flex', gap: 1, width: { xs: '100%', sm: 'auto' } }}>
+              {results.length >= minGuessesToGiveUp && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => setGiveUpDialogOpen(true)}
+                  sx={{ px: 2, flexGrow: { xs: 1, sm: 0 } }}
+                  title="Give Up"
+                >
+                  SIGKILL
+                </Button>
+              )}
               <Button
-                variant="outlined"
-                color="error"
-                onClick={() => setGiveUpDialogOpen(true)}
-                sx={{ px: 2 }}
-                title="Give Up"
+                variant="contained"
+                color="primary"
+                disabled={!selectedGuess}
+                onClick={() => handleSubmitGuess()}
+                sx={{ px: 4, flexGrow: { xs: 1, sm: 0 } }}
               >
-                SIGKILL
+                EXEC
               </Button>
-            )}
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={!selectedGuess}
-              onClick={() => handleSubmitGuess()}
-              sx={{ px: 4 }}
-            >
-              EXEC
-            </Button>
+            </Box>
           </Box>
         ) : (
           <Box mb={4}>
             <Typography variant="h6" color={hasGivenUp ? "error.main" : "success.main"} fontWeight="bold">
               {hasGivenUp ? `[SIGKILL] PROCESS_TERMINATED` : `[OK] COMMAND_IDENTIFIED`}
             </Typography>
-            <Button 
-              variant="outlined" 
-              color="secondary" 
-              onClick={() => navigate('/distros')} 
-              endIcon={<ArrowForward />}
-              sx={{ mt: 2 }}
-            >
-              CD ../DAILY_DISTROS
-            </Button>
+            {isPastPuzzle ? (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', sm: 'row' }, 
+                  gap: 1.5, 
+                  mt: 2,
+                  alignItems: 'stretch',
+                  width: '100%',
+                  maxWidth: { xs: '100%', sm: 'fit-content' }
+                }}
+              >
+                <Button 
+                  variant="outlined" 
+                  color="warning" 
+                  onClick={handleResetPuzzle} 
+                  sx={{ px: 3, borderRadius: 0 }}
+                >
+                  RESET_PUZZLE
+                </Button>
+                {nextPuzzleId ? (
+                  <Button 
+                    variant="outlined" 
+                    color="primary" 
+                    onClick={() => navigate(`/distros/${nextPuzzleId}`)} 
+                    endIcon={<ArrowForward />}
+                    sx={{ borderRadius: 0 }}
+                  >
+                    CD ../DISTROS
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outlined" 
+                    color="primary" 
+                    onClick={() => navigate('/history')} 
+                    endIcon={<ArrowForward />}
+                    sx={{ borderRadius: 0 }}
+                  >
+                    CD ../HISTORY
+                  </Button>
+                )}
+              </Box>
+            ) : (
+              <Button 
+                variant="outlined" 
+                color="secondary" 
+                onClick={() => navigate('/distros')} 
+                endIcon={<ArrowForward />}
+                sx={{ mt: 2, borderRadius: 0 }}
+              >
+                CD ../DAILY_DISTROS
+              </Button>
+            )}
           </Box>
         )}
 
@@ -690,15 +852,17 @@ const DailyCommands: React.FC = () => {
         <DialogTitle>Confirm Give Up</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to give up? The answer will be revealed and you will not be able to guess again today.
+            Are you sure you want to give up? The answer will be revealed and you will not be able to guess again.
           </DialogContentText>
-          <DialogContentText sx={{ color: 'error.main', mt: 1, fontWeight: 'bold' }}>
-            [WARNING] Giving up resets your streak to 0.
-          </DialogContentText>
+          {!isPastPuzzle && (
+            <DialogContentText sx={{ color: 'error.main', mt: 1, fontWeight: 'bold' }}>
+              [WARNING] Giving up resets your streak to 0.
+            </DialogContentText>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setGiveUpDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleGiveUpConfirm} color="error" variant="contained">Give Up</Button>
+          <Button onClick={() => setGiveUpDialogOpen(false)} sx={{ borderRadius: 0 }}>Cancel</Button>
+          <Button onClick={handleGiveUpConfirm} color="error" variant="contained" sx={{ borderRadius: 0 }}>Give Up</Button>
         </DialogActions>
       </Dialog>
 
@@ -708,7 +872,7 @@ const DailyCommands: React.FC = () => {
         onClose={() => setErrorSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setErrorSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+        <Alert onClose={() => setErrorSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%', borderRadius: 0 }}>
           {errorMessage}
         </Alert>
       </Snackbar>

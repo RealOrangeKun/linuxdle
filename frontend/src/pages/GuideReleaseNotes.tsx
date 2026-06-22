@@ -5,6 +5,18 @@ import GuideArticleLayout from '../components/GuideArticleLayout';
 
 const releases = [
   {
+    id: 'release-2026-06-23',
+    date: '2026-06-23',
+    title: 'Release 2026.06.23',
+    summary: 'Console puzzle history, sibling game sequential navigation, and mobile viewport optimizations',
+    bullets: [
+      'Added a scrollable terminal-styled console history for replaying and resetting past puzzles.',
+      'Chained sequential navigation links between daily games for the same date sequence.',
+      'Optimized action layouts and autocomplete fields on mobile views to prevent horizontal layout overflow.',
+      'Resolved authentication issues when loading old game distro logos and desktop screenshot assets.',
+    ],
+  },
+  {
     id: 'release-2026-04-23',
     date: '2026-04-23',
     title: 'Release 2026.04.23',
@@ -79,7 +91,7 @@ const releases = [
     title: 'Release 2026.03.27',
     summary: 'Caching, support UX, and interaction flow updates',
     bullets: [
-      'Implemented cache-control headers for frontend assets and daily image API responses (2364d6b, 14f90ce).',
+      'Implemented cache-control headers for daily image API responses (2364d6b, 14f90ce).',
       'Added support dialog flow with Ko-fi and GitHub star links (622d354, c89f125, c46ce1d).',
       'Improved all-games-complete flow persistence using localStorage behavior fixes (a069a17).',
       'Improved input keyboard UX and autocomplete constraints for guessing flows (1b32d0b, 5906953).',
@@ -106,7 +118,7 @@ const GuideReleaseNotes: React.FC = () => {
     <GuideArticleLayout
       title="Linuxdle Releases"
       description="A dated, clickable archive of Linuxdle releases and the changes shipped in each one."
-      updatedOn="April 23, 2026"
+      updatedOn="June 23, 2026"
       author="Linuxdle Editorial"
       keywords="linuxdle releases, changelog, release archive, product updates"
       toc={releases.map((release) => ({ id: release.id, label: `${release.date} - ${release.title}` }))}

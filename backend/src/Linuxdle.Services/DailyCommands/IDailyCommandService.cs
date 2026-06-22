@@ -8,6 +8,9 @@ public interface IDailyCommandService
     Task<IEnumerable<string>> GetDailyCommandsAsync(CancellationToken cancellationToken = default);
     Task<DailyCommandDto?> GetYesterdaysTargetAsync(CancellationToken cancellationToken = default);
     Task<DailyCommandGiveUpResultDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<DailyCommandGuessResultDto> HandlePastGuessAsync(Guid userId, int puzzleId, string userGuess, CancellationToken cancellationToken = default);
+    Task<DailyCommandGiveUpResultDto> HandlePastGiveUpAsync(Guid userId, int puzzleId, CancellationToken cancellationToken = default);
 }
+
 
 

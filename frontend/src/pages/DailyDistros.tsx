@@ -5,7 +5,8 @@ import {
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Snackbar, Alert
 } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import apiClient from '../api/apiClient';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
 import { dispatchSupportDialog } from '../components/SupportDialog';
@@ -30,10 +31,21 @@ interface GuessResult {
   isCorrect: boolean;
 }
 
+interface PastPuzzle {
+  id: number;
+  gameId: number;
+  scheduledDate: string;
+  isCompleted: boolean;
+  isAttempted: boolean;
+}
+
 const STORAGE_KEY = 'linuxdle_distros_state';
 
 const DailyDistros: React.FC = () => {
   const navigate = useNavigate();
+  const { puzzleId } = useParams<{ puzzleId?: string }>();
+  const isPastPuzzle = !!puzzleId;
+
   const [distros, setDistros] = useState<Distro[]>([]);
   const [selectedGuess, setSelectedGuess] = useState<Distro | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -48,53 +60,62 @@ const DailyDistros: React.FC = () => {
   const [hasGivenUp, setHasGivenUp] = useState(false);
   const [hardMode, setHardMode] = useState(true);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<Distro | null>(null);
+  const [nextPuzzleId, setNextPuzzleId] = useState<number | null>(null);
+  const [allPastPuzzles, setAllPastPuzzles] = useState<PastPuzzle[]>([]);
 
   const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
   useMidnightReload();
   const [giveUpDialogOpen, setGiveUpDialogOpen] = useState(false);
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
 
   const today = new Date().toISOString().split('T')[0];
+  const storageKey = isPastPuzzle ? `linuxdle_distros_state_${puzzleId}` : STORAGE_KEY;
 
   const fetchDistros = useCallback(async () => {
     try {
       const response = await apiClient.get<Distro[]>('/daily-distros');
       setDistros(Array.isArray(response.data) ? response.data : []);
 
-      // Fetch yesterday's target (check cache first)
-      const cachedYesterday = getCachedYesterday<Distro>('distros');
-      if (cachedYesterday) {
-        setYesterdaysTarget(cachedYesterday);
-      } else {
-        try {
-          const yesterdayResponse = await apiClient.get<Distro>('/daily-distros/yesterdays-target');
-          setYesterdaysTarget(yesterdayResponse.data);
-          cacheYesterday('distros', yesterdayResponse.data);
-        } catch (error) {
-          // Yesterday's target might not exist
-          console.log('No yesterday\'s target available');
+      // Fetch yesterday's target (check cache first) if not playing a past puzzle
+      if (!isPastPuzzle) {
+        const cachedYesterday = getCachedYesterday<Distro>('distros');
+        if (cachedYesterday) {
+          setYesterdaysTarget(cachedYesterday);
+        } else {
+          try {
+            const yesterdayResponse = await apiClient.get<Distro>('/daily-distros/yesterdays-target');
+            setYesterdaysTarget(yesterdayResponse.data);
+            cacheYesterday('distros', yesterdayResponse.data);
+          } catch {
+            // Yesterday's target might not exist
+            console.log('No yesterday\'s target available');
+          }
         }
       }
     } catch (error) {
       console.error('Error:', error);
       setDistros([]); // Ensure distros is an array even if fetch fails
     }
-  }, []);
+  }, [isPastPuzzle]);
 
   const updateLogoUrl = useCallback((tries: number, isHardMode: boolean) => {
-    const url = `${apiClient.defaults.baseURL}/daily-distros/daily-distro.png?numberOfTries=${tries}&hardMode=${isHardMode}&v=${today}`;
+    const url = isPastPuzzle
+      ? `${apiClient.defaults.baseURL}/past-puzzles/${puzzleId}/logo?numberOfTries=${tries}&hardMode=${isHardMode}`
+      : `${apiClient.defaults.baseURL}/daily-distros/daily-distro.png?numberOfTries=${tries}&hardMode=${isHardMode}&v=${today}`;
     setLogoUrl(url);
-  }, [today]);
+  }, [today, isPastPuzzle, puzzleId]);
 
   useEffect(() => {
     const init = async () => {
       await fetchDistros();
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
           const state = JSON.parse(saved);
-          if (state.date === today) {
+          const isStateValid = isPastPuzzle ? state.puzzleId === puzzleId : state.date === today;
+          if (isStateValid) {
             const parsedGuesses = Array.isArray(state.guesses) ? state.guesses : [];
             const parsedIsGameOver = typeof state.isGameOver === 'boolean' ? state.isGameOver : false;
             const parsedShowSuccess = typeof state.showSuccess === 'boolean' ? state.showSuccess : false;
@@ -111,19 +132,20 @@ const DailyDistros: React.FC = () => {
             return;
           }
         } catch {
-          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(storageKey);
         }
       }
       updateLogoUrl(1, true);
       setLoading(false);
     };
     init();
-  }, [fetchDistros, today, updateLogoUrl]); 
+  }, [fetchDistros, today, updateLogoUrl, storageKey, isPastPuzzle, puzzleId]); 
 
   useEffect(() => {
     if (!loading) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      localStorage.setItem(storageKey, JSON.stringify({
         date: today,
+        puzzleId: puzzleId,
         guesses,
         isGameOver,
         showSuccess,
@@ -131,10 +153,29 @@ const DailyDistros: React.FC = () => {
         hardMode
       }));
     }
-  }, [guesses, isGameOver, showSuccess, hasGivenUp, today, loading, hardMode]);
+  }, [guesses, isGameOver, showSuccess, hasGivenUp, today, loading, hardMode, storageKey, puzzleId]);
 
   useEffect(() => {
-    if (isGameOver && !loading) {
+    if (isPastPuzzle && puzzleId) {
+      apiClient.get<PastPuzzle[]>('/past-puzzles')
+        .then(response => {
+          const allPuzzles = response.data;
+          setAllPastPuzzles(allPuzzles);
+          const currentPuzzle = allPuzzles.find(p => p.id === Number(puzzleId));
+          if (currentPuzzle) {
+            const currentScheduledDate = currentPuzzle.scheduledDate;
+            const nextPuzzle = allPuzzles.find(p => p.scheduledDate === currentScheduledDate && p.gameId === 3);
+            if (nextPuzzle) {
+              setNextPuzzleId(nextPuzzle.id);
+            }
+          }
+        })
+        .catch(err => console.error('Error fetching past puzzles for navigation:', err));
+    }
+  }, [isPastPuzzle, puzzleId]);
+
+  useEffect(() => {
+    if (isGameOver && !loading && !isPastPuzzle) {
       if (checkAllGamesCompleted()) {
         dispatchSupportDialog('all-complete');
         if (!hasRedirectedToday()) {
@@ -144,7 +185,7 @@ const DailyDistros: React.FC = () => {
         }
       }
     }
-  }, [isGameOver, loading, navigate]);
+  }, [isGameOver, loading, navigate, isPastPuzzle]);
 
   const handleToggleHardMode = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (isGameOver) return;
@@ -153,13 +194,40 @@ const DailyDistros: React.FC = () => {
     updateLogoUrl(guesses.length + 1, newMode);
   };
 
+  const handleResetPuzzle = async () => {
+    if (!isPastPuzzle || !puzzleId) return;
+    try {
+      await apiClient.post(`/past-puzzles/${puzzleId}/reset`);
+      localStorage.removeItem(storageKey);
+      
+      setGuesses([]);
+      setIsGameOver(false);
+      setShowSuccess(false);
+      setHasGivenUp(false);
+      setHardMode(true);
+      setSelectedGuess(null);
+      setInputValue('');
+      updateLogoUrl(1, true);
+      
+      setSnackbarSeverity('success');
+      setErrorMessage("Puzzle progress has been reset successfully.");
+      setErrorSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error resetting puzzle:', error);
+      setSnackbarSeverity('error');
+      setErrorMessage("Failed to reset puzzle.");
+      setErrorSnackbarOpen(true);
+    }
+  };
+
   const handleSubmitGuess = async (overrideGuess?: Distro | null) => {
     const guess = overrideGuess !== undefined ? overrideGuess : selectedGuess;
     if (!guess || isGameOver) return;
 
     try {
       const isFirstTryAttempt = guesses.length === 0;
-      const response = await apiClient.post<GuessResult>('/daily-distros/guesses', {
+      const url = isPastPuzzle ? `/past-puzzles/${puzzleId}/guesses` : '/daily-distros/guesses';
+      const response = await apiClient.post<GuessResult>(url, {
         userGuess: guess.slug
       });
       const newGuess = { name: guess.name, isCorrect: response.data.isCorrect };
@@ -168,7 +236,7 @@ const DailyDistros: React.FC = () => {
       if (response.data.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-        dispatchGameProgressDialog('success', 'distros', isFirstTryAttempt);
+        dispatchGameProgressDialog('success', 'distros', isFirstTryAttempt, puzzleId, allPastPuzzles);
         updateLogoUrl(12, false); // Force normal mode on success
       } else {
         updateLogoUrl(Math.min(newGuesses.length + 1, 12), hardMode);
@@ -178,9 +246,9 @@ const DailyDistros: React.FC = () => {
       setInputValue('');
       setAutocompleteOpen(false);
       setTimeout(() => inputRef.current?.focus(), 50);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error:', error);
-      if (error.response?.data?.message) {
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
         const msg = error.response.data.message;
         if (msg.includes('given up')) {
           setIsGameOver(true);
@@ -192,6 +260,7 @@ const DailyDistros: React.FC = () => {
           setShowSuccess(true);
           updateLogoUrl(12, false);
         }
+        setSnackbarSeverity('error');
         setErrorMessage(msg);
         setErrorSnackbarOpen(true);
       }
@@ -201,17 +270,18 @@ const DailyDistros: React.FC = () => {
   const handleGiveUpConfirm = async () => {
     setGiveUpDialogOpen(false);
     try {
-      const response = await apiClient.post<Distro>('/daily-distros/give-up');
+      const url = isPastPuzzle ? `/past-puzzles/${puzzleId}/give-up` : '/daily-distros/give-up';
+      const response = await apiClient.post<Distro>(url);
       setIsGameOver(true);
       setShowSuccess(false);
       setHasGivenUp(true);
       setGuesses([{ name: `Gave up -> Answer: ${response.data.name}`, isCorrect: false }, ...guesses]);
       updateLogoUrl(12, false);
       setSelectedGuess(null);
-      dispatchGameProgressDialog('give-up', 'distros', false);
-    } catch (error: any) {
+      dispatchGameProgressDialog('give-up', 'distros', false, puzzleId, allPastPuzzles);
+    } catch (error) {
       console.error('Error giving up:', error);
-      if (error.response?.data?.message) {
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
         const msg = error.response.data.message;
         if (msg.includes('given up')) {
           setIsGameOver(true);
@@ -223,6 +293,7 @@ const DailyDistros: React.FC = () => {
           setShowSuccess(true);
           updateLogoUrl(12, false);
         }
+        setSnackbarSeverity('error');
         setErrorMessage(msg);
         setErrorSnackbarOpen(true);
       }
@@ -235,9 +306,47 @@ const DailyDistros: React.FC = () => {
     <>
       <SEO {...pageSEO.dailyDistros} />
       <Container maxWidth="sm">
+        {isPastPuzzle && (
+          <Alert 
+            severity="warning" 
+            variant="outlined" 
+            sx={{ 
+              mb: 3, 
+              fontFamily: 'monospace', 
+              borderRadius: 0,
+              '& .MuiAlert-message': {
+                width: '100%',
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                gap: { xs: 1.5, sm: 2 }
+              }
+            }}
+          >
+            <Box>
+              This is a past puzzle. Playing or resetting it will not affect your daily streak.
+            </Box>
+            <Button 
+              size="small" 
+              variant="outlined" 
+              color="warning" 
+              sx={{ fontFamily: 'monospace', borderRadius: 0, flexShrink: 0 }} 
+              onClick={handleResetPuzzle}
+            >
+              RESET_PROGRESS
+            </Button>
+          </Alert>
+        )}
         <Box mb={4}>
-          <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
-            {`_ > DAILY_DISTRO`}
+          <Typography 
+            variant="h4" 
+            fontWeight="bold" 
+            sx={{ 
+              color: isPastPuzzle ? 'warning.main' : 'primary.main',
+              fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.125rem' }
+            }}
+          >
+            {isPastPuzzle ? `_ > PAST_DISTRO (PUZZLE #${puzzleId})` : `_ > DAILY_DISTRO`}
           </Typography>
         <Divider sx={{ my: 1 }} />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -269,7 +378,7 @@ const DailyDistros: React.FC = () => {
         </Box>
       </Box>
 
-      {isGameOver && checkAllGamesCompleted() && (
+      {isGameOver && !isPastPuzzle && checkAllGamesCompleted() && (
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography variant="h6" sx={{ color: 'success.main', mb: 1, fontWeight: 'bold' }}>
             [OK] ALL_MODULES_COMPLETE
@@ -278,7 +387,7 @@ const DailyDistros: React.FC = () => {
         </Box>
       )}
 
-      <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
+      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 3 }, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
         <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
           <Box
             component="img"
@@ -297,7 +406,15 @@ const DailyDistros: React.FC = () => {
         </Box>
 
         {!isGameOver ? (
-          <Box sx={{ width: '100%', display: 'flex', gap: 1, mb: 4 }}>
+          <Box 
+            sx={{ 
+              width: '100%', 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' }, 
+              gap: 1, 
+              mb: 4 
+            }}
+          >
             <Autocomplete
               fullWidth
               size="small"
@@ -372,35 +489,89 @@ const DailyDistros: React.FC = () => {
                 />
               )}
             />
-            {guesses.length >= minGuessesToGiveUp && (
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => setGiveUpDialogOpen(true)}
-                sx={{ px: 2 }}
-                title="Give Up"
+            <Box sx={{ display: 'flex', gap: 1, width: { xs: '100%', sm: 'auto' } }}>
+              {guesses.length >= minGuessesToGiveUp && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => setGiveUpDialogOpen(true)}
+                  sx={{ px: 2, flexGrow: { xs: 1, sm: 0 } }}
+                  title="Give Up"
+                >
+                  SIGKILL
+                </Button>
+              )}
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={() => handleSubmitGuess()} 
+                disabled={!selectedGuess}
+                sx={{ flexGrow: { xs: 1, sm: 0 }, px: 4 }}
               >
-                SIGKILL
+                EXEC
               </Button>
-            )}
-            <Button variant="contained" color="primary" onClick={() => handleSubmitGuess()} disabled={!selectedGuess}>
-              EXEC
-            </Button>
+            </Box>
           </Box>
         ) : (
           <Box textAlign="center" mb={4}>
             <Typography variant="h6" color={hasGivenUp ? "error.main" : "success.main"} fontWeight="bold">
               {hasGivenUp ? `[SIGKILL] DISTRO_MISMATCH` : `[OK] DISTRO_MATCHED`}
             </Typography>
-            <Button 
-              variant="outlined" 
-              color="secondary" 
-              onClick={() => navigate('/des')} 
-              endIcon={<ArrowForward />}
-              sx={{ mt: 2 }}
-            >
-              CD ../DESKTOP_ENV
-            </Button>
+            {isPastPuzzle ? (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', sm: 'row' }, 
+                  gap: 1.5, 
+                  mt: 2, 
+                  justifyContent: 'center',
+                  alignItems: 'stretch',
+                  width: '100%',
+                  maxWidth: { xs: '100%', sm: 'fit-content' },
+                  mx: 'auto'
+                }}
+              >
+                <Button 
+                  variant="outlined" 
+                  color="warning" 
+                  onClick={handleResetPuzzle} 
+                  sx={{ px: 3, borderRadius: 0 }}
+                >
+                  RESET_PUZZLE
+                </Button>
+                {nextPuzzleId ? (
+                  <Button 
+                    variant="outlined" 
+                    color="primary" 
+                    onClick={() => navigate(`/des/${nextPuzzleId}`)} 
+                    endIcon={<ArrowForward />}
+                    sx={{ borderRadius: 0 }}
+                  >
+                    CD ../DESKTOP_ENV
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outlined" 
+                    color="primary" 
+                    onClick={() => navigate('/history')} 
+                    endIcon={<ArrowForward />}
+                    sx={{ borderRadius: 0 }}
+                  >
+                    CD ../HISTORY
+                  </Button>
+                )}
+              </Box>
+            ) : (
+              <Button 
+                variant="outlined" 
+                color="secondary" 
+                onClick={() => navigate('/des')} 
+                endIcon={<ArrowForward />}
+                sx={{ mt: 2, borderRadius: 0 }}
+              >
+                CD ../DESKTOP_ENV
+              </Button>
+            )}
           </Box>
         )}
 
@@ -441,15 +612,17 @@ const DailyDistros: React.FC = () => {
         <DialogTitle>Confirm Give Up</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to give up? The answer will be revealed and you will not be able to guess again today.
+            Are you sure you want to give up? The answer will be revealed and you will not be able to guess again.
           </DialogContentText>
-          <DialogContentText sx={{ color: 'error.main', mt: 1, fontWeight: 'bold' }}>
-            [WARNING] Giving up resets your streak to 0.
-          </DialogContentText>
+          {!isPastPuzzle && (
+            <DialogContentText sx={{ color: 'error.main', mt: 1, fontWeight: 'bold' }}>
+              [WARNING] Giving up resets your streak to 0.
+            </DialogContentText>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setGiveUpDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleGiveUpConfirm} color="error" variant="contained">Give Up</Button>
+          <Button onClick={() => setGiveUpDialogOpen(false)} sx={{ borderRadius: 0 }}>Cancel</Button>
+          <Button onClick={handleGiveUpConfirm} color="error" variant="contained" sx={{ borderRadius: 0 }}>Give Up</Button>
         </DialogActions>
       </Dialog>
 
@@ -459,7 +632,7 @@ const DailyDistros: React.FC = () => {
         onClose={() => setErrorSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setErrorSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+        <Alert onClose={() => setErrorSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%', borderRadius: 0 }}>
           {errorMessage}
         </Alert>
       </Snackbar>

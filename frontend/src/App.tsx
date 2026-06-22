@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import DailyDistros from './pages/DailyDistros';
 import DailyCommands from './pages/DailyCommands';
 import DailyDesktopEnvironments from './pages/DailyDesktopEnvironments';
+import History from './pages/History';
 import About from './pages/About';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -185,8 +186,12 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="distros" element={<DailyDistros />} />
+              <Route path="distros/:puzzleId" element={<DailyDistros />} />
               <Route path="commands" element={<DailyCommands />} />
+              <Route path="commands/:puzzleId" element={<DailyCommands />} />
               <Route path="des" element={<DailyDesktopEnvironments />} />
+              <Route path="des/:puzzleId" element={<DailyDesktopEnvironments />} />
+              <Route path="history" element={<History />} />
               <Route path="about" element={<About />} />
               <Route path="privacy" element={<PrivacyPolicy />} />
               <Route path="terms" element={<TermsOfService />} />

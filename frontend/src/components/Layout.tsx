@@ -23,7 +23,8 @@ import {
   MenuBook,
   Home,
   Image,
-  DesktopWindows
+  DesktopWindows,
+  History as HistoryIcon
 } from '@mui/icons-material';
 import { ColorModeContext } from '../App';
 import apiClient from '../api/apiClient';
@@ -209,6 +210,7 @@ const Layout: React.FC = () => {
       : pathname.startsWith('/commands') ? 'commands'
       : pathname.startsWith('/distros') ? 'distros'
       : pathname.startsWith('/des') ? 'des'
+      : pathname.startsWith('/history') ? 'history'
       : null;
 
   return (
@@ -392,6 +394,13 @@ const Layout: React.FC = () => {
               >
                 ./des
               </Button>
+              <Button 
+                color="inherit" 
+                onClick={() => navigate('/history')}
+                sx={{ display: { xs: 'none', sm: 'block' }, fontFamily: 'monospace' }}
+              >
+                ./history
+              </Button>
               <IconButton
                 onClick={() => navigate('/man')}
                 color="inherit"
@@ -493,6 +502,13 @@ const Layout: React.FC = () => {
             icon={<DesktopWindows fontSize="small" />}
             onClick={() => navigate('/des')}
             aria-label="Daily Desktop Environments"
+          />
+          <BottomNavigationAction
+            value="history"
+            label="History"
+            icon={<HistoryIcon fontSize="small" />}
+            onClick={() => navigate('/history')}
+            aria-label="Past Puzzles History"
           />
         </BottomNavigation>
       </Paper>

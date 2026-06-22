@@ -9,4 +9,7 @@ public interface IDailyDistroService
     Task<IEnumerable<DailyDistroDto>> GetDailyDistrosAsync(CancellationToken cancellationToken = default);
     Task<DailyDistroDto?> GetYesterdaysTargetAsync(CancellationToken cancellationToken = default);
     Task<DailyDistroDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<DailyDistroGuessResultDto> HandlePastGuessAsync(Guid userId, int puzzleId, string userGuess, CancellationToken cancellationToken = default);
+    Task<DailyDistroDto> HandlePastGiveUpAsync(Guid userId, int puzzleId, CancellationToken cancellationToken = default);
+    Task<byte[]> GeneratePastDistroLogoAsync(int puzzleId, int numberOfTries, bool hardMode, CancellationToken cancellationToken = default);
 }

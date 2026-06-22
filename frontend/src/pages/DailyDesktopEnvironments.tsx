@@ -4,8 +4,9 @@ import {
   CircularProgress, Divider, Backdrop, IconButton, Tooltip,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Snackbar, Alert
 } from '@mui/material';
-import { Home, Close, ZoomIn, ZoomOut, RestartAlt } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { Home, Close, ZoomIn, ZoomOut, RestartAlt, ArrowForward } from '@mui/icons-material';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import apiClient from '../api/apiClient';
 import { checkAllGamesCompleted, hasRedirectedToday, markAsRedirected } from '../utils/gameStatus';
 import { dispatchSupportDialog } from '../components/SupportDialog';
@@ -38,10 +39,21 @@ interface GuessResult {
   primaryLanguage?: string;
 }
 
+interface PastPuzzle {
+  id: number;
+  gameId: number;
+  scheduledDate: string;
+  isCompleted: boolean;
+  isAttempted: boolean;
+}
+
 const STORAGE_KEY = 'linuxdle_des_state';
 
 const DailyDesktopEnvironments: React.FC = () => {
   const navigate = useNavigate();
+  const { puzzleId } = useParams<{ puzzleId?: string }>();
+  const isPastPuzzle = !!puzzleId;
+
   const [des, setDes] = useState<DesktopEnvironment[]>([]);
   const [selectedGuess, setSelectedGuess] = useState<DesktopEnvironment | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -55,86 +67,108 @@ const DailyDesktopEnvironments: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [hasGivenUp, setHasGivenUp] = useState(false);
   const [yesterdaysTarget, setYesterdaysTarget] = useState<DesktopEnvironment | null>(null);
+  const [allPastPuzzles, setAllPastPuzzles] = useState<PastPuzzle[]>([]);
 
   const { minGuessesToGiveUp, loading: settingsLoading } = useGameSettings();
   useMidnightReload();
   const [giveUpDialogOpen, setGiveUpDialogOpen] = useState(false);
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
 
   // Zoom state
   const [isZoomed, setIsZoomed] = useState(false);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const isDragging = useRef(false);
+  const [isDraggingState, setIsDraggingState] = useState(false);
   const lastMousePos = useRef({ x: 0, y: 0 });
   const lastTouchDistance = useRef<number | null>(null);
   const zoomContainerRef = useRef<HTMLDivElement>(null);
 
   const today = new Date().toISOString().split('T')[0];
+  const storageKey = isPastPuzzle ? `linuxdle_des_state_${puzzleId}` : STORAGE_KEY;
 
   const fetchDes = useCallback(async () => {
     try {
       const response = await apiClient.get<DesktopEnvironment[]>('/daily-desktop-environments');
       setDes(Array.isArray(response.data) ? response.data : []);
 
-      // Fetch yesterday's target (check cache first)
-      const cachedYesterday = getCachedYesterday<DesktopEnvironment>('des');
-      if (cachedYesterday) {
-        setYesterdaysTarget(cachedYesterday);
-      } else {
-        try {
-          const yesterdayResponse = await apiClient.get<DesktopEnvironment>('/daily-desktop-environments/yesterdays-target');
-          setYesterdaysTarget(yesterdayResponse.data);
-          cacheYesterday('des', yesterdayResponse.data);
-        } catch (error) {
-          // Yesterday's target might not exist
-          console.log('No yesterday\'s target available');
+      // Fetch yesterday's target (check cache first) if not playing a past puzzle
+      if (!isPastPuzzle) {
+        const cachedYesterday = getCachedYesterday<DesktopEnvironment>('des');
+        if (cachedYesterday) {
+          setYesterdaysTarget(cachedYesterday);
+        } else {
+          try {
+            const yesterdayResponse = await apiClient.get<DesktopEnvironment>('/daily-desktop-environments/yesterdays-target');
+            setYesterdaysTarget(yesterdayResponse.data);
+            cacheYesterday('des', yesterdayResponse.data);
+          } catch {
+            // Yesterday's target might not exist
+            console.log('No yesterday\'s target available');
+          }
         }
       }
     } catch (error) {
       console.error('Error:', error);
       setDes([]); // Ensure des is an array even if fetch fails
     }
-  }, []);
+  }, [isPastPuzzle]);
 
   useEffect(() => {
     const init = async () => {
       await fetchDes();
-      setScreenshotUrl(`${apiClient.defaults.baseURL}/daily-desktop-environments/daily-desktop-environment.png?v=${today}`);
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const scrUrl = isPastPuzzle
+        ? `${apiClient.defaults.baseURL}/past-puzzles/${puzzleId}/screenshot`
+        : `${apiClient.defaults.baseURL}/daily-desktop-environments/daily-desktop-environment.png?v=${today}`;
+      setScreenshotUrl(scrUrl);
+
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
           const state = JSON.parse(saved);
-          if (state.date === today) {
+          const isStateValid = isPastPuzzle ? state.puzzleId === puzzleId : state.date === today;
+          if (isStateValid) {
             setGuesses(Array.isArray(state.guesses) ? state.guesses : []);
             setIsGameOver(typeof state.isGameOver === 'boolean' ? state.isGameOver : false);
             setShowSuccess(typeof state.showSuccess === 'boolean' ? state.showSuccess : false);
             setHasGivenUp(typeof state.hasGivenUp === 'boolean' ? state.hasGivenUp : false);
           }
         } catch {
-          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(storageKey);
         }
       }
       setLoading(false);
     };
     init();
-  }, [fetchDes, today]);
+  }, [fetchDes, today, isPastPuzzle, puzzleId, storageKey]);
 
   useEffect(() => {
     if (!loading) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      localStorage.setItem(storageKey, JSON.stringify({
         date: today,
+        puzzleId: puzzleId,
         guesses,
         isGameOver,
         showSuccess,
         hasGivenUp
       }));
     }
-  }, [guesses, isGameOver, showSuccess, hasGivenUp, today, loading]);
+  }, [guesses, isGameOver, showSuccess, hasGivenUp, today, loading, storageKey, puzzleId]);
 
   useEffect(() => {
-    if (isGameOver && !loading) {
+    if (isPastPuzzle) {
+      apiClient.get<PastPuzzle[]>('/past-puzzles')
+        .then(response => {
+          setAllPastPuzzles(response.data);
+        })
+        .catch(err => console.error('Error fetching past puzzles:', err));
+    }
+  }, [isPastPuzzle]);
+
+  useEffect(() => {
+    if (isGameOver && !loading && !isPastPuzzle) {
       if (checkAllGamesCompleted()) {
         dispatchSupportDialog('all-complete');
         if (!hasRedirectedToday()) {
@@ -144,7 +178,31 @@ const DailyDesktopEnvironments: React.FC = () => {
         }
       }
     }
-  }, [isGameOver, loading, navigate]);
+  }, [isGameOver, loading, navigate, isPastPuzzle]);
+
+  const handleResetPuzzle = async () => {
+    if (!isPastPuzzle || !puzzleId) return;
+    try {
+      await apiClient.post(`/past-puzzles/${puzzleId}/reset`);
+      localStorage.removeItem(storageKey);
+      
+      setGuesses([]);
+      setIsGameOver(false);
+      setShowSuccess(false);
+      setHasGivenUp(false);
+      setSelectedGuess(null);
+      setInputValue('');
+      
+      setSnackbarSeverity('success');
+      setErrorMessage("Puzzle progress has been reset successfully.");
+      setErrorSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error resetting puzzle:', error);
+      setSnackbarSeverity('error');
+      setErrorMessage("Failed to reset puzzle.");
+      setErrorSnackbarOpen(true);
+    }
+  };
 
   const handleSubmitGuess = async (overrideGuess?: DesktopEnvironment | null) => {
     const guess = overrideGuess !== undefined ? overrideGuess : selectedGuess;
@@ -152,7 +210,8 @@ const DailyDesktopEnvironments: React.FC = () => {
 
     try {
       const isFirstTryAttempt = guesses.length === 0;
-      const response = await apiClient.post<GuessResult>('/daily-desktop-environments/guesses', {
+      const url = isPastPuzzle ? `/past-puzzles/${puzzleId}/guesses` : '/daily-desktop-environments/guesses';
+      const response = await apiClient.post<GuessResult>(url, {
         userGuess: guess.slug,
         numberOfGuesses: guesses.length + 1
       });
@@ -171,16 +230,16 @@ const DailyDesktopEnvironments: React.FC = () => {
       if (response.data.isCorrect) {
         setIsGameOver(true);
         setShowSuccess(true);
-        dispatchGameProgressDialog('success', 'des', isFirstTryAttempt);
+        dispatchGameProgressDialog('success', 'des', isFirstTryAttempt, puzzleId, allPastPuzzles);
       }
       setSelectedGuess(null);
       highlightedOptionRef.current = null;
       setInputValue('');
       setAutocompleteOpen(false);
       setTimeout(() => inputRef.current?.focus(), 50);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error:', error);
-      if (error.response?.data?.message) {
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
         const msg = error.response.data.message;
         if (msg.includes('given up')) {
           setIsGameOver(true);
@@ -190,6 +249,7 @@ const DailyDesktopEnvironments: React.FC = () => {
           setIsGameOver(true);
           setShowSuccess(true);
         }
+        setSnackbarSeverity('error');
         setErrorMessage(msg);
         setErrorSnackbarOpen(true);
       }
@@ -199,17 +259,18 @@ const DailyDesktopEnvironments: React.FC = () => {
   const handleGiveUpConfirm = async () => {
     setGiveUpDialogOpen(false);
     try {
-      const response = await apiClient.post<DesktopEnvironment>('/daily-desktop-environments/give-up');
+      const url = isPastPuzzle ? `/past-puzzles/${puzzleId}/give-up` : '/daily-desktop-environments/give-up';
+      const response = await apiClient.post<DesktopEnvironment>(url);
       setIsGameOver(true);
       setShowSuccess(false);
       setHasGivenUp(true);
       const newGuess: Guess = { name: `Gave up -> Answer: ${response.data.name}`, isCorrect: false };
       setGuesses([newGuess, ...guesses]);
       setSelectedGuess(null);
-      dispatchGameProgressDialog('give-up', 'des', false);
-    } catch (error: any) {
+      dispatchGameProgressDialog('give-up', 'des', false, puzzleId, allPastPuzzles);
+    } catch (error) {
       console.error('Error giving up:', error);
-      if (error.response?.data?.message) {
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
         const msg = error.response.data.message;
         if (msg.includes('given up')) {
           setIsGameOver(true);
@@ -219,6 +280,7 @@ const DailyDesktopEnvironments: React.FC = () => {
           setIsGameOver(true);
           setShowSuccess(true);
         }
+        setSnackbarSeverity('error');
         setErrorMessage(msg);
         setErrorSnackbarOpen(true);
       }
@@ -235,6 +297,7 @@ const DailyDesktopEnvironments: React.FC = () => {
   const handleMouseDown = (e: React.MouseEvent) => {
     if (scale <= 1) return;
     isDragging.current = true;
+    setIsDraggingState(true);
     lastMousePos.current = { x: e.clientX, y: e.clientY };
   };
 
@@ -248,16 +311,19 @@ const DailyDesktopEnvironments: React.FC = () => {
 
   const handleMouseUp = () => {
     isDragging.current = false;
+    setIsDraggingState(false);
   };
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
       isDragging.current = true;
+      setIsDraggingState(true);
       lastMousePos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       lastTouchDistance.current = null;
     } else if (e.touches.length === 2) {
       isDragging.current = false;
+      setIsDraggingState(false);
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       lastTouchDistance.current = Math.hypot(dx, dy);
@@ -282,7 +348,13 @@ const DailyDesktopEnvironments: React.FC = () => {
 
   const handleTouchEnd = () => {
     isDragging.current = false;
+    setIsDraggingState(false);
     lastTouchDistance.current = null;
+  };
+
+  const resetZoom = () => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
   };
 
   // Attach non-passive native touchmove to allow e.preventDefault() (React passive by default)
@@ -309,11 +381,6 @@ const DailyDesktopEnvironments: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isZoomed]);
 
-  const resetZoom = () => {
-    setScale(1);
-    setPosition({ x: 0, y: 0 });
-  };
-
   const toggleZoom = () => {
     if (isZoomed) resetZoom();
     setIsZoomed(!isZoomed);
@@ -330,9 +397,47 @@ const DailyDesktopEnvironments: React.FC = () => {
     <>
       <SEO {...pageSEO.dailyDesktopEnvironments} />
       <Container maxWidth="md">
+        {isPastPuzzle && (
+          <Alert 
+            severity="warning" 
+            variant="outlined" 
+            sx={{ 
+              mb: 3, 
+              fontFamily: 'monospace', 
+              borderRadius: 0,
+              '& .MuiAlert-message': {
+                width: '100%',
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                gap: { xs: 1.5, sm: 2 }
+              }
+            }}
+          >
+            <Box>
+              This is a past puzzle. Playing or resetting it will not affect your daily streak.
+            </Box>
+            <Button 
+              size="small" 
+              variant="outlined" 
+              color="warning" 
+              sx={{ fontFamily: 'monospace', borderRadius: 0, flexShrink: 0 }} 
+              onClick={handleResetPuzzle}
+            >
+              RESET_PROGRESS
+            </Button>
+          </Alert>
+        )}
         <Box mb={4}>
-          <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
-            {`_ > DAILY_DESKTOP_ENV`}
+          <Typography 
+            variant="h4" 
+            fontWeight="bold" 
+            sx={{ 
+              color: isPastPuzzle ? 'warning.main' : 'primary.main',
+              fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.125rem' }
+            }}
+          >
+            {isPastPuzzle ? `_ > PAST_DESKTOP_ENV (PUZZLE #${puzzleId})` : `_ > DAILY_DESKTOP_ENV`}
           </Typography>
         <Divider sx={{ my: 1 }} />
         <Typography variant="body2" sx={{ opacity: 0.8 }}>
@@ -340,7 +445,7 @@ const DailyDesktopEnvironments: React.FC = () => {
         </Typography>
       </Box>
 
-      {isGameOver && checkAllGamesCompleted() && (
+      {isGameOver && !isPastPuzzle && checkAllGamesCompleted() && (
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography variant="h6" sx={{ color: 'success.main', mb: 1, fontWeight: 'bold' }}>
             [OK] ALL_MODULES_COMPLETE
@@ -349,7 +454,7 @@ const DailyDesktopEnvironments: React.FC = () => {
         </Box>
       )}
 
-      <Paper variant="outlined" sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
+      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 3 }, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper' }}>
         <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
           <Tooltip title="Click to zoom / focus">
             <Box
@@ -450,7 +555,16 @@ const DailyDesktopEnvironments: React.FC = () => {
         </Box>
 
         {!isGameOver ? (
-          <Box sx={{ width: '100%', maxWidth: 500, display: 'flex', gap: 1, mb: 4 }}>
+          <Box 
+            sx={{ 
+              width: '100%', 
+              maxWidth: 500, 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' }, 
+              gap: 1, 
+              mb: 4 
+            }}
+          >
             <Autocomplete
               fullWidth
               size="small"
@@ -525,35 +639,77 @@ const DailyDesktopEnvironments: React.FC = () => {
                 />
               )}
             />
-            {guesses.length >= minGuessesToGiveUp && (
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => setGiveUpDialogOpen(true)}
-                sx={{ px: 2 }}
-                title="Give Up"
+            <Box sx={{ display: 'flex', gap: 1, width: { xs: '100%', sm: 'auto' } }}>
+              {guesses.length >= minGuessesToGiveUp && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => setGiveUpDialogOpen(true)}
+                  sx={{ px: 2, flexGrow: { xs: 1, sm: 0 } }}
+                  title="Give Up"
+                >
+                  SIGKILL
+                </Button>
+              )}
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={() => handleSubmitGuess()} 
+                disabled={!selectedGuess}
+                sx={{ flexGrow: { xs: 1, sm: 0 }, px: 4 }}
               >
-                SIGKILL
+                EXEC
               </Button>
-            )}
-            <Button variant="contained" color="primary" onClick={() => handleSubmitGuess()} disabled={!selectedGuess}>
-              EXEC
-            </Button>
+            </Box>
           </Box>
         ) : (
           <Box textAlign="center" mb={4}>
             <Typography variant="h6" color={hasGivenUp ? "error.main" : "success.main"} fontWeight="bold">
               {hasGivenUp ? `[SIGKILL] SYSTEM_ABORTED` : `[OK] SYSTEM_IDENTIFIED`}
             </Typography>
-            <Button 
-              variant="outlined" 
-              color="primary" 
-              onClick={() => navigate('/')} 
-              startIcon={<Home />}
-              sx={{ mt: 2 }}
-            >
-              CD /HOME
-            </Button>
+            {isPastPuzzle ? (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', sm: 'row' }, 
+                  gap: 1.5, 
+                  mt: 2, 
+                  justifyContent: 'center',
+                  alignItems: 'stretch',
+                  width: '100%',
+                  maxWidth: { xs: '100%', sm: 'fit-content' },
+                  mx: 'auto'
+                }}
+              >
+                <Button 
+                  variant="outlined" 
+                  color="warning" 
+                  onClick={handleResetPuzzle} 
+                  sx={{ px: 3, borderRadius: 0 }}
+                >
+                  RESET_PUZZLE
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  color="primary" 
+                  onClick={() => navigate('/history')} 
+                  endIcon={<ArrowForward />}
+                  sx={{ borderRadius: 0 }}
+                >
+                  CD ../HISTORY
+                </Button>
+              </Box>
+            ) : (
+              <Button 
+                variant="outlined" 
+                color="primary" 
+                onClick={() => navigate('/')} 
+                startIcon={<Home />}
+                sx={{ mt: 2, borderRadius: 0 }}
+              >
+                CD /HOME
+              </Button>
+            )}
           </Box>
         )}
 
@@ -654,7 +810,7 @@ const DailyDesktopEnvironments: React.FC = () => {
               userSelect: 'none',
               pointerEvents: 'none', // Handle pointer events on the container
               transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-              transition: isDragging.current ? 'none' : 'transform 0.1s ease-out'
+              transition: isDraggingState ? 'none' : 'transform 0.1s ease-out'
             }}
           />
         </Box>
@@ -664,15 +820,17 @@ const DailyDesktopEnvironments: React.FC = () => {
         <DialogTitle>Confirm Give Up</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to give up? The answer will be revealed and you will not be able to guess again today.
+            Are you sure you want to give up? The answer will be revealed and you will not be able to guess again.
           </DialogContentText>
-          <DialogContentText sx={{ color: 'error.main', mt: 1, fontWeight: 'bold' }}>
-            [WARNING] Giving up resets your streak to 0.
-          </DialogContentText>
+          {!isPastPuzzle && (
+            <DialogContentText sx={{ color: 'error.main', mt: 1, fontWeight: 'bold' }}>
+              [WARNING] Giving up resets your streak to 0.
+            </DialogContentText>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setGiveUpDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleGiveUpConfirm} color="error" variant="contained">Give Up</Button>
+          <Button onClick={() => setGiveUpDialogOpen(false)} sx={{ borderRadius: 0 }}>Cancel</Button>
+          <Button onClick={handleGiveUpConfirm} color="error" variant="contained" sx={{ borderRadius: 0 }}>Give Up</Button>
         </DialogActions>
       </Dialog>
 
@@ -682,7 +840,7 @@ const DailyDesktopEnvironments: React.FC = () => {
         onClose={() => setErrorSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setErrorSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+        <Alert onClose={() => setErrorSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%', borderRadius: 0 }}>
           {errorMessage}
         </Alert>
       </Snackbar>

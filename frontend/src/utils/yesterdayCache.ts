@@ -57,7 +57,7 @@ export function getCachedYesterday<T>(gameType: 'commands' | 'distros' | 'des'):
     // Cache expired or for wrong date, remove it
     localStorage.removeItem(key);
     return null;
-  } catch (error) {
+  } catch {
     // Invalid cache data, remove it
     localStorage.removeItem(key);
     return null;

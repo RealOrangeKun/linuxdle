@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Container, Typography, Grid, Card, CardContent, CardActionArea, Box, Divider, Stack, Button } from '@mui/material';
 import { AutoStories, NewReleases, OpenInNew } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -8,9 +8,8 @@ import { SEO, pageSEO } from '../components/SEO';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [allGamesPlayed, setAllGamesPlayed] = useState(false);
 
-  const games = [
+  const games = React.useMemo(() => [
     {
       title: 'daily-commands',
       description: 'Guess the Linux command based on manual section, categories, and origin year.',
@@ -29,9 +28,9 @@ const Home: React.FC = () => {
       path: '/des',
       storageKey: 'linuxdle_des_state',
     },
-  ];
+  ], []);
 
-  useEffect(() => {
+  const allGamesPlayed = React.useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     
     const playedStatus = games.map(game => {
@@ -43,12 +42,14 @@ const Home: React.FC = () => {
       return false;
     });
 
-    const allPlayed = playedStatus.every(status => status === true);
-    setAllGamesPlayed(allPlayed);
-    // Fallback: if user lands on home with all games already done,
-    // fire the popup via the global event (Layout handles dedup via sessionStorage).
-    if (allPlayed) dispatchSupportDialog('all-complete');
-  }, []);
+    return playedStatus.every(status => status === true);
+  }, [games]);
+
+  useEffect(() => {
+    if (allGamesPlayed) {
+      dispatchSupportDialog('all-complete');
+    }
+  }, [allGamesPlayed]);
 
   return (
     <>

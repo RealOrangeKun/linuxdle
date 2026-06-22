@@ -2,6 +2,7 @@ using Linuxdle.Domain.Exceptions;
 using Linuxdle.Domain.Games;
 using Linuxdle.Domain.UserGuesses;
 using Linuxdle.Domain.UserGiveUps;
+using Linuxdle.Domain.DailyPuzzles;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Common.Constants;
 using Linuxdle.Services.Configurations;
@@ -196,6 +197,172 @@ internal sealed class DailyCommandService(
             cancellationToken: cancellationToken);
 
         dbContext.UserGiveUps.Add(UserGiveUp.Create(userId, puzzleId, GameIds.DailyCommands, today));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new DailyCommandGiveUpResultDto(
+            GuessCommandDetails: new GuessCommandDetails(
+                Name: target.Name,
+                Package: target.Package,
+                OriginYear: target.OriginYear,
+                ManSection: target.ManSection,
+                IsBuiltIn: target.IsBuiltIn,
+                RequiresArgs: target.RequiresArgs,
+                IsPosix: target.IsPosix,
+                Categories: target.CategoryNames),
+            Info: info);
+     }
+
+    private async Task<(int PuzzleId, DailyCommandDto Target)> GetTargetByPuzzleIdAsync(int puzzleId, CancellationToken cancellationToken)
+    {
+        var target = await hybridCache.GetOrCreateAsync(
+            $"puzzle_command_target_{puzzleId}",
+            async cancel =>
+            {
+                var puzzle = await dbContext.DailyPuzzles
+                    .AsNoTracking()
+                    .Where(p => p.Id == puzzleId)
+                    .Select(p => new { p.TargetId })
+                    .FirstOrDefaultAsync(cancel);
+
+                if (puzzle == null) return null;
+
+                return await dbContext.DailyCommands
+                    .Include(c => c.Categories)
+                    .Where(c => c.Id == puzzle.TargetId)
+                    .Select(c => new DailyCommandDto(
+                        c.Id,
+                        c.Name,
+                        c.Package,
+                        c.OriginYear,
+                        c.ManSection,
+                        c.IsBuiltIn,
+                        c.RequiresArgs,
+                        c.IsPosix,
+                        c.Categories.Select(cat => cat.Id).ToHashSet(),
+                        c.Categories.Select(cat => cat.Name).ToList()
+                    ))
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(cancel);
+            },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+            cancellationToken: cancellationToken);
+
+        if (target == null)
+        {
+            throw new NotFoundException($"Target for puzzle {puzzleId} not found");
+        }
+
+        return (puzzleId, target);
+    }
+
+    public async Task<DailyCommandGuessResultDto> HandlePastGuessAsync(Guid userId, int puzzleId, string userGuess, CancellationToken cancellationToken = default)
+    {
+        var puzzle = await dbContext.DailyPuzzles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == puzzleId, cancellationToken)
+            ?? throw new NotFoundException($"Puzzle {puzzleId} not found");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (puzzle.ScheduledDate >= today)
+        {
+            throw new BadRequestException("You can only play past puzzles through this endpoint.");
+        }
+
+        var (_, target) = await GetTargetByPuzzleIdAsync(puzzleId, cancellationToken);
+
+        bool hasGivenUp = await dbContext.UserGiveUps
+            .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId, cancellationToken);
+
+        if (hasGivenUp)
+            throw new BadRequestException("You have already given up on this puzzle.");
+
+        var guess = await hybridCache.GetOrCreateAsync(
+            CacheKeys.CommandByName(userGuess),
+            async cancel => await dbContext.DailyCommands
+                .Include(c => c.Categories)
+                .Where(c => c.Name.ToLower() == userGuess.ToLower())
+                .Select(c => new DailyCommandDto(
+                    c.Id,
+                    c.Name,
+                    c.Package,
+                    c.OriginYear,
+                    c.ManSection,
+                    c.IsBuiltIn,
+                    c.RequiresArgs,
+                    c.IsPosix,
+                    c.Categories.Select(cat => cat.Id).ToHashSet(),
+                    c.Categories.Select(cat => cat.Name).ToList()
+                ))
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+            cancellationToken: cancellationToken)
+            ?? throw new NotFoundException($"Command '{userGuess}' not found");
+
+        var isCorrect = target.Id == guess.Id;
+
+        CommandInfoDetails? info = null;
+        if (isCorrect)
+        {
+            info = await hybridCache.GetOrCreateAsync(
+                CacheKeys.CommandInfoByCommandId(target.Id),
+                async cancel => await dbContext.CommandInfos
+                    .Where(ci => ci.CommandId == target.Id)
+                    .Select(ci => new CommandInfoDetails(ci.Description, ci.Synopsis, ci.Example, ci.FunFact))
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(cancel),
+                options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+                cancellationToken: cancellationToken);
+        }
+
+        var result = DailyCommandGuessResultCalculator.CalculateResults(target, guess, info);
+
+        // Record guess with the puzzle's original ScheduledDate to protect active daily streaks
+        dbContext.UserGuesses.Add(UserGuess.Create(userId, puzzleId, GameIds.DailyCommands, puzzle.ScheduledDate, target.Id, isCorrect));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task<DailyCommandGiveUpResultDto> HandlePastGiveUpAsync(Guid userId, int puzzleId, CancellationToken cancellationToken = default)
+    {
+        var puzzle = await dbContext.DailyPuzzles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == puzzleId, cancellationToken)
+            ?? throw new NotFoundException($"Puzzle {puzzleId} not found");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (puzzle.ScheduledDate >= today)
+        {
+            throw new BadRequestException("You can only play past puzzles through this endpoint.");
+        }
+
+        var (_, target) = await GetTargetByPuzzleIdAsync(puzzleId, cancellationToken);
+
+        var guessesCount = await dbContext.UserGuesses
+            .CountAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId, cancellationToken);
+
+        if (guessesCount < gameSettings.Value.MinGuessesToGiveUp)
+            throw new BadRequestException($"You must make at least {gameSettings.Value.MinGuessesToGiveUp} guesses before you can give up.");
+
+        var hasGivenUp = await dbContext.UserGiveUps
+            .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId, cancellationToken);
+
+        if (hasGivenUp)
+            throw new BadRequestException("You have already given up on this puzzle.");
+
+        var info = await hybridCache.GetOrCreateAsync(
+            CacheKeys.CommandInfoByCommandId(target.Id),
+            async cancel => await dbContext.CommandInfos
+                .Where(ci => ci.CommandId == target.Id)
+                .Select(ci => new CommandInfoDetails(ci.Description, ci.Synopsis, ci.Example, ci.FunFact))
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+            cancellationToken: cancellationToken);
+
+        // Record giveup with the puzzle's original ScheduledDate to protect active daily streaks
+        dbContext.UserGiveUps.Add(UserGiveUp.Create(userId, puzzleId, GameIds.DailyCommands, puzzle.ScheduledDate));
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new DailyCommandGiveUpResultDto(

@@ -100,7 +100,7 @@ const GameProgressDialog: React.FC<GameProgressDialogProps> = ({ open, payload, 
               }}
             >
               <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
-                {`./${game.path.replace('/', '')}`}
+                {`./${game.path.split('/')[1]}`}
               </Typography>
               <Button
                 size="small"
@@ -132,12 +132,57 @@ const GameProgressDialog: React.FC<GameProgressDialogProps> = ({ open, payload, 
   );
 };
 
+export interface PastPuzzle {
+  id: number;
+  gameId: number;
+  scheduledDate: string;
+  isCompleted: boolean;
+  isAttempted: boolean;
+}
+
 export const dispatchGameProgressDialog = (
   outcome: GameProgressOutcome,
   completedGameKey: GameKey,
-  isFirstTry: boolean
+  isFirstTry: boolean,
+  pastPuzzleId?: string,
+  allPastPuzzles?: PastPuzzle[]
 ): void => {
-  const unfinishedGames = getUnfinishedGames(completedGameKey);
+  let unfinishedGames: GameProgressItem[] = [];
+
+  if (pastPuzzleId && allPastPuzzles) {
+    const currentPuzzle = allPastPuzzles.find(p => p.id === Number(pastPuzzleId));
+    if (currentPuzzle) {
+      const date = currentPuzzle.scheduledDate;
+      const datePuzzles = allPastPuzzles.filter(p => p.scheduledDate === date);
+      
+      datePuzzles.forEach(p => {
+        const gameKey = p.gameId === 1 ? 'commands' : p.gameId === 2 ? 'distros' : 'des';
+        if (gameKey === completedGameKey) return;
+        
+        const localSaved = localStorage.getItem(`linuxdle_${gameKey}_state_${p.id}`);
+        let isCompleted = p.isCompleted;
+        if (localSaved) {
+          try {
+            const state = JSON.parse(localSaved);
+            if (state && typeof state === 'object' && typeof state.isGameOver === 'boolean') {
+              isCompleted = state.isGameOver;
+            }
+          } catch {}
+        }
+        
+        if (!isCompleted) {
+          unfinishedGames.push({
+            key: gameKey as GameKey,
+            label: p.gameId === 1 ? 'Past Commands' : p.gameId === 2 ? 'Past Distros' : 'Past Desktop Environments',
+            path: `/${gameKey}/${p.id}`
+          });
+        }
+      });
+    }
+  } else {
+    unfinishedGames = getUnfinishedGames(completedGameKey);
+  }
+
   if (unfinishedGames.length === 0) {
     return;
   }

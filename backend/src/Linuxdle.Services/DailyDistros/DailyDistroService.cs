@@ -2,6 +2,7 @@ using Linuxdle.Domain.Exceptions;
 using Linuxdle.Domain.Games;
 using Linuxdle.Domain.UserGiveUps;
 using Linuxdle.Domain.UserGuesses;
+using Linuxdle.Domain.DailyPuzzles;
 using Linuxdle.Infrastructure.Data;
 using Linuxdle.Services.Common.Constants;
 using Linuxdle.Services.Configurations;
@@ -163,8 +164,147 @@ internal sealed class DailyDistroService(
 
         dbContext.UserGiveUps.Add(UserGiveUp.Create(userId, puzzleId, GameIds.DailyDistros, today));
         await dbContext.SaveChangesAsync(cancellationToken);
+ 
+        var distro = await dbContext.DailyDistros.Where(d => d.Id == target.Id).FirstOrDefaultAsync(cancellationToken);
+        return new DailyDistroDto(distro!.Name, distro.Slug);
+    }
+
+    private async Task<(int PuzzleId, DailyDistroTargetInfo Target)> GetTargetByPuzzleIdAsync(int puzzleId, CancellationToken cancellationToken)
+    {
+        var target = await hybridCache.GetOrCreateAsync(
+            $"puzzle_distro_target_{puzzleId}",
+            async cancel =>
+            {
+                var puzzle = await dbContext.DailyPuzzles
+                    .AsNoTracking()
+                    .Where(p => p.Id == puzzleId)
+                    .Select(p => new { p.TargetId })
+                    .FirstOrDefaultAsync(cancel);
+
+                if (puzzle == null) return null;
+
+                var target = await dbContext.DailyDistros
+                    .AsNoTracking()
+                    .Where(dd => dd.Id == puzzle.TargetId)
+                    .Select(dd => new DailyDistroTargetInfo(dd.Id, dd.LogoPath))
+                    .FirstOrDefaultAsync(cancel);
+
+                return target;
+            },
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+            cancellationToken: cancellationToken);
+
+        if (target == null)
+        {
+            throw new NotFoundException($"Target for puzzle {puzzleId} not found");
+        }
+
+        return (puzzleId, target);
+    }
+
+    public async Task<DailyDistroGuessResultDto> HandlePastGuessAsync(Guid userId, int puzzleId, string userGuess, CancellationToken cancellationToken = default)
+    {
+        var puzzle = await dbContext.DailyPuzzles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == puzzleId, cancellationToken)
+            ?? throw new NotFoundException($"Puzzle {puzzleId} not found");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (puzzle.ScheduledDate >= today)
+        {
+            throw new BadRequestException("You can only play past puzzles through this endpoint.");
+        }
+
+        var (_, target) = await GetTargetByPuzzleIdAsync(puzzleId, cancellationToken);
+
+        bool hasGivenUp = await dbContext.UserGiveUps
+            .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId, cancellationToken);
+
+        if (hasGivenUp)
+            throw new BadRequestException("You have already given up on this puzzle.");
+
+        var guess = await hybridCache.GetOrCreateAsync(
+            CacheKeys.DistroBySlug(userGuess),
+            async cancel => await dbContext.DailyDistros
+                .AsNoTracking()
+                .Where(dd => dd.Slug == userGuess.ToLower())
+                .Select(dd => new { dd.Id })
+                .FirstOrDefaultAsync(cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.StaticData },
+            cancellationToken: cancellationToken)
+            ?? throw new NotFoundException($"No Distro found for {userGuess}");
+
+        var isCorrect = guess.Id == target.Id;
+
+        // Record guess with the puzzle's original ScheduledDate to protect active daily streaks
+        dbContext.UserGuesses.Add(UserGuess.Create(userId, puzzleId, GameIds.DailyDistros, puzzle.ScheduledDate, target.Id, isCorrect));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new DailyDistroGuessResultDto(isCorrect);
+    }
+
+    public async Task<DailyDistroDto> HandlePastGiveUpAsync(Guid userId, int puzzleId, CancellationToken cancellationToken = default)
+    {
+        var puzzle = await dbContext.DailyPuzzles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == puzzleId, cancellationToken)
+            ?? throw new NotFoundException($"Puzzle {puzzleId} not found");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (puzzle.ScheduledDate >= today)
+        {
+            throw new BadRequestException("You can only play past puzzles through this endpoint.");
+        }
+
+        var (_, target) = await GetTargetByPuzzleIdAsync(puzzleId, cancellationToken);
+
+        var guessesCount = await dbContext.UserGuesses
+            .CountAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId, cancellationToken);
+
+        if (guessesCount < _gameSettings.MinGuessesToGiveUp)
+        {
+            throw new BadRequestException($"You must make at least {_gameSettings.MinGuessesToGiveUp} guesses before you can give up.");
+        }
+
+        var hasGivenUp = await dbContext.UserGiveUps
+            .AnyAsync(ug => ug.UserId == userId && ug.PuzzleId == puzzleId, cancellationToken);
+
+        if (hasGivenUp)
+        {
+            throw new BadRequestException("You have already given up on this puzzle.");
+        }
+
+        // Record giveup with the puzzle's original ScheduledDate to protect active daily streaks
+        dbContext.UserGiveUps.Add(UserGiveUp.Create(userId, puzzleId, GameIds.DailyDistros, puzzle.ScheduledDate));
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         var distro = await dbContext.DailyDistros.Where(d => d.Id == target.Id).FirstOrDefaultAsync(cancellationToken);
         return new DailyDistroDto(distro!.Name, distro.Slug);
+    }
+
+    public async Task<byte[]> GeneratePastDistroLogoAsync(int puzzleId, int numberOfTries, bool hardMode, CancellationToken cancellationToken = default)
+    {
+        var puzzle = await dbContext.DailyPuzzles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == puzzleId, cancellationToken)
+            ?? throw new NotFoundException($"Puzzle {puzzleId} not found");
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (puzzle.ScheduledDate >= today)
+        {
+            throw new BadRequestException("You can only access logos for past puzzles through this endpoint.");
+        }
+
+        var (_, target) = await GetTargetByPuzzleIdAsync(puzzleId, cancellationToken);
+
+        var filePath = Path.Combine(_contentRoot, target.LogoPath);
+
+        int cappedTries = Math.Min(numberOfTries, _imageOptions.MaxRetries);
+
+        return await hybridCache.GetOrCreateAsync(
+            $"puzzle_distro_image_{puzzleId}_{cappedTries}_{hardMode}",
+            async cancel => await DistroImageProcessor.ProcessDistroImageAsync(filePath, cappedTries, _imageOptions, hardMode, cancel),
+            options: new HybridCacheEntryOptions { Expiration = CacheExpirations.DistroImages },
+            cancellationToken: cancellationToken);
     }
 }

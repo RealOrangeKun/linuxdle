@@ -101,4 +101,9 @@ export const pageSEO = {
     description: 'Guess the Linux desktop environment from screenshots and hints. Test your knowledge of GNOME, KDE, XFCE, and more!',
     keywords: 'desktop environments, gnome, kde, xfce, linux DE, desktop screenshots, linux interface',
   },
+  history: {
+    title: 'History - Replay Past Puzzles | Linuxdle',
+    description: 'Browse, replay, and reset past Linuxdle puzzles including Commands, Distros, and Desktop Environments in a retro terminal history console.',
+    keywords: 'linuxdle history, past puzzles, play old puzzles, retro terminal, linux puzzle game archive',
+  },
 };

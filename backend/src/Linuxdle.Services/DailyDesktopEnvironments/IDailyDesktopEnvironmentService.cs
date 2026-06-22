@@ -9,5 +9,8 @@ public interface IDailyDesktopEnvironmentService
     Task<IEnumerable<DailyDesktopEnvironmentDto>> GetDailyDesktopEnvironmentsAsync(CancellationToken cancellationToken = default);
     Task<DailyDesktopEnvironmentDto?> GetYesterdaysTargetAsync(CancellationToken cancellationToken = default);
     Task<DailyDesktopEnvironmentDto> HandleUserGiveUpAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<DailyDesktopEnvironmentGuessResultDto> HandlePastGuessAsync(Guid userId, int puzzleId, string userGuess, int numberOfGuesses, CancellationToken cancellationToken = default);
+    Task<DailyDesktopEnvironmentDto> HandlePastGiveUpAsync(Guid userId, int puzzleId, CancellationToken cancellationToken = default);
+    Task<byte[]> GetPastDesktopEnvironmentScreenshotAsync(int puzzleId, CancellationToken cancellationToken = default);
 }
 
