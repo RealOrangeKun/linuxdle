@@ -376,5 +376,59 @@
     "base_distro": "Independent",
     "default_de": "None",
     "release_year": 2009
+  },
+  {
+    "id": 43,
+    "name": "SteamOS",
+    "slug": "steamos",
+    "logo_path": "assets/distros/steamos.png",
+    "base_distro": "Arch Linux",
+    "default_de": "KDE Plasma",
+    "release_year": 2013
+  },
+  {
+    "id": 44,
+    "name": "Red Hat Enterprise Linux",
+    "slug": "rhel",
+    "logo_path": "assets/distros/rhel.png",
+    "base_distro": "Independent",
+    "default_de": "GNOME",
+    "release_year": 2000
+  },
+  {
+    "id": 45,
+    "name": "CentOS",
+    "slug": "centos",
+    "logo_path": "assets/distros/centos.png",
+    "base_distro": "Independent",
+    "default_de": "GNOME",
+    "release_year": 2004
+  },
+  {
+    "id": 46,
+    "name": "Fedora Silverblue",
+    "slug": "silverblue",
+    "logo_path": "assets/distros/silverblue.png",
+    "base_distro": "Fedora",
+    "default_de": "GNOME",
+    "release_year": 2018
+  },
+  {
+    "id": 47,
+    "name": "Asahi Linux",
+    "slug": "asahi",
+    "logo_path": "assets/distros/asahi.png",
+    "base_distro": "Fedora",
+    "default_de": "KDE Plasma",
+    "release_year": 2022
+  },
+  {
+    "id": 48,
+    "name": "Mageia",
+    "slug": "mageia",
+    "logo_path": "assets/distros/mageia.png",
+    "base_distro": "Independent",
+    "default_de": "KDE Plasma",
+    "release_year": 2011
   }
 ]

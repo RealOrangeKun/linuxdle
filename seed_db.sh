@@ -47,7 +47,7 @@ DB_HOST="${DB_HOST}" \
 DB_NAME="${DB_NAME}" \
 DB_USER="${DB_USER}" \
 DB_PASSWORD="${DB_PASSWORD}" \
-python3 seed_db.py
+.venv/bin/python seed_db.py
 
 echo ""
 echo "✅ Database seeding complete!"
