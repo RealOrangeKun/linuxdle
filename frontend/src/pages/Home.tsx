@@ -53,16 +53,14 @@ const Home: React.FC = () => {
   }, [allGamesPlayed]);
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const lastSeenDate = localStorage.getItem('linuxdle_history_announcement_seen_date');
-    if (lastSeenDate !== today) {
+    const seen = localStorage.getItem('linuxdle_history_announcement_seen');
+    if (!seen) {
       setAnnouncementOpen(true);
     }
   }, []);
 
   const handleCloseAnnouncement = () => {
-    const today = new Date().toISOString().split('T')[0];
-    localStorage.setItem('linuxdle_history_announcement_seen_date', today);
+    localStorage.setItem('linuxdle_history_announcement_seen', 'true');
     setAnnouncementOpen(false);
   };
 

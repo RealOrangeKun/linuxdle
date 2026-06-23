@@ -396,9 +396,32 @@ const Layout: React.FC = () => {
               <Button 
                 color="inherit" 
                 onClick={() => navigate('/history')}
-                sx={{ display: { xs: 'none', sm: 'block' }, fontFamily: 'monospace' }}
+                sx={{ 
+                  display: { xs: 'none', sm: 'block' }, 
+                  fontFamily: 'monospace',
+                  position: 'relative'
+                }}
               >
                 ./history
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'inline-block',
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    bgcolor: '#39FF14',
+                    ml: 0.8,
+                    verticalAlign: 'middle',
+                    boxShadow: '0 0 8px #39FF14',
+                    animation: 'ping-pulse 1.5s infinite ease-in-out',
+                    '@keyframes ping-pulse': {
+                      '0%': { transform: 'scale(0.8)', opacity: 0.5, boxShadow: '0 0 2px #39FF14' },
+                      '50%': { transform: 'scale(1.2)', opacity: 1, boxShadow: '0 0 10px #39FF14' },
+                      '100%': { transform: 'scale(0.8)', opacity: 0.5, boxShadow: '0 0 2px #39FF14' },
+                    }
+                  }}
+                />
               </Button>
               <IconButton
                 onClick={() => navigate('/man')}
@@ -505,7 +528,30 @@ const Layout: React.FC = () => {
           <BottomNavigationAction
             value="history"
             label="History"
-            icon={<HistoryIcon fontSize="small" />}
+            icon={
+              <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                <HistoryIcon fontSize="small" />
+                <Box
+                  component="span"
+                  sx={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    bgcolor: '#39FF14',
+                    boxShadow: '0 0 6px #39FF14',
+                    animation: 'ping-pulse 1.5s infinite ease-in-out',
+                    '@keyframes ping-pulse': {
+                      '0%': { transform: 'scale(0.8)', opacity: 0.5, boxShadow: '0 0 2px #39FF14' },
+                      '50%': { transform: 'scale(1.2)', opacity: 1, boxShadow: '0 0 8px #39FF14' },
+                      '100%': { transform: 'scale(0.8)', opacity: 0.5, boxShadow: '0 0 2px #39FF14' },
+                    }
+                  }}
+                />
+              </Box>
+            }
             onClick={() => navigate('/history')}
             aria-label="Past Puzzles History"
           />
