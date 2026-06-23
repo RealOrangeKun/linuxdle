@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Container, Typography, Grid, Card, CardContent, CardActionArea, Box, Divider, Stack, Button } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Typography, Grid, Card, CardContent, CardActionArea, Box, Divider, Stack, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { AutoStories, NewReleases, OpenInNew } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import CountdownTimer from '../components/CountdownTimer';
@@ -8,6 +8,7 @@ import { SEO, pageSEO } from '../components/SEO';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const [announcementOpen, setAnnouncementOpen] = useState(false);
 
   const games = React.useMemo(() => [
     {
@@ -51,6 +52,20 @@ const Home: React.FC = () => {
     }
   }, [allGamesPlayed]);
 
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const lastSeenDate = localStorage.getItem('linuxdle_history_announcement_seen_date');
+    if (lastSeenDate !== today) {
+      setAnnouncementOpen(true);
+    }
+  }, []);
+
+  const handleCloseAnnouncement = () => {
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem('linuxdle_history_announcement_seen_date', today);
+    setAnnouncementOpen(false);
+  };
+
   return (
     <>
       <SEO {...pageSEO.home} />
@@ -67,18 +82,50 @@ const Home: React.FC = () => {
           Welcome to the daily puzzle suite for Linux enthusiasts. Select a module to begin.
         </Typography>
 
+        <Box sx={{ display: 'block', mt: 2.5, mb: 1 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              display: 'inline-block',
+              color: '#ffd54f',
+              fontWeight: 'bold',
+              fontFamily: 'monospace',
+              px: 1,
+              py: 0.5,
+              border: '1px dashed #ffd54f',
+              textTransform: 'uppercase',
+              animation: 'splash-pulse 0.8s infinite alternate',
+              '@keyframes splash-pulse': {
+                '0%': { transform: 'scale(0.95) rotate(-3deg)' },
+                '100%': { transform: 'scale(1.05) rotate(-3deg)' }
+              }
+            }}
+          >
+            {`[UPDATE] puzzle history console added! try "./history"`}
+          </Typography>
+        </Box>
+
         <Box 
           sx={{ 
             border: 1, 
             borderColor: 'error.main', 
             bgcolor: 'action.hover', 
-            p: 2.5, 
+            p: { xs: 1.5, sm: 2.5 }, 
             mt: 4, 
             mb: 2, 
             fontFamily: 'monospace'
           }}
         >
-          <Typography variant="h6" color="error.main" fontWeight="bold" sx={{ fontFamily: 'monospace', mb: 1 }}>
+          <Typography 
+            variant="h6" 
+            color="error.main" 
+            fontWeight="bold" 
+            sx={{ 
+              fontFamily: 'monospace', 
+              mb: 1,
+              fontSize: { xs: '0.85rem', sm: '1.1rem', md: '1.25rem' }
+            }}
+          >
             [!] TEMPORARY_OFFLINE_NOTICE
           </Typography>
           <Typography variant="body2" sx={{ fontFamily: 'monospace', opacity: 0.8, mb: 1.5 }}>
@@ -92,6 +139,51 @@ const Home: React.FC = () => {
             Linuxdle will probably be back after that! It has been incredibly fun to develop and work on this project, and to see people use it and share their feedback. Thank you all for playing and being part of this!
           </Typography>
         </Box>
+
+        <Dialog
+          open={announcementOpen}
+          onClose={handleCloseAnnouncement}
+          PaperProps={{
+            sx: {
+              border: 1,
+              borderColor: 'primary.main',
+              bgcolor: 'background.paper',
+              p: 1.5,
+              minWidth: { xs: '90%', sm: 480 },
+              fontFamily: 'monospace',
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: 'primary.main', fontFamily: 'monospace', fontWeight: 'bold' }}>
+            {`[NEW_FEATURE] PUZZLE_HISTORY_ACTIVE`}
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2, opacity: 0.8 }}>
+              $ cat /etc/motd/features.txt
+            </Typography>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', whiteSpace: 'pre-line', lineHeight: 1.6, mb: 1 }}>
+              {`System update successful!
+
+We have added a new History feature:
+- Replay past daily puzzles from previous days.
+- Track your completion progress for each date: [x/3] completed.
+- Reset specific days or individual puzzles to try them again without affecting your current streak!
+- Fully sequential play: chain navigation links to play all modules for any given date.
+
+Select "./history" in the menu or bottom navigation to view the past puzzle console.`}
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleCloseAnnouncement}
+              variant="outlined"
+              color="primary"
+              sx={{ fontFamily: 'monospace' }}
+            >
+              [CLOSE]
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {allGamesPlayed && (
           <Box mt={4} sx={{ textAlign: 'center' }}>
