@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Box, Typography, Paper, useTheme, useMediaQuery, List, ListItem, ListItemButton, ListItemText, Chip, Pagination, Card, CardContent, CardActions, Grid, Button, Stack } from '@mui/material';
+import { Container, Box, Typography, Paper, useTheme, useMediaQuery, Pagination, Card, CardContent, CardActions, Button, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { SEO, pageSEO } from '../components/SEO';
@@ -840,7 +840,7 @@ const History: React.FC = () => {
                 <Pagination
                   count={totalPages}
                   page={currentPage}
-                  onChange={(e, value) => {
+                  onChange={(_, value) => {
                     setCurrentPage(value);
                     const freshGroups = groupPuzzlesByDate(puzzles);
                     setHistoryLines(prev => [
